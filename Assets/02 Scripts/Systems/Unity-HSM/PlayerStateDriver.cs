@@ -22,6 +22,8 @@ namespace HSM {
         StateMachine machine;
         State root;
 
+        
+
         void Awake() {
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
@@ -75,8 +77,10 @@ namespace HSM {
         void Update() {
             if(!IsOwner) return;
 
-            ctx.grounded = cc.isGrounded;
-            if(ctx.grounded) Physics.Raycast(groundCheck.position,Vector3.down,out ctx.groundHit,ctx.groundCheckLength, groundMask);
+            //ctx.grounded = cc.isGrounded;
+            if(cc.isGrounded || Physics.CheckSphere(groundCheck.position, ctx.groundCheckLength, groundMask)) ctx.grounded = true;
+            else ctx.grounded = false;
+            if(ctx.grounded) Physics.Raycast(groundCheck.position,Vector3.down,out ctx.groundHit,ctx.groundCheckLength+.2f, groundMask);
 
             machine.Tick(Time.deltaTime);
 
@@ -90,7 +94,7 @@ namespace HSM {
 
             float gravVel = ctx.velocity.y;
             Vector3 horizontalVel = (ctx.controller.transform.right * ctx.velocity.x) + (ctx.controller.transform.forward * ctx.velocity.z);
-            if(ctx.grounded)horizontalVel = AdjustVelocityToSlope(horizontalVel);
+            if(ctx.grounded) horizontalVel = AdjustVelocityToSlope(horizontalVel);
             
             
             Vector3 gravVector = new Vector3(0,gravVel,0);
@@ -101,10 +105,17 @@ namespace HSM {
 
             // Debug
             ctx.currentVelocityMag = (int)(tempVel.magnitude*100)/100;
-            //ctx.debugCurrentDir = tempVel;
+            ctx.debugCurrentDir = tempVel;
 
         }
 
+        // Gizmos /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.blue;
+            
+            if(ctx.currentVelocityMag > .01f) Gizmos.DrawLine(ctx.body.transform.position, ctx.body.transform.position + ctx.debugCurrentDir*2);
+        }
         void OnDrawGizmosSelected() {
             if (!drawGizmos || groundCheck == null) return;
 
@@ -119,12 +130,14 @@ namespace HSM {
         // Slope ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         private Vector3 AdjustVelocityToSlope(Vector3 velocity)
         {
-            Quaternion slopeRotation = Quaternion.FromToRotation(Vector3.up, ctx.groundHit.normal);
-            
-            // Multiply the rotation by our movement velocity
-            Vector3 adjustedVelocity = slopeRotation * velocity;
-            
-            return adjustedVelocity;
+            // 1. Get the normal of the slope
+            Vector3 slopeNormal = ctx.groundHit.normal;
+
+            // 2. Project your raw movement velocity onto the slope plane
+            Vector3 adjustedVelocity = Vector3.ProjectOnPlane(velocity, slopeNormal);
+
+            // 3. Keep the original speed to prevent moving too fast/slow on slopes
+            return adjustedVelocity.normalized * velocity.magnitude;
         }
 
         // Events /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -242,6 +255,8 @@ namespace HSM {
         public NetworkAnimator netAnim;
         public SkinnedMeshRenderer skin;
         [HideInInspector] public PlayerStateDriver psd;
+
+        [HideInInspector] public Vector3 debugCurrentDir;
 
         public static readonly int MotionHash = Animator.StringToHash("Motion");
         public static readonly int IsCrouchHash = Animator.StringToHash("IsCrouch");

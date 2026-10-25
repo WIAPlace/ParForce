@@ -27,7 +27,7 @@ namespace HSM {
         {
             if(ctx.grounded && ctx.velocity.y < 0) // if on ground reset gravity
             {
-                ctx.velocity.y = 0;
+                ctx.velocity.y = -2;
             }
 
             Vector3 targetRotation = new Vector3(0, ctx.cinCamTransform.eulerAngles.y, 0);

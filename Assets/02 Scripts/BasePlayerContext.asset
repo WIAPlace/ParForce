@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24584183af783b34e89befa9c5cdcf4a, type: 3}
+  m_Name: BasePlayerContext
+  m_EditorClassIdentifier: Assembly-CSharp::SO_PlayerContextLoader
+  moveSpeed: 6
+  accel: 40
+  decel: 50
+  jumpForce: 3
+  gravForce: 9.81
+  drag: 1
+  sprintMod: 2
+  crouchMod: 0.5
+  groundCheckLength: 0.3

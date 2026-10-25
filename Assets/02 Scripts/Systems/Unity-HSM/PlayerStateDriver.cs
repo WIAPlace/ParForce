@@ -10,6 +10,7 @@ using Unity.Netcode;
 namespace HSM {
     public class PlayerStateDriver : NetworkBehaviour {
         public PlayerContext ctx = new PlayerContext();
+        public SO_PlayerContextLoader pcl;
         public InputReader input;
         [SerializeField] private CharacterController cc;
         [SerializeField] private GameObject body;
@@ -24,6 +25,7 @@ namespace HSM {
         void Awake() {
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
+            ctx.LoadContext(pcl);
 
             root = new PlayerRoot(null, ctx);
             var builder = new StateMachineBuilder(root);
@@ -32,7 +34,7 @@ namespace HSM {
             ctx.psd = this;
             ctx.controller = cc;
             ctx.body = body;
-
+            
             // fallback: create a groundCheck just below the collider's bounds
             if (groundCheck == null) {
                 var col = GetComponent<Collider>();
@@ -57,6 +59,8 @@ namespace HSM {
                     ctx.cinCam.Follow = ctx.cameraPosition;
                     ctx.cinCam.LookAt = ctx.cameraPosition;
                 }
+
+                ctx.skin.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
             }
         }
 
@@ -71,7 +75,8 @@ namespace HSM {
         void Update() {
             if(!IsOwner) return;
 
-            ctx.grounded = Physics.CheckSphere(groundCheck.position, ctx.groundCheckLength, groundMask);
+            ctx.grounded = cc.isGrounded;
+            if(ctx.grounded) Physics.Raycast(groundCheck.position,Vector3.down,out ctx.groundHit,ctx.groundCheckLength, groundMask);
 
             machine.Tick(Time.deltaTime);
 
@@ -235,6 +240,24 @@ namespace HSM {
         public Transform cinCamTransform => cinCam.transform;
         public Animator anim;
         public NetworkAnimator netAnim;
+        public SkinnedMeshRenderer skin;
         [HideInInspector] public PlayerStateDriver psd;
+
+
+        public void LoadContext (SO_PlayerContextLoader loader)
+        {
+            if(loader.moveSpeed!=0) moveSpeed = loader.moveSpeed;
+
+            if(loader.accel!=0) accel = loader.accel;
+            if(loader.decel!=0) decel = loader.decel;
+            if(loader.jumpForce!=0) jumpForce = loader.jumpForce;
+
+            if(loader.gravForce !=0) gravForce  = loader.gravForce;
+            if(loader.drag!=0) drag = loader.drag;
+
+            if(loader.sprintMod!=0) sprintMod = loader.sprintMod;
+            if(loader.crouchMod!=0) crouchMod = loader.crouchMod;
+            if(loader.groundCheckLength!=0) groundCheckLength = loader.groundCheckLength;
+        }
     }
 }

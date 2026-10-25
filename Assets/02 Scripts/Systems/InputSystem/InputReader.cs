@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System;
 
 /// <summary>
 ///  Tool for utilizing the event system with the input actions
@@ -63,15 +64,80 @@ public class InputReader : ScriptableObject, InputSystem.IPlayerActions, InputSy
     }
 
     ////////////////////////////////////////////////////////////////////////// Events
-    
+    public event Action<Vector2> MoveEvent; 
+    public event Action JumpEvent;
+    public event Action JumpCancelledEvent;
+    public event Action PauseEvent;
+    public event Action ResumeEvent;
+    public event Action SprintEvent;
+    public event Action SprintCancelledEvent;
+    public event Action CrouchEvent;
+    public event Action CrouchCancelledEvent;
+
     ////// Player Events ///////////////
     /// 
-    
+    public void OnMove(InputAction.CallbackContext context) // Vector 2 
+    {
+        //Debug.Log(message: $"Phase:{context.phase},Value:{context.ReadValue<Vector2>()}");
+        MoveEvent?.Invoke(context.ReadValue<Vector2>());
+    }
 
+    public void OnJump(InputAction.CallbackContext context) // Check if down then when up
+    {
+       if (context.phase == InputActionPhase.Performed)
+        {
+            JumpEvent?.Invoke();
+        }
+        if (context.phase == InputActionPhase.Canceled)
+        {
+            JumpCancelledEvent?.Invoke();
+        }
+    }
+
+    public void OnSprint(UnityEngine.InputSystem.InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+        {
+            SprintEvent?.Invoke();
+        }
+        if (context.phase == InputActionPhase.Canceled)
+        {
+            SprintCancelledEvent?.Invoke();
+        }
+    }
+
+    public void OnCrouch(UnityEngine.InputSystem.InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+        {
+            CrouchEvent?.Invoke();
+        }
+        if (context.phase == InputActionPhase.Canceled)
+        {
+            CrouchCancelledEvent?.Invoke();
+        }
+    }
+
+
+    public void OnPause(InputAction.CallbackContext context) // PAUSE
+    {
+        if (context.phase == InputActionPhase.Performed)
+        {
+            PauseEvent.Invoke();
+            SetUI();
+        }
+    }
 
     ////// UI Events ///////////////////
     /// 
-
+    public void OnResume(InputAction.CallbackContext context) // RESUME
+    {
+        if (context.phase == InputActionPhase.Performed)
+        {
+            ResumeEvent.Invoke();
+            SetPlayer();
+        }
+    }
 
 
     ///////////////////////////////////////////////////////////////////////// Functions 
@@ -84,11 +150,7 @@ public class InputReader : ScriptableObject, InputSystem.IPlayerActions, InputSy
 
     ////// Not Implemented /////////////
     /// Interfaces will automaticaly be generated 
-    public void OnMove(UnityEngine.InputSystem.InputAction.CallbackContext context)
-    {
-        //throw new System.NotImplementedException();
-    }
-
+    
     public void OnLook(UnityEngine.InputSystem.InputAction.CallbackContext context)
     {
         //throw new System.NotImplementedException();
@@ -104,15 +166,6 @@ public class InputReader : ScriptableObject, InputSystem.IPlayerActions, InputSy
         //throw new System.NotImplementedException();
     }
 
-    public void OnCrouch(UnityEngine.InputSystem.InputAction.CallbackContext context)
-    {
-        //throw new System.NotImplementedException();
-    }
-
-    public void OnJump(UnityEngine.InputSystem.InputAction.CallbackContext context)
-    {
-        //throw new System.NotImplementedException();
-    }
 
     public void OnPrevious(UnityEngine.InputSystem.InputAction.CallbackContext context)
     {
@@ -120,11 +173,6 @@ public class InputReader : ScriptableObject, InputSystem.IPlayerActions, InputSy
     }
 
     public void OnNext(UnityEngine.InputSystem.InputAction.CallbackContext context)
-    {
-        //throw new System.NotImplementedException();
-    }
-
-    public void OnSprint(UnityEngine.InputSystem.InputAction.CallbackContext context)
     {
         //throw new System.NotImplementedException();
     }

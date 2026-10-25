@@ -10,9 +10,6 @@ namespace HSM {
             this.ctx = ctx;
             Idle = new Idle(m, this, ctx);
             Move = new Move(m, this, ctx);
-            Add(new ColorPhaseActivity(ctx.renderer){
-                enterColor = Color.yellow,  // runs while Grounded is activating
-            });
         }
         
         protected override State GetInitialState() => Idle;
@@ -20,16 +17,22 @@ namespace HSM {
         protected override State GetTransition() {
             if (ctx.jumpPressed) {
                 ctx.jumpPressed = false;
-                var rb = ctx.rb;
-
-                if (rb != null) {
-                    var v = rb.linearVelocity;
-                    v.y = ctx.jumpSpeed;
-                    rb.linearVelocity = v;
-                }
+                ctx.velocity.y = ctx.jumpForce;
                 return ((PlayerRoot)Parent).Airborne;
             }
             return ctx.grounded ? null : ((PlayerRoot)Parent).Airborne;
         }
+
+        protected override void OnUpdate(float deltaTime)
+        {
+            if(ctx.grounded && ctx.velocity.y < 0) // if on ground reset gravity
+            {
+                ctx.velocity.y = 0;
+            }
+
+            Vector3 targetRotation = new Vector3(0, ctx.cinCamTransform.eulerAngles.y, 0);
+            ctx.controller.transform.rotation = Quaternion.Euler(targetRotation);
+        }
+
     }
 }

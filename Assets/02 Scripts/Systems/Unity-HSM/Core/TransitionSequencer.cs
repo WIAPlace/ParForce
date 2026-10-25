@@ -21,6 +21,7 @@ namespace HSM {
 
         // Request a transition from one state to another
         public void RequestTransition(State from, State to) {
+            //Debug.Log("Transition From: "+from +" To: "+ to);
             if (to == null || from == to) return;
             if (sequencer != null){ pending = (from, to); return; }
             BeginTransition(from, to);
@@ -38,7 +39,7 @@ namespace HSM {
                         : (a.Mode == ActivityMode.Inactive);
                     if (!include) continue;
 
-                    Debug.Log($"[Phase {(deactivate?"Exit":"Enter")}] state={st.GetType().Name}, activity={a.GetType().Name}, mode={a.Mode}");
+                    //Debug.Log($"[Phase {(deactivate?"Exit":"Enter")}] state={st.GetType().Name}, activity={a.GetType().Name}, mode={a.Mode}");
 
                     steps.Add(ct => deactivate ? a.DeactivateAsync(ct) : a.ActivateAsync(ct));
                 }

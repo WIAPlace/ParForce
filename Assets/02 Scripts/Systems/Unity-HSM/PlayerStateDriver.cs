@@ -2,32 +2,36 @@ using System;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Cinemachine;
+using Unity.Netcode.Components;
+using Unity.Netcode;
 //using UnityUtils;
 
 namespace HSM {
-    public class PlayerStateDriver : MonoBehaviour {
+    public class PlayerStateDriver : NetworkBehaviour {
         public PlayerContext ctx = new PlayerContext();
+        public InputReader input;
+        [SerializeField] private CharacterController cc;
+        [SerializeField] private GameObject body;
         public Transform groundCheck;
-        public float groundRadius = 0.2f;
         public LayerMask groundMask;
         public bool drawGizmos = true;
         string lastPath;
-
-        Rigidbody rb;
+        
         StateMachine machine;
         State root;
 
         void Awake() {
-            //rb = gameObject.GetOrAdd<Rigidbody>();
-            rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
-
-            ctx.rb = rb;
-            ctx.anim = GetComponentInChildren<Animator>();
-            ctx.renderer = GetComponent<Renderer>();
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
 
             root = new PlayerRoot(null, ctx);
             var builder = new StateMachineBuilder(root);
             machine = builder.Build();
+
+            ctx.psd = this;
+            ctx.controller = cc;
+            ctx.body = body;
 
             // fallback: create a groundCheck just below the collider's bounds
             if (groundCheck == null) {
@@ -40,56 +44,197 @@ namespace HSM {
             }
         }
 
-        void Update() {
-            float x = 0f;
-            if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) x -= 1f;
-            if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) x += 1f;
-            ctx.jumpPressed = Keyboard.current.spaceKey.wasPressedThisFrame;
-            ctx.move.x = Mathf.Clamp(x, -1f, 1f);
+        public override void OnNetworkSpawn()
+        {
+            if (IsOwner)
+            {
+                Debug.Log("Owner Set Up");
+                SetUpEvents();
 
-            ctx.grounded = Physics.CheckSphere(groundCheck.position, groundRadius, groundMask);
+                ctx.cinCam = FindFirstObjectByType<CinemachineCamera>();
+                
+                if(ctx.cinCam != null){
+                    ctx.cinCam.Follow = ctx.cameraPosition;
+                    ctx.cinCam.LookAt = ctx.cameraPosition;
+                }
+            }
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            if (IsOwner)
+            {
+                EndEvents();
+            }
+        }
+
+        void Update() {
+            if(!IsOwner) return;
+
+            ctx.grounded = Physics.CheckSphere(groundCheck.position, ctx.groundCheckLength, groundMask);
 
             machine.Tick(Time.deltaTime);
 
             var path = StatePath(machine.Root.Leaf());
+            ctx.debugCurrentLeaf = machine.Root.Leaf().ToString();
 
             if (path != lastPath) {
                 //Logwin.Log("State", path);
                 lastPath = path;
             }
-        }
 
-        void FixedUpdate() {
-            var v = rb.linearVelocity;
-            v.x = ctx.velocity.x;
-            rb.linearVelocity = v;
+            float gravVel = ctx.velocity.y;
+            Vector3 horizontalVel = (ctx.controller.transform.right * ctx.velocity.x) + (ctx.controller.transform.forward * ctx.velocity.z);
+            if(ctx.grounded)horizontalVel = AdjustVelocityToSlope(horizontalVel);
+            
+            
+            Vector3 gravVector = new Vector3(0,gravVel,0);
+            //Vector3 tempVel = new Vector3(horizontalVel.x,gravVel,horizontalVel.z);
+            Vector3 tempVel = horizontalVel + gravVector;
 
-            ctx.velocity.x = rb.linearVelocity.x;
+            cc.Move(tempVel * Time.deltaTime);
+
+            // Debug
+            ctx.currentVelocityMag = (int)(tempVel.magnitude*100)/100;
+            //ctx.debugCurrentDir = tempVel;
+
         }
 
         void OnDrawGizmosSelected() {
             if (!drawGizmos || groundCheck == null) return;
 
             Gizmos.color = Color.white;
-            Gizmos.DrawWireSphere(groundCheck.position, groundRadius);
+            Gizmos.DrawWireSphere(groundCheck.position, ctx.groundCheckLength);
         }
 
         static string StatePath(State s) {
             return string.Join(" > ", s.PathToRoot().Reverse().Select(n => n.GetType().Name));
         }
+
+        // Slope ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        private Vector3 AdjustVelocityToSlope(Vector3 velocity)
+        {
+            Quaternion slopeRotation = Quaternion.FromToRotation(Vector3.up, ctx.groundHit.normal);
+            
+            // Multiply the rotation by our movement velocity
+            Vector3 adjustedVelocity = slopeRotation * velocity;
+            
+            return adjustedVelocity;
+        }
+
+        // Events /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        private void SetUpEvents()
+        {
+            input.MoveEvent += HandleMove;
+            input.JumpEvent += HandleJump;
+            input.JumpCancelledEvent += HandleJumpCancelled;
+            input.SprintEvent += SprintEvent;
+            input.SprintCancelledEvent += SprintEventCancelled;
+            input.CrouchEvent += CrouchEvent;
+            input.CrouchCancelledEvent += CrouchEventCancelled;
+        }
+        private void EndEvents()
+        {
+            input.MoveEvent -= HandleMove;
+            input.JumpEvent -= HandleJump;
+            input.JumpCancelledEvent -= HandleJumpCancelled;
+            input.SprintEvent -= SprintEvent;
+            input.SprintCancelledEvent -= SprintEventCancelled;
+            input.CrouchEvent -= CrouchEvent;
+            input.CrouchCancelledEvent -= CrouchEventCancelled;
+        }
+
+        // Handle Events //////////////////////////////////////////////////////////////////////////////////////////////////////
+        private void HandleMove(Vector2 moveInput) // Move
+        {
+            ctx.move.x = moveInput.x;
+            ctx.move.z = moveInput.y;
+
+            ctx.move.Normalize();
+        }
+
+        private void HandleJump()
+        {
+            if(!ctx.jumpPressed){
+                ctx.jumpPressed = true;
+            }
+        }
+        private void HandleJumpCancelled()
+        {
+            if(ctx.jumpPressed){
+                ctx.jumpPressed = false;
+            }
+        }
+        
+        private void SprintEvent()
+        {
+            if (!ctx.sprinting)
+            {
+                ctx.sprinting = true;
+            }
+        }
+        private void SprintEventCancelled()
+        {
+            if (ctx.sprinting)
+            {
+                ctx.sprinting = false;
+            }
+        }
+
+        private void CrouchEvent()
+        {
+            if (!ctx.crouching)
+            {
+                ctx.crouching = true;
+            }
+        }
+        private void CrouchEventCancelled()
+        {
+            if (ctx.crouching)
+            {
+                ctx.crouching = false;
+            }
+        }
     }
 
     [Serializable]
     public class PlayerContext {
+        public string debugCurrentLeaf;
+        public float currentVelocityMag;
+
+        [Header("Game Variables")]
         public Vector3 move;
         public Vector3 velocity;
-        public bool grounded;
+        
         public float moveSpeed = 6f;
+        public float currentMoveSpeed=0f;
+
         public float accel = 40f;
-        public float jumpSpeed = 7f;
+        public float decel = 50f;
+        public float jumpForce = 7f;
+
+        public float gravForce = 9.81f;
+        public float drag = 1;
+
+        [Header("State Modifiers")]
+        public float sprintMod = 2;
+        public float crouchMod = .5f;
+        public float groundCheckLength = .5f;
+        public RaycastHit groundHit;
+
+        public bool grounded;
         public bool jumpPressed;
+        public bool sprinting;
+        public bool crouching;
+
+        [Header("Refrences")]
+        public GameObject body;
+        public CharacterController controller;
+        public Transform cameraPosition;
+        public CinemachineCamera cinCam;
+        public Transform cinCamTransform => cinCam.transform;
         public Animator anim;
-        public Rigidbody rb;
-        public Renderer renderer;
+        public NetworkAnimator netAnim;
+        [HideInInspector] public PlayerStateDriver psd;
     }
 }

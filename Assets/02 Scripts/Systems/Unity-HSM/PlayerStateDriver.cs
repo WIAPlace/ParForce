@@ -21,7 +21,6 @@ namespace HSM {
         
         StateMachine machine;
         State root;
-
         
 
         void Awake() {
@@ -150,6 +149,10 @@ namespace HSM {
             input.SprintCancelledEvent += SprintEventCancelled;
             input.CrouchEvent += CrouchEvent;
             input.CrouchCancelledEvent += CrouchEventCancelled;
+            input.AttackEvent += AttackEvent;
+            input.AttackCancelledEvent += AttackEventCancelled;
+            input.BlockEvent += BlockEvent;
+            input.BlockCancelledEvent += BlockEventCancelled;
         }
         private void EndEvents()
         {
@@ -160,6 +163,10 @@ namespace HSM {
             input.SprintCancelledEvent -= SprintEventCancelled;
             input.CrouchEvent -= CrouchEvent;
             input.CrouchCancelledEvent -= CrouchEventCancelled;
+            input.AttackEvent -= AttackEvent;
+            input.AttackCancelledEvent -= AttackEventCancelled;
+            input.BlockEvent -= BlockEvent;
+            input.BlockCancelledEvent -= BlockEventCancelled;
         }
 
         // Handle Events //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -213,6 +220,23 @@ namespace HSM {
                 ctx.crouching = false;
             }
         }
+        
+        private void AttackEvent()
+        {
+            
+        }
+        private void AttackEventCancelled()
+        {
+            
+        }
+        private void BlockEvent()
+        {
+            
+        }
+        private void BlockEventCancelled()
+        {
+            
+        }
     }
 
     [Serializable]
@@ -240,10 +264,15 @@ namespace HSM {
         public float groundCheckLength = .5f;
         public RaycastHit groundHit;
 
+        [Header("Attacks")]
+        public float heavyHoldThreshold = .4f;
+
         public bool grounded;
         public bool jumpPressed;
         public bool sprinting;
         public bool crouching;
+        public bool attacking;
+        public bool blocking;
 
         [Header("Refrences")]
         public GameObject body;

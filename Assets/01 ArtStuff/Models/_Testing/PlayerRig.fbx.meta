@@ -22,7 +22,7 @@ ModelImporter:
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
     importConstraints: 0
-    animationCompression: 1
+    animationCompression: 3
     animationRotationError: 0.5
     animationPositionError: 0.5
     animationScaleError: 0.5
@@ -83,7 +83,222 @@ ModelImporter:
   humanDescription:
     serializedVersion: 3
     human: []
-    skeleton: []
+    skeleton:
+    - name: PlayerRig(Clone)
+      parentName: 
+      position: {x: 0, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: Player3.0
+      parentName: PlayerRig(Clone)
+      position: {x: -0, y: 0, z: 0}
+      rotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071068}
+      scale: {x: 1, y: 1, z: 1}
+    - name: Root
+      parentName: PlayerRig(Clone)
+      position: {x: -0.0000000055484732, y: -0.000000011535138, z: -0.00000000252755}
+      rotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071068}
+      scale: {x: 1, y: 1, z: 1}
+    - name: Pelvis
+      parentName: Root
+      position: {x: 0.000000005548368, y: 0.036746044, z: 1.0742316}
+      rotation: {x: 0.7071069, y: -0.000000053385076, z: -0.70710665, w: -0.00000005338509}
+      scale: {x: 1, y: 1, z: 1}
+    - name: Spine1
+      parentName: Pelvis
+      position: {x: -0.08402927, y: 0.011816406, z: -0.0000000017842257}
+      rotation: {x: -2.559534e-12, y: 6.729367e-11, z: 0.00044583032, w: 0.99999994}
+      scale: {x: 1, y: 1, z: 1}
+    - name: Spine2
+      parentName: Spine1
+      position: {x: -0.06518759, y: 0.000000001513958, z: -1.767564e-11}
+      rotation: {x: -2.199925e-11, y: -0.000000029929502, z: -0.0012278451, w: 0.9999993}
+      scale: {x: 1, y: 1, z: 1}
+    - name: Chest
+      parentName: Spine2
+      position: {x: -0.17314631, y: -0.000000003027916, z: 0.000000010253221}
+      rotation: {x: 1.7112565e-11, y: 0.00000002983227, z: 0.000782015, w: 0.9999997}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LArmCollarbone
+      parentName: Chest
+      position: {x: -0.24272054, y: -0.02880117, z: 0.06675113}
+      rotation: {x: 0.008775711, y: 0.7923774, z: -0.018441532, w: 0.6096892}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LArm1
+      parentName: LArmCollarbone
+      position: {x: -0.12522802, y: -0.000000024223327, z: 0.00000019378662}
+      rotation: {x: 0.09425049, y: -0.115349576, z: 0.023293316, w: 0.988569}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LArm2
+      parentName: LArm1
+      position: {x: -0.3282697, y: -0.000000048446655, z: -0.00000014533997}
+      rotation: {x: -0.04248849, y: -0.004015557, z: -0.029834893, w: 0.9986434}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LArmPalm
+      parentName: LArm2
+      position: {x: -0.30873948, y: -0.00000046024323, z: -0.00000009689331}
+      rotation: {x: 0.68581414, y: 0.13463666, z: 0.049253687, w: 0.71351665}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LArmDigit21
+      parentName: LArmPalm
+      position: {x: -0.10077757, y: 0.004745035, z: -0.030687721}
+      rotation: {x: -0.0024332106, y: -0.06625325, z: -0.028651595, w: 0.9973885}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LArmDigit22
+      parentName: LArmDigit21
+      position: {x: -0.040476017, y: -0.000000024223327, z: 0.00000006661415}
+      rotation: {x: -0.00012289317, y: 0.03134496, z: 0.0011210969, w: 0.999508}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LArmDigit23
+      parentName: LArmDigit22
+      position: {x: -0.041080922, y: -0.000000024223327, z: 0.000000047689674}
+      rotation: {x: 0.0004689911, y: -0.00019085318, z: 0.029341646, w: 0.99956936}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LArmDigit31
+      parentName: LArmPalm
+      position: {x: -0.07880304, y: 0.011630152, z: -0.07916452}
+      rotation: {x: 0.7294553, y: -0.06936615, z: 0.05545475, w: 0.678239}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LArmDigit32
+      parentName: LArmDigit31
+      position: {x: -0.026073894, y: 0.000000024223327, z: -0.000000024223327}
+      rotation: {x: -0.0009588898, y: 0.014624613, z: -0.029501677, w: 0.9994573}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LArmDigit33
+      parentName: LArmDigit32
+      position: {x: -0.02322581, y: 0.000000036334992, z: -0.000000024223327}
+      rotation: {x: -0.015625384, y: 0.004579807, z: -0.01339557, w: 0.99977773}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LArmDigit11
+      parentName: LArmPalm
+      position: {x: -0.11023068, y: -0.0006535696, z: 0.028428713}
+      rotation: {x: -0.00039714566, y: -0.06879537, z: -0.013238885, w: 0.99754286}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LArmDigit12
+      parentName: LArmDigit11
+      position: {x: -0.03040076, y: -0.000000048446655, z: 0.000000042390823}
+      rotation: {x: -0.0004006968, y: -0.0073065865, z: -0.027393458, w: 0.99959797}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LArmDigit13
+      parentName: LArmDigit12
+      position: {x: -0.04408607, y: 0, z: 0.000000054502486}
+      rotation: {x: 0.00044289412, y: -0.00035162465, z: 0.0160775, w: 0.9998706}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RArmCollarbone
+      parentName: Chest
+      position: {x: -0.24272054, y: -0.028801182, z: -0.066751145}
+      rotation: {x: -0.00877571, y: -0.7923775, z: -0.018441532, w: 0.6096892}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RArm1
+      parentName: RArmCollarbone
+      position: {x: -0.12522802, y: 0.000000048446655, z: -0.00000019378662}
+      rotation: {x: -0.088279344, y: 0.115206316, z: 0.022468051, w: 0.989156}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RArm2
+      parentName: RArm1
+      position: {x: -0.3282697, y: -0.00000014533997, z: -0.000000048446655}
+      rotation: {x: 0.042352352, y: 0.003969623, z: -0.03051365, w: 0.99862874}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RArmPalm
+      parentName: RArm2
+      position: {x: -0.30873957, y: -0.000000072669984, z: 0.00000019378662}
+      rotation: {x: -0.68582314, y: -0.12955032, z: 0.045459554, w: 0.7147005}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RArmDigit21
+      parentName: RArmPalm
+      position: {x: -0.10077747, y: 0.0047449865, z: 0.030687831}
+      rotation: {x: 0.002433388, y: 0.06625194, z: -0.02865172, w: 0.99738854}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RArmDigit22
+      parentName: RArmDigit21
+      position: {x: -0.040475823, y: 0.000000024223327, z: -0.00000003027916}
+      rotation: {x: 0.00012284999, y: -0.031344946, z: 0.0011211177, w: 0.999508}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RArmDigit23
+      parentName: RArmDigit22
+      position: {x: -0.041080922, y: 0, z: -0.000000020438433}
+      rotation: {x: -0.00046892103, y: 0.00019084821, z: 0.029341668, w: 0.99956936}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RArmDigit11
+      parentName: RArmPalm
+      position: {x: -0.11023058, y: -0.0006535696, z: -0.028428689}
+      rotation: {x: 0.00039729456, y: 0.06879613, z: -0.013238155, w: 0.9975428}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RArmDigit12
+      parentName: RArmDigit11
+      position: {x: -0.030400857, y: 0, z: -0.000000024223327}
+      rotation: {x: 0.00040066533, y: 0.007306676, z: -0.027393388, w: 0.99959797}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RArmDigit13
+      parentName: RArmDigit12
+      position: {x: -0.04408607, y: -0.000000048446655, z: -0.000000024223327}
+      rotation: {x: -0.00044288125, y: 0.00035172197, z: 0.016077088, w: 0.9998706}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RArmDigit31
+      parentName: RArmPalm
+      position: {x: -0.07880314, y: 0.01163008, z: 0.079164706}
+      rotation: {x: -0.72945523, y: 0.069366194, z: 0.055454645, w: 0.67823905}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RArmDigit32
+      parentName: RArmDigit31
+      position: {x: -0.02607399, y: 0, z: 0.000000024223327}
+      rotation: {x: 0.00095885847, y: -0.014624604, z: -0.029501665, w: 0.9994573}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RArmDigit33
+      parentName: RArmDigit32
+      position: {x: -0.023225714, y: 0.000000012111664, z: 0}
+      rotation: {x: 0.015625373, y: -0.004579867, z: -0.013395552, w: 0.99977773}
+      scale: {x: 1, y: 1, z: 1}
+    - name: Neck
+      parentName: Chest
+      position: {x: -0.26297978, y: -0.030899715, z: 0.00000021921389}
+      rotation: {x: -0.000025411586, y: 0.0005702047, z: -0.2139357, w: 0.9768476}
+      scale: {x: 1, y: 1, z: 1}
+    - name: Head
+      parentName: Neck
+      position: {x: -0.07392853, y: 0.00000009689331, z: 0.0000000032171608}
+      rotation: {x: 0.000025411671, y: -0.0005702068, z: 0.21393572, w: 0.9768476}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LLeg1
+      parentName: Pelvis
+      position: {x: 0.08956595, y: 0.0108395275, z: 0.12597635}
+      rotation: {x: -0.03643824, y: 0.9992831, z: 0.009085746, w: -0.0047960877}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LLeg2
+      parentName: LLeg1
+      position: {x: -0.40190646, y: 0.00000013928413, z: -0.000000048446655}
+      rotation: {x: 0.019087465, y: -0.00030790232, z: 0.08074596, w: 0.99655193}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LLegAnkle
+      parentName: LLeg2
+      position: {x: -0.47593045, y: 0.000000042390823, z: -0.000000024223327}
+      rotation: {x: -0.002430253, y: -0.0018965112, z: -0.5270419, w: 0.8498337}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LLegDigit1
+      parentName: LLegAnkle
+      position: {x: -0.16718858, y: 0.0056483652, z: 0.000018215942}
+      rotation: {x: 0.0022597606, y: -0.008077367, z: -0.2711449, w: 0.962502}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RLeg1
+      parentName: Pelvis
+      position: {x: 0.08956595, y: 0.0108395275, z: -0.12597634}
+      rotation: {x: -0.036438245, y: 0.9992831, z: -0.009085753, w: 0.0047963127}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RLeg2
+      parentName: RLeg1
+      position: {x: -0.40190646, y: 0.00000013020039, z: 0.00000015745162}
+      rotation: {x: -0.01909013, y: 0.00034519687, z: 0.08073942, w: 0.9965524}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RLegAnkle
+      parentName: RLeg2
+      position: {x: -0.47593048, y: -0.000000006055832, z: 0.000000036334992}
+      rotation: {x: 0.002359938, y: 0.0017197785, z: -0.5270129, w: 0.8498523}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RLegDigit1
+      parentName: RLegAnkle
+      position: {x: -0.16718854, y: 0.0056484197, z: -0.000018203831}
+      rotation: {x: -0.0023056588, y: 0.008241321, z: -0.2711721, w: 0.9624928}
+      scale: {x: 1, y: 1, z: 1}
     armTwist: 0.5
     foreArmTwist: 0.5
     upperLegTwist: 0.5
@@ -94,7 +309,7 @@ ModelImporter:
     globalScale: 1
     rootMotionBoneName: 
     hasTranslationDoF: 0
-    hasExtraRoot: 0
+    hasExtraRoot: 1
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   autoGenerateAvatarMappingIfUnspecified: 1

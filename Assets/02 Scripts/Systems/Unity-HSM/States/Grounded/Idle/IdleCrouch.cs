@@ -16,11 +16,11 @@ public class IdleCrouch : State
     {
         if(ctx.crouching)
         {
-            
+            ctx.anim.SetBool(PlayerContext.IsCrouchHash,true);
         }
     }
     protected override void OnExit()
     {
-        
+        ctx.anim.SetBool(PlayerContext.IsCrouchHash,false);
     }
 }

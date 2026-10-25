@@ -5,6 +5,7 @@ namespace HSM {
         readonly PlayerContext ctx;
         public readonly Idle Idle;
         public readonly Move Move;
+        
 
         public Grounded(StateMachine m, State parent, PlayerContext ctx) : base(m, parent) {
             this.ctx = ctx;
@@ -32,6 +33,12 @@ namespace HSM {
 
             Vector3 targetRotation = new Vector3(0, ctx.cinCamTransform.eulerAngles.y, 0);
             ctx.controller.transform.rotation = Quaternion.Euler(targetRotation);
+
+            Vector3 currVel = ctx.velocity;
+            currVel.y = 0;
+            float multi = 1;
+            if(ctx.move.z < 0) multi = -1;
+            ctx.anim.SetFloat(PlayerContext.MotionHash,currVel.magnitude*multi);
         }
 
     }

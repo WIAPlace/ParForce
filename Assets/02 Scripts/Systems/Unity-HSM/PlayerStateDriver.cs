@@ -243,6 +243,11 @@ namespace HSM {
         public SkinnedMeshRenderer skin;
         [HideInInspector] public PlayerStateDriver psd;
 
+        public static readonly int MotionHash = Animator.StringToHash("Motion");
+        public static readonly int IsCrouchHash = Animator.StringToHash("IsCrouch");
+        public static readonly int IsAttackHash = Animator.StringToHash("IsGrab");
+        public static readonly int IsHit = Animator.StringToHash("IsHit");
+
 
         public void LoadContext (SO_PlayerContextLoader loader)
         {

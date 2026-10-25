@@ -19,7 +19,7 @@ namespace HSM {
         }
 
         protected override void OnEnter() {
-            //ctx.velocity.x = 0f;
+            //ctx.currentMoveSpeed = 0;
         }
 
         protected override void OnUpdate(float deltaTime)

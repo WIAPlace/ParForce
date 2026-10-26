@@ -21,3 +21,7 @@ MonoBehaviour:
   sprintMod: 2
   crouchMod: 0.5
   groundCheckLength: 0.3
+  heavyHoldThreshold: 0.4
+  lightAtkTime: 0.3
+  heavyAtkTime: 0.5
+  shieldHeftTime: 0.3

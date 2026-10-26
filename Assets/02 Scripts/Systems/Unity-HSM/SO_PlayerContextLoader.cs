@@ -21,4 +21,12 @@ public class SO_PlayerContextLoader : ScriptableObject
 
     [Header("Technical")]
     public float groundCheckLength = .5f;
+
+    [Header("Attacks")]
+    public float heavyHoldThreshold = .4f;
+    public float lightAtkTime = .3f;
+    public float heavyAtkTime = .5f;
+
+    [Header("Sheild")]
+    public float shieldHeftTime=.2f;
 }

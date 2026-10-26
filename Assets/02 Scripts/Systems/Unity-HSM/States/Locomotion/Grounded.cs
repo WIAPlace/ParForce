@@ -19,9 +19,9 @@ namespace HSM {
             if (ctx.jumpPressed) {
                 ctx.jumpPressed = false;
                 ctx.velocity.y = ctx.jumpForce;
-                return ((PlayerRoot)Parent).Airborne;
+                return ((LocomotionRoot)Parent).Airborne;
             }
-            return ctx.grounded ? null : ((PlayerRoot)Parent).Airborne;
+            return ctx.grounded ? null : ((LocomotionRoot)Parent).Airborne;
         }
 
         protected override void OnUpdate(float deltaTime)

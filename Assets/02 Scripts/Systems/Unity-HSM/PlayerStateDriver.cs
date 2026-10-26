@@ -17,10 +17,15 @@ namespace HSM {
         public Transform groundCheck;
         public LayerMask groundMask;
         public bool drawGizmos = true;
-        string lastPath;
+        string lastLocomotionPath;
+        string lastActionPath;
         
-        StateMachine machine;
-        State root;
+        StateMachine locomotionMachine;
+        StateMachine actionMachine;
+        State locomotionRoot;
+        State actionRoot;
+
+
         
 
         void Awake() {
@@ -28,9 +33,13 @@ namespace HSM {
             Cursor.lockState = CursorLockMode.Locked;
             ctx.LoadContext(pcl);
 
-            root = new PlayerRoot(null, ctx);
-            var builder = new StateMachineBuilder(root);
-            machine = builder.Build();
+            locomotionRoot = new LocomotionRoot(null, ctx);
+            var locoBuilder = new StateMachineBuilder(locomotionRoot);
+            locomotionMachine = locoBuilder.Build();
+
+            actionRoot = new ActionRoot(null, ctx);
+            var actionBuilder = new StateMachineBuilder(actionRoot);
+            actionMachine = actionBuilder.Build();
 
             ctx.psd = this;
             ctx.controller = cc;
@@ -76,26 +85,19 @@ namespace HSM {
         void Update() {
             if(!IsOwner) return;
 
-            //ctx.grounded = cc.isGrounded;
+            //Check if grounded, then get info about the ground if so.
             if(cc.isGrounded || Physics.CheckSphere(groundCheck.position, ctx.groundCheckLength, groundMask)) ctx.grounded = true;
             else ctx.grounded = false;
             if(ctx.grounded) Physics.Raycast(groundCheck.position,Vector3.down,out ctx.groundHit,ctx.groundCheckLength+.2f, groundMask);
 
-            machine.Tick(Time.deltaTime);
+            MachineTick(); // run the state machines.
 
-            var path = StatePath(machine.Root.Leaf());
-            ctx.debugCurrentLeaf = machine.Root.Leaf().ToString();
-
-            if (path != lastPath) {
-                //Logwin.Log("State", path);
-                lastPath = path;
-            }
-
+            // Movement Functions
             float gravVel = ctx.velocity.y;
             Vector3 horizontalVel = (ctx.controller.transform.right * ctx.velocity.x) + (ctx.controller.transform.forward * ctx.velocity.z);
             if(ctx.grounded) horizontalVel = AdjustVelocityToSlope(horizontalVel);
             
-            
+
             Vector3 gravVector = new Vector3(0,gravVel,0);
             //Vector3 tempVel = new Vector3(horizontalVel.x,gravVel,horizontalVel.z);
             Vector3 tempVel = horizontalVel + gravVector;
@@ -108,6 +110,29 @@ namespace HSM {
 
         }
 
+        private void MachineTick()
+        {
+            // run the machines
+            locomotionMachine.Tick(Time.deltaTime);
+            actionMachine.Tick(Time.deltaTime);
+
+            // store where we are in each of them
+            var motionPath = StatePath(locomotionMachine.Root.Leaf());
+            ctx.debugCurrentMotionLeaf = locomotionMachine.Root.Leaf().ToString();
+            var actionPath = StatePath(actionMachine.Root.Leaf());
+            ctx.debugCurrentActionLeaf = actionMachine.Root.Leaf().ToString();
+
+            // usefull if needed.
+            if (motionPath != lastLocomotionPath) {
+                //Logwin.Log("State", path);
+                lastLocomotionPath = motionPath;
+            }
+            if (actionPath != lastActionPath) {
+                //Logwin.Log("State", path);
+                lastActionPath = actionPath;
+            }
+        }
+       
         // Gizmos /////////////////////////////////////////////////////////////////////////////////////////////////////////////
         private void OnDrawGizmos()
         {
@@ -223,25 +248,26 @@ namespace HSM {
         
         private void AttackEvent()
         {
-            
+            if(!ctx.attacking) ctx.attacking = true;
         }
         private void AttackEventCancelled()
         {
-            
+            if(ctx.attacking) ctx.attacking = false;
         }
         private void BlockEvent()
         {
-            
+            if(!ctx.blocking) ctx.blocking = true;
         }
         private void BlockEventCancelled()
         {
-            
+            if(ctx.blocking) ctx.blocking = false;
         }
     }
 
     [Serializable]
     public class PlayerContext {
-        public string debugCurrentLeaf;
+        public string debugCurrentMotionLeaf;
+        public string debugCurrentActionLeaf;
         public float currentVelocityMag;
 
         [Header("Game Variables")]
@@ -266,13 +292,21 @@ namespace HSM {
 
         [Header("Attacks")]
         public float heavyHoldThreshold = .4f;
+        public float lightAtkTime = .3f;
+        public float heavyAtkTime = .5f;
 
+        [Header("Sheild")]
+        public float shieldHeftTime=.2f;
+        public float heftTime = 0;
+
+        [Header("Bools")]
         public bool grounded;
         public bool jumpPressed;
         public bool sprinting;
         public bool crouching;
         public bool attacking;
         public bool blocking;
+        public bool shieldActive;
 
         [Header("Refrences")]
         public GameObject body;
@@ -307,6 +341,12 @@ namespace HSM {
             if(loader.sprintMod!=0) sprintMod = loader.sprintMod;
             if(loader.crouchMod!=0) crouchMod = loader.crouchMod;
             if(loader.groundCheckLength!=0) groundCheckLength = loader.groundCheckLength;
+
+            heavyHoldThreshold = loader.heavyHoldThreshold;
+            lightAtkTime = loader.lightAtkTime;
+            heavyAtkTime = loader.heavyAtkTime;
+
+            shieldHeftTime = loader.shieldHeftTime;
         }
     }
 }

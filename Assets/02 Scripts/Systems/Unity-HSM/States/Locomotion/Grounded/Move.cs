@@ -16,7 +16,7 @@ namespace HSM {
         protected override State GetInitialState() => Walk;
 
         protected override State GetTransition() {
-            if (!ctx.grounded) return ((PlayerRoot)Parent).Airborne;
+            if (!ctx.grounded) return ((LocomotionRoot)Parent).Airborne;
             
             return Mathf.Abs(ctx.move.magnitude) <= 0.01f ? ((Grounded)Parent).Idle : null;
         }
@@ -24,16 +24,24 @@ namespace HSM {
         protected override void OnUpdate(float deltaTime) {
             float rateOfChange = 1f;
 
-            float targetx = ctx.move.x * ctx.currentMoveSpeed;
-            float targetz = ctx.move.z * ctx.currentMoveSpeed;
+            float currentMoveSpeed = ctx.currentMoveSpeed;
+
+            if(ctx.attacking || ctx.blocking)
+            {
+                currentMoveSpeed /=2;
+            }
+
+            float targetx = ctx.move.x * currentMoveSpeed;
+            float targetz = ctx.move.z * currentMoveSpeed;
 
             // Rate of Change
-            if(ctx.currentMoveSpeed >= ctx.moveSpeed) rateOfChange = ctx.accel;
-            else if(ctx.currentMoveSpeed < ctx.moveSpeed)rateOfChange = ctx.decel;
+            if(currentMoveSpeed >= ctx.moveSpeed) rateOfChange = ctx.accel;
+            else if(currentMoveSpeed < ctx.moveSpeed)rateOfChange = ctx.decel;
 
             targetx = Mathf.MoveTowards(ctx.velocity.x, targetx, rateOfChange*deltaTime);
             targetz = Mathf.MoveTowards(ctx.velocity.z, targetz, rateOfChange*deltaTime);
             
+
             ctx.velocity.x = targetx;
             ctx.velocity.z = targetz;
             

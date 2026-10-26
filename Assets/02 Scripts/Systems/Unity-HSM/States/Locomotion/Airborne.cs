@@ -8,7 +8,7 @@ namespace HSM {
             this.ctx = ctx;
         }
         
-        protected override State GetTransition() => ctx.grounded ? ((PlayerRoot)Parent).Grounded : null;
+        protected override State GetTransition() => ctx.grounded ? ((LocomotionRoot)Parent).Grounded : null;
 
         protected override void OnEnter() {
             //Debug.Log("Entered");

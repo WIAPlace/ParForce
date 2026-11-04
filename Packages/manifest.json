@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "com.annulusgames.alchemy": "https://github.com/annulusgames/Alchemy.git?path=/Alchemy/Assets/Alchemy",
     "com.unity.ai.navigation": "2.0.12",
     "com.unity.collab-proxy": "2.12.4",
     "com.unity.feature.characters-animation": "1.0.0",

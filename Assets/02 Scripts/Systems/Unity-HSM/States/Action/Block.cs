@@ -1,10 +1,16 @@
 using HSM;
+using NUnit.Framework;
 using UnityEngine;
 
 public class Block : State
 {
     readonly PlayerContext ctx;
     //Sheild Bash?
+
+    bool blocking;
+    //bool isLeft;
+    int hand;
+    HandSlot useHand;
     
 
     public Block(StateMachine m, State parent, PlayerContext ctx) : base(m, parent) {
@@ -13,7 +19,7 @@ public class Block : State
 
     protected override State GetTransition()
     {
-        if(!ctx.blocking && ctx.heftTime <= 0) {
+        if(ctx.currentActionType!=ActionType.Block && ctx.heftTime <= 0) {
             ctx.shieldActive = false;
             return ((ActionRoot)Parent).Idle;
         }
@@ -26,8 +32,20 @@ public class Block : State
 
     protected override void OnEnter()
     {
-        ctx.attacking = false; 
+        //ctx.attacking = false; 
         ctx.shieldActive = false;
+        blocking = false;
+
+        int hand = ctx.leftDown ? 0 : 1;// checks initaly for if we are using left or right click.
+
+        // check wich hand is being used.
+        if(ctx.focusedHandSlot == HandSlot.TwoHanded)
+        {
+            if(ctx.Hand[0]!=null && ctx.Hand[0].slotType!=SlotType.Empty) useHand = HandSlot.LeftHand;
+            else useHand = HandSlot.RightHand;     
+        }
+        else useHand = ctx.focusedHandSlot;
+
 
         ctx.heftTime = 0;
         
@@ -36,6 +54,7 @@ public class Block : State
     }
     protected override void OnExit()
     {
+        blocking = false;
         ctx.shieldActive = false;
         ctx.heftTime = 0;
     }
@@ -52,7 +71,7 @@ public class Block : State
 
     private void Hefting(float deltaTime)
     {
-        if(!ctx.shieldActive && ctx.blocking){
+        if(!ctx.shieldActive && ctx.currentActionType==ActionType.Block){
             if(ctx.heftTime < ctx.shieldHeftTime)
             {
                 ctx.heftTime += deltaTime;
@@ -62,13 +81,40 @@ public class Block : State
                 ctx.heftTime = ctx.shieldHeftTime;
                 ctx.shieldActive = true;
             }
+
+            if (!blocking)
+            {
+                blocking = true;
+                // if primary hand and the button clicked are the same then use primary of the correct hand other wise use secondary of the other.
+                if(hand == (int)useHand)
+                {
+                    ctx.Hand[(int)useHand].primaryAction.OnLocalStart(ctx.body,ctx.focusedHandSlot,ctx,ctx.Hand[(int)useHand].itemID);
+                }
+                else
+                {
+                    ctx.Hand[(int)useHand].secondaryAction.OnLocalStart(ctx.body,ctx.focusedHandSlot,ctx,ctx.Hand[(int)useHand].itemID);
+                }
+            }
         }
-        else if (!ctx.blocking)
+        else if (ctx.currentActionType!=ActionType.Block)
         {
             if(ctx.shieldActive) ctx.shieldActive = false;
     
             ctx.heftTime -= deltaTime;
-            
+
+            if (blocking)
+            {
+                blocking = false;
+
+                if(hand == (int)useHand)
+                {
+                    ctx.Hand[(int)useHand].primaryAction.OnLocalRelease(ctx.body,ctx.focusedHandSlot,ctx,ctx.Hand[(int)useHand].itemID);
+                }
+                else
+                {
+                    ctx.Hand[(int)useHand].secondaryAction.OnLocalRelease(ctx.body,ctx.focusedHandSlot,ctx,ctx.Hand[(int)useHand].itemID);
+                }
+            }
         }
     }
 }

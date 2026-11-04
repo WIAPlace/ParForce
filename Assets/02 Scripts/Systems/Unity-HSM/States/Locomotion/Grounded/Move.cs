@@ -26,7 +26,7 @@ namespace HSM {
 
             float currentMoveSpeed = ctx.currentMoveSpeed;
 
-            if(ctx.attacking || ctx.blocking)
+            if(ctx.currentActionType != ActionType.None)
             {
                 currentMoveSpeed /=2;
             }

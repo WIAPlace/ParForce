@@ -5,6 +5,8 @@ using UnityEngine.InputSystem;
 using Unity.Cinemachine;
 using Unity.Netcode.Components;
 using Unity.Netcode;
+using NUnit.Framework;
+using UnityEngine.XR;
 //using UnityUtils;
 
 namespace HSM {
@@ -44,6 +46,7 @@ namespace HSM {
             ctx.psd = this;
             ctx.controller = cc;
             ctx.body = body;
+            ctx.currentActionType = ActionType.None;
             
             // fallback: create a groundCheck just below the collider's bounds
             if (groundCheck == null) {
@@ -71,6 +74,8 @@ namespace HSM {
                 }
 
                 ctx.skin.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
+
+                ctx.sync.OnStart(ctx);
             }
         }
 
@@ -174,10 +179,10 @@ namespace HSM {
             input.SprintCancelledEvent += SprintEventCancelled;
             input.CrouchEvent += CrouchEvent;
             input.CrouchCancelledEvent += CrouchEventCancelled;
-            input.AttackEvent += AttackEvent;
-            input.AttackCancelledEvent += AttackEventCancelled;
-            input.BlockEvent += BlockEvent;
-            input.BlockCancelledEvent += BlockEventCancelled;
+            input.AttackEvent += LeftEvent;
+            input.AttackCancelledEvent += LeftEventCancelled;
+            input.BlockEvent += RightEvent;
+            input.BlockCancelledEvent += RightEventCancelled;
         }
         private void EndEvents()
         {
@@ -188,10 +193,10 @@ namespace HSM {
             input.SprintCancelledEvent -= SprintEventCancelled;
             input.CrouchEvent -= CrouchEvent;
             input.CrouchCancelledEvent -= CrouchEventCancelled;
-            input.AttackEvent -= AttackEvent;
-            input.AttackCancelledEvent -= AttackEventCancelled;
-            input.BlockEvent -= BlockEvent;
-            input.BlockCancelledEvent -= BlockEventCancelled;
+            input.AttackEvent -= LeftEvent;
+            input.AttackCancelledEvent -= LeftEventCancelled;
+            input.BlockEvent -= RightEvent;
+            input.BlockCancelledEvent -= RightEventCancelled;
         }
 
         // Handle Events //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -246,21 +251,74 @@ namespace HSM {
             }
         }
         
-        private void AttackEvent()
+        private void RightEvent()
         {
-            if(!ctx.attacking) ctx.attacking = true;
+            if(!ctx.rightDown && !ctx.leftDown) {
+                ctx.rightDown = true;
+                EvaluateHandActions(false,ctx.rightDown);
+            }
         }
-        private void AttackEventCancelled()
+        private void RightEventCancelled()
         {
-            if(ctx.attacking) ctx.attacking = false;
+            if(ctx.rightDown) {
+                ctx.rightDown = false;
+                EvaluateHandActions(false,ctx.rightDown);
+            }
         }
-        private void BlockEvent()
+        private void LeftEvent()
         {
-            if(!ctx.blocking) ctx.blocking = true;
+            if(!ctx.leftDown && !ctx.rightDown){
+                ctx.leftDown = true;
+                EvaluateHandActions(true,ctx.leftDown);
+            }
         }
-        private void BlockEventCancelled()
+        private void LeftEventCancelled()
         {
-            if(ctx.blocking) ctx.blocking = false;
+            if(ctx.leftDown){
+                ctx.leftDown = false;
+                EvaluateHandActions(true,ctx.leftDown);
+            }
+        }
+
+        // Evaluates which hand for action type and switching states
+        // if we need to have right only or left only slot type clauses, fix that later.
+        private void EvaluateHandActions(bool isLeft, bool down)
+        {
+            int hand = isLeft ? 0 : 1;
+            int offHand = isLeft? 1 : 0;
+
+            int chosenHand = -1; // -1 means neither hand met the condition
+
+            if (ctx.Hand[hand] != null && ctx.Hand[hand].slotType != SlotType.Empty)
+            {
+                chosenHand = hand;
+
+                if(ctx.Hand[hand].slotType == SlotType.Both) ctx.focusedHandSlot = HandSlot.TwoHanded;
+                else ctx.focusedHandSlot = (HandSlot)chosenHand;
+
+                if(down){
+                    ctx.currentActionType = ctx.Hand[hand].primaryAction.actionType;
+                    return;
+                }
+            }
+            else if (ctx.Hand[offHand] != null && ctx.Hand[offHand].slotType != SlotType.Empty && ctx.Hand[offHand].secondaryAction != null)
+            {
+                chosenHand = offHand;
+
+                if(ctx.Hand[offHand].slotType == SlotType.Both) ctx.focusedHandSlot = HandSlot.TwoHanded;
+                else ctx.focusedHandSlot = (HandSlot)chosenHand;
+
+                if(down){
+                    ctx.currentActionType = ctx.Hand[offHand].secondaryAction.actionType;
+                    return;
+                }
+            }
+            else return;
+
+            // Check if either condition passed
+            if (chosenHand == -1) return;
+            ctx.currentActionType = ActionType.None;
+            
         }
     }
 
@@ -304,9 +362,14 @@ namespace HSM {
         public bool jumpPressed;
         public bool sprinting;
         public bool crouching;
-        public bool attacking;
-        public bool blocking;
+        public bool rightDown;
+        public bool leftDown;
         public bool shieldActive;
+        //public bool blocking;
+        //public bool attacking;
+
+        public ActionType currentActionType;
+        public HandSlot focusedHandSlot;
 
         [Header("Refrences")]
         public GameObject body;
@@ -317,6 +380,11 @@ namespace HSM {
         public Animator anim;
         public NetworkAnimator netAnim;
         public SkinnedMeshRenderer skin;
+
+        [Header("Held Item Refrences")]
+        public EquipmentManager equipmentManager;
+        public NetworkItemSync sync;
+        public HeldItemData[] Hand = new HeldItemData[2];
         [HideInInspector] public PlayerStateDriver psd;
 
         [HideInInspector] public Vector3 debugCurrentDir;
@@ -348,5 +416,7 @@ namespace HSM {
 
             shieldHeftTime = loader.shieldHeftTime;
         }
+
+        public void BroadcastAction(int itemID, HandSlot slot, int actionTypeCode) => sync.BroadcastAction(itemID, slot, actionTypeCode);
     }
 }

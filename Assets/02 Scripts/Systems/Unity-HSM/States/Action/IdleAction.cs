@@ -11,9 +11,14 @@ public class IdleAction : State
 
     protected override State GetTransition()
     {
-        if(ctx.attacking) return ((ActionRoot)Parent).MainAttack;
-        if(ctx.blocking) return ((ActionRoot)Parent).Block;
-
-        return base.GetTransition();
+        switch (ctx.currentActionType)
+        {
+            case ActionType.Attack:
+                return ((ActionRoot)Parent).MainAttack;
+            case ActionType.Block:
+                return ((ActionRoot)Parent).Block;
+            default:
+                return base.GetTransition();
+        }
     }
 }

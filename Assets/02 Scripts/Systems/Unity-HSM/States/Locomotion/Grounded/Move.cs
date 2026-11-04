@@ -26,7 +26,7 @@ namespace HSM {
 
             float currentMoveSpeed = ctx.currentMoveSpeed;
 
-            if(ctx.currentActionType != ActionType.None)
+            if(ctx.rad.type != ActionType.None)
             {
                 currentMoveSpeed /=2;
             }

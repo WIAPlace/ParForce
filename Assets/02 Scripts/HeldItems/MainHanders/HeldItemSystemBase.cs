@@ -3,12 +3,14 @@ using HSM;
 using UnityEditor;
 
 public enum SlotType {Empty, Either, RightOnly, LeftOnly, Both}
+public enum HandSlot {LeftHand, RightHand, TwoHanded}
 
 public enum HeldType {Empty, Weapon, Shield, Magic}
 
 public enum ActionType {None, Attack, Block}
+public enum ActionOrder {None, Prim, Sec, PrimSec, SecPrim}
 
-public enum HandSlot {LeftHand, RightHand, TwoHanded}
+
 
 [CreateAssetMenu(menuName = "Item System/HeldItemData")]
 public class HeldItemData : ScriptableObject
@@ -19,6 +21,12 @@ public class HeldItemData : ScriptableObject
     public GameObject visualPrefab;
     public SlotType slotType = SlotType.Empty;
     public HeldType heldType = HeldType.Empty;
+
+    
+
+    [Header("TriggerNames")]
+    public string[] primaryActionTrigger;
+    public string[] secondaryActionTrigger;
 
     [Header("Actions")]
     public ItemAction primaryAction;
@@ -33,21 +41,24 @@ public class HeldItemData : ScriptableObject
     
     [Header("Data")]
     public float damage;
-    public int maxChainAmnt = 1;
+
+    //[Header("Chain Actions")]
+    //public int maxPrimaryChain = 1;
+    //public int maxSecondaryChain = 1;
 }   
 
-//[CreateAssetMenu(fileName = "Item System/Item Action")]
+//[CreateAssetMenu(menuName = "Item System/Item Action")]
 public abstract class ItemAction : ScriptableObject
 {
     public ActionType actionType;
     // Called the exact frame the button is pressed down
-    public abstract void OnLocalStart(GameObject user, HandSlot hand, PlayerContext ctx, int itemID);
+    public abstract void OnLocalStart(HandSlot hand, PlayerContext ctx, int itemID);
     
     // Called the frame the button is released
-    public abstract void OnLocalRelease(GameObject user, HandSlot hand, PlayerContext ctx, int itemID);
+    public abstract void OnLocalRelease(HandSlot hand, PlayerContext ctx, int itemID);
     
     // Executed on other clients via RPCs to display visuals/animations
-    public abstract void OnRemoteExecute(GameObject user, HandSlot hand, PlayerContext ctx, int actionTypeCode);
+    public abstract void OnRemoteExecute(HandSlot hand, PlayerContext ctx, int actionTypeCode);
 
     protected bool CheckIfHandsAreCorrect(HandSlot hand, PlayerContext ctx)
     {

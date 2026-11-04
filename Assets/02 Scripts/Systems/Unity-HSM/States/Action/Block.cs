@@ -1,6 +1,7 @@
 using HSM;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.LightTransport;
 
 public class Block : State
 {
@@ -9,7 +10,6 @@ public class Block : State
 
     bool blocking;
     //bool isLeft;
-    int hand;
     HandSlot useHand;
     
 
@@ -19,7 +19,7 @@ public class Block : State
 
     protected override State GetTransition()
     {
-        if(ctx.currentActionType!=ActionType.Block && ctx.heftTime <= 0) {
+        if(ctx.rad.type!=ActionType.Block && ctx.heftTime <= 0) {
             ctx.shieldActive = false;
             return ((ActionRoot)Parent).Idle;
         }
@@ -39,12 +39,12 @@ public class Block : State
         int hand = ctx.leftDown ? 0 : 1;// checks initaly for if we are using left or right click.
 
         // check wich hand is being used.
-        if(ctx.focusedHandSlot == HandSlot.TwoHanded)
+        if(ctx.rad.hand == HandSlot.TwoHanded)
         {
             if(ctx.Hand[0]!=null && ctx.Hand[0].slotType!=SlotType.Empty) useHand = HandSlot.LeftHand;
             else useHand = HandSlot.RightHand;     
         }
-        else useHand = ctx.focusedHandSlot;
+        else useHand = ctx.rad.hand;
 
 
         ctx.heftTime = 0;
@@ -71,7 +71,7 @@ public class Block : State
 
     private void Hefting(float deltaTime)
     {
-        if(!ctx.shieldActive && ctx.currentActionType==ActionType.Block){
+        if(!ctx.shieldActive && ctx.rad.type==ActionType.Block){
             if(ctx.heftTime < ctx.shieldHeftTime)
             {
                 ctx.heftTime += deltaTime;
@@ -86,17 +86,22 @@ public class Block : State
             {
                 blocking = true;
                 // if primary hand and the button clicked are the same then use primary of the correct hand other wise use secondary of the other.
-                if(hand == (int)useHand)
+                switch (ctx.rad.order)
                 {
-                    ctx.Hand[(int)useHand].primaryAction.OnLocalStart(ctx.body,ctx.focusedHandSlot,ctx,ctx.Hand[(int)useHand].itemID);
-                }
-                else
-                {
-                    ctx.Hand[(int)useHand].secondaryAction.OnLocalStart(ctx.body,ctx.focusedHandSlot,ctx,ctx.Hand[(int)useHand].itemID);
+                    case ActionOrder.Prim:
+                        ctx.Hand[(int)useHand].primaryAction.OnLocalStart(ctx.rad.hand, ctx, ctx.Hand[(int)useHand].itemID);
+                        break;
+
+                    case ActionOrder.Sec:
+                        ctx.Hand[(int)useHand].secondaryAction.OnLocalStart(ctx.rad.hand, ctx, ctx.Hand[(int)useHand].itemID);
+                        break;
+
+                    default :
+                        break;
                 }
             }
         }
-        else if (ctx.currentActionType!=ActionType.Block)
+        else if (ctx.rad.type!=ActionType.Block)
         {
             if(ctx.shieldActive) ctx.shieldActive = false;
     
@@ -106,13 +111,18 @@ public class Block : State
             {
                 blocking = false;
 
-                if(hand == (int)useHand)
+                switch (ctx.rad.order)
                 {
-                    ctx.Hand[(int)useHand].primaryAction.OnLocalRelease(ctx.body,ctx.focusedHandSlot,ctx,ctx.Hand[(int)useHand].itemID);
-                }
-                else
-                {
-                    ctx.Hand[(int)useHand].secondaryAction.OnLocalRelease(ctx.body,ctx.focusedHandSlot,ctx,ctx.Hand[(int)useHand].itemID);
+                    case ActionOrder.Prim:
+                        ctx.Hand[(int)useHand].primaryAction.OnLocalRelease(ctx.rad.hand, ctx, ctx.Hand[(int)useHand].itemID);
+                        break;
+                        
+                    case ActionOrder.Sec:
+                        ctx.Hand[(int)useHand].secondaryAction.OnLocalRelease(ctx.rad.hand, ctx, ctx.Hand[(int)useHand].itemID);
+                        break;
+
+                    default :
+                        break;
                 }
             }
         }

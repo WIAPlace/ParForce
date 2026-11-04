@@ -14,7 +14,7 @@ public class MainAtkWindUp : State
 
     protected override State GetTransition()
     {
-        if (ctx.currentActionType != ActionType.Attack)
+        if (ctx.rad.type != ActionType.Attack)
         {
             float holdDuration = Time.time - startTime; 
             if(holdDuration>= ctx.heavyHoldThreshold)

@@ -46,7 +46,6 @@ namespace HSM {
             ctx.psd = this;
             ctx.controller = cc;
             ctx.body = body;
-            ctx.currentActionType = ActionType.None;
             
             // fallback: create a groundCheck just below the collider's bounds
             if (groundCheck == null) {
@@ -293,11 +292,12 @@ namespace HSM {
             {
                 chosenHand = hand;
 
-                if(ctx.Hand[hand].slotType == SlotType.Both) ctx.focusedHandSlot = HandSlot.TwoHanded;
-                else ctx.focusedHandSlot = (HandSlot)chosenHand;
+                if(ctx.Hand[hand].slotType == SlotType.Both) ctx.rad.hand = HandSlot.TwoHanded;
+                else ctx.rad.hand = (HandSlot)chosenHand;
 
                 if(down){
-                    ctx.currentActionType = ctx.Hand[hand].primaryAction.actionType;
+                    ctx.rad.type = ctx.Hand[hand].primaryAction.actionType;
+                    ctx.rad.order = ActionOrder.Prim;
                     return;
                 }
             }
@@ -305,25 +305,29 @@ namespace HSM {
             {
                 chosenHand = offHand;
 
-                if(ctx.Hand[offHand].slotType == SlotType.Both) ctx.focusedHandSlot = HandSlot.TwoHanded;
-                else ctx.focusedHandSlot = (HandSlot)chosenHand;
+                if(ctx.Hand[offHand].slotType == SlotType.Both) ctx.rad.hand = HandSlot.TwoHanded;
+                else ctx.rad.hand = (HandSlot)chosenHand;
 
                 if(down){
-                    ctx.currentActionType = ctx.Hand[offHand].secondaryAction.actionType;
+                    ctx.rad.type = ctx.Hand[offHand].secondaryAction.actionType;
+                    ctx.rad.order = ActionOrder.Sec;
                     return;
                 }
             }
-            else return;
+            //else return;
+            ctx.rad.type = ActionType.None;
 
             // Check if either condition passed
-            if (chosenHand == -1) return;
-            ctx.currentActionType = ActionType.None;
-            
+            if (chosenHand == -1) {
+                ctx.rad.order = ActionOrder.None;
+                return;
+            }
         }
     }
 
     [Serializable]
     public class PlayerContext {
+        [Header("Debug")]
         public string debugCurrentMotionLeaf;
         public string debugCurrentActionLeaf;
         public float currentVelocityMag;
@@ -368,8 +372,8 @@ namespace HSM {
         //public bool blocking;
         //public bool attacking;
 
-        public ActionType currentActionType;
-        public HandSlot focusedHandSlot;
+        //public ActionType rad.type;
+        //public HandSlot rad.hand;
 
         [Header("Refrences")]
         public GameObject body;
@@ -385,9 +389,15 @@ namespace HSM {
         public EquipmentManager equipmentManager;
         public NetworkItemSync sync;
         public HeldItemData[] Hand = new HeldItemData[2];
+        
         [HideInInspector] public PlayerStateDriver psd;
 
         [HideInInspector] public Vector3 debugCurrentDir;
+
+        [Header("Debugging For R.A.D.")]
+        // Holder for information sent between player inputs and actions HSM.
+        public RequestedActionData rad = new RequestedActionData();
+        public RequestedActionItemData raid = new RequestedActionItemData();
 
         public static readonly int MotionHash = Animator.StringToHash("Motion");
         public static readonly int IsCrouchHash = Animator.StringToHash("IsCrouch");
@@ -418,5 +428,20 @@ namespace HSM {
         }
 
         public void BroadcastAction(int itemID, HandSlot slot, int actionTypeCode) => sync.BroadcastAction(itemID, slot, actionTypeCode);
+    }
+
+    [Serializable] // Data requested by player to the Action State Machine
+    public class RequestedActionData
+    {
+        public HandSlot hand;
+        public ActionType type;
+        public ActionOrder order; // 0 = Primary, 1 = secondary 
+    }
+    
+    [Serializable] // Data requested by the ItemAction to the State Machine. // ya i know its a weird name, raid is just easier to type than riad
+    public class RequestedActionItemData
+    {
+        public int currentActionHash = 0;
+        public int currentProgressHash = 0;
     }
 }

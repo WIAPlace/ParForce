@@ -5,7 +5,9 @@ using UnityEngine.InputSystem;
 [CreateAssetMenu(menuName = "Item System/Item Action/MeleeAction")]
 public class MeleeAction : ItemAction
 {
-    public override void OnLocalStart(GameObject user, HandSlot hand, PlayerContext ctx, int itemID)
+    private static readonly int TriggerHash = Animator.StringToHash("Swing");
+    
+    public override void OnLocalStart(HandSlot hand, PlayerContext ctx, int itemID)
     {
         if(!CheckIfHandsAreCorrect(hand,ctx)) return; // check to see if there is anything for the hands to do. 
 
@@ -24,12 +26,12 @@ public class MeleeAction : ItemAction
         //PerformHitCheck(user, ctx, damageToDeal, hand);
     }
 
-    public override void OnLocalRelease(GameObject user, HandSlot hand, PlayerContext ctx, int itemID)
+    public override void OnLocalRelease(HandSlot hand, PlayerContext ctx, int itemID)
     {
         //throw new System.NotImplementedException();
     }
 
-    public override void OnRemoteExecute(GameObject user, HandSlot hand, PlayerContext ctx, int actionTypeCode)
+    public override void OnRemoteExecute(HandSlot hand, PlayerContext ctx, int actionTypeCode)
     {
         // Remote puppets receive the raw combo index as the actionTypeCode
         int remoteComboIndex = actionTypeCode;
@@ -58,5 +60,40 @@ public class MeleeAction : ItemAction
             }
         }
     }
+
+    using System.Collections.Generic;
+    using UnityEngine;
+
+    public class ChainAttackCombo : MonoBehaviour
+    {
+        private Animator animator;
+        
+        // Cache dictionary: Stores the attack number as a key, and its hash as the value
+        private static readonly Dictionary<int, int> AttackHashCache = new Dictionary<int, int>();
+
+        void Start()
+        {
+            animator = GetComponent<Animator>();
+        }
+
+        public void TriggerChainAttack(int attackIndex)
+        {
+            // 1. Look up the hash in our dictionary first
+            if (!AttackHashCache.TryGetValue(attackIndex, out int targetHash))
+            {
+                // 2. If it's not there, build the string (e.g., "Attack_3") and hash it
+                string parameterName = $"Attack_{attackIndex}";
+                targetHash = Animator.StringToHash(parameterName);
+                
+                // 3. Save it so we never have to build or hash this string again
+                AttackHashCache.Add(attackIndex, targetHash);
+                Debug.Log($"Generated and cached new hash for: {parameterName}");
+            }
+
+            // 4. Fire the trigger safely using the cached integer
+            animator.SetTrigger(targetHash);
+        }
+    }
+
     */
 }

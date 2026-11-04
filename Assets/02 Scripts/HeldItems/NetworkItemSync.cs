@@ -58,7 +58,7 @@ public class NetworkItemSync : NetworkBehaviour
         if (item != null && item.primaryAction is ItemAction netAction)
         {
             // Run the non-laggy, purely visual side of the script for this remote player character
-            netAction.OnRemoteExecute(gameObject, slot, ctx ,actionTypeCode);
+            netAction.OnRemoteExecute(slot, ctx ,actionTypeCode);
         }
     }
 

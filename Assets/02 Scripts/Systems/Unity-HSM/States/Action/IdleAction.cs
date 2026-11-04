@@ -11,7 +11,7 @@ public class IdleAction : State
 
     protected override State GetTransition()
     {
-        switch (ctx.currentActionType)
+        switch (ctx.rad.type)
         {
             case ActionType.Attack:
                 return ((ActionRoot)Parent).MainAttack;

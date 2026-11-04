@@ -12,11 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 582efaace0b503e448d54bb5c07a9606, type: 3}
   m_Name: TestHeldItemData
   m_EditorClassIdentifier: Assembly-CSharp::HeldItemData
-  heldItemName: 
+  heldItemName: TestItem
   itemID: 101
   visualPrefab: {fileID: 4553138882470368957, guid: 065b7633c0c82f74983e5f32570f4a7c, type: 3}
   slotType: 1
   heldType: 1
+  primaryActionTrigger: []
+  secondaryActionTrigger: []
   primaryAction: {fileID: 11400000, guid: 7b1c3ad067aa2f34890c08ca000b7e9a, type: 2}
   secondaryAction: {fileID: 11400000, guid: 13ded6d7a7e26aa488de40797b3f29cc, type: 2}
   rayPointName:
@@ -26,4 +28,3 @@ MonoBehaviour:
   windUpTime: 0
   windDownTime: 0
   damage: 0
-  maxChainAmnt: 1

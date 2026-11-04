@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.annulusgames.alchemy": {
+      "version": "https://github.com/annulusgames/Alchemy.git?path=/Alchemy/Assets/Alchemy",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "164f9d485d34efc99cda3e99cbf557b1baa810bf"
+    },
     "com.autodesk.fbx": {
       "version": "5.1.3",
       "depth": 2,

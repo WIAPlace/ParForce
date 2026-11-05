@@ -51,6 +51,7 @@ public class NetworkItemSync : NetworkBehaviour
         // Safety First: Avoid running this on the client who originally swung the sword.
         // Their game already played the animation instantly on frame one!
         if (IsOwner) return; 
+        if (HeldItemDatabase.Instance == null) return;
 
         // CRITICAL DATA LINK: Look up the structural asset locally using the network integer ID
         HeldItemData item = HeldItemDatabase.Instance.GetItemByID(itemID);

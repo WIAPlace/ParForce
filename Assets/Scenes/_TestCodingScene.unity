@@ -1714,7 +1714,21 @@ MonoBehaviour:
   NetworkAnimatorExpanded: 0
   AuthorityMode: 0
   m_Animator: {fileID: 89085974}
-  TransitionStateInfoList: []
+  TransitionStateInfoList:
+  - IsCrossFadeExit: 0
+    Layer: 1
+    OriginatingState: -1459219776
+    DestinationState: 1540733486
+    TransitionDuration: 0.1
+    TriggerNameHash: 13985236
+    TransitionIndex: 0
+  - IsCrossFadeExit: 0
+    Layer: 1
+    OriginatingState: -1459219776
+    DestinationState: 1540733486
+    TransitionDuration: 0.1
+    TriggerNameHash: 140712158
+    TransitionIndex: 1
   AnimatorParameterEntries:
     ParameterEntries:
     - name: Motion
@@ -1733,6 +1747,30 @@ MonoBehaviour:
       NameHash: 2006285284
       Synchronize: 1
       ParameterType: 4
+    - name: LeftHandBlockProgress
+      NameHash: -844786456
+      Synchronize: 1
+      ParameterType: 1
+    - name: RightHandBlockProgress
+      NameHash: 758743650
+      Synchronize: 1
+      ParameterType: 1
+    - name: LeftHandBlock
+      NameHash: 1785608358
+      Synchronize: 1
+      ParameterType: 9
+    - name: RightHandBlock
+      NameHash: 1658340780
+      Synchronize: 1
+      ParameterType: 9
+    - name: LeftHandSwing
+      NameHash: 140712158
+      Synchronize: 1
+      ParameterType: 9
+    - name: RightHandSwing
+      NameHash: 13985236
+      Synchronize: 1
+      ParameterType: 9
   AnimatorParametersExpanded: 0
 --- !u!114 &89085976
 MonoBehaviour:
@@ -3785,7 +3823,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1253128751
 Transform:
   m_ObjectHideFlags: 0
@@ -3964,7 +4002,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1522323688
 Transform:
   m_ObjectHideFlags: 0
@@ -4964,7 +5002,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2057770600
 Transform:
   m_ObjectHideFlags: 0

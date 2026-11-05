@@ -101,13 +101,18 @@ public class Block : State
             if(ctx.heftTime < ctx.shieldHeftTime)
             {
                 ctx.heftTime += deltaTime;
-                ctx.anim.SetFloat(ctx.raid.currentProgressHash,ctx.heftTime);
+                
+                float percentage = Mathf.InverseLerp(0,ctx.shieldHeftTime,ctx.heftTime);
+
+                ctx.anim.SetFloat(ctx.raid.currentProgressHash,percentage);
             }
             else if (ctx.heftTime >= ctx.shieldHeftTime)
             {
                 ctx.heftTime = ctx.shieldHeftTime;
                 ctx.shieldActive = true;
-                ctx.anim.SetFloat(ctx.raid.currentProgressHash,ctx.heftTime);
+
+                float percentage = Mathf.InverseLerp(0,ctx.shieldHeftTime,ctx.heftTime);
+                ctx.anim.SetFloat(ctx.raid.currentProgressHash,percentage);
             }
 
         }
@@ -119,7 +124,8 @@ public class Block : State
             
             if(ctx.heftTime <= 0) ctx.heftTime = 0;
             
-            ctx.anim.SetFloat(ctx.raid.currentProgressHash,ctx.heftTime);
+            float percentage = Mathf.InverseLerp(0,ctx.shieldHeftTime,ctx.heftTime);
+            ctx.anim.SetFloat(ctx.raid.currentProgressHash,percentage);
         }
     }
 }

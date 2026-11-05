@@ -72,7 +72,7 @@ namespace HSM {
                     ctx.cinCam.LookAt = ctx.cameraPosition;
                 }
 
-                ctx.skin.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
+                //ctx.skin.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
 
                 ctx.sync.OnStart(ctx);
             }

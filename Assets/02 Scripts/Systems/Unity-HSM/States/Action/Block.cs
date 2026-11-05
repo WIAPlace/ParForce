@@ -7,8 +7,6 @@ public class Block : State
 {
     readonly PlayerContext ctx;
     //Sheild Bash?
-
-    bool blocking;
     //bool isLeft;
     HandSlot useHand;
     
@@ -34,7 +32,6 @@ public class Block : State
     {
         //ctx.attacking = false; 
         ctx.shieldActive = false;
-        blocking = false;
 
         int hand = ctx.leftDown ? 0 : 1;// checks initaly for if we are using left or right click.
 
@@ -50,13 +47,40 @@ public class Block : State
         ctx.heftTime = 0;
         
         Debug.Log("Block");
-        base.OnEnter();
+        
+
+        switch (ctx.rad.order)
+        {
+            case ActionOrder.Prim:
+                ctx.Hand[(int)useHand].primaryAction.OnLocalStart(ctx.rad.hand, ctx, ctx.Hand[(int)useHand].itemID);
+                break;
+
+            case ActionOrder.Sec:
+                ctx.Hand[(int)useHand].secondaryAction.OnLocalStart(ctx.rad.hand, ctx, ctx.Hand[(int)useHand].itemID);
+                break;
+            default :
+                break;
+        }
     }
     protected override void OnExit()
     {
-        blocking = false;
         ctx.shieldActive = false;
         ctx.heftTime = 0;
+        
+        /*
+        switch (ctx.rad.order)
+        {
+            case ActionOrder.Prim:
+                ctx.Hand[(int)useHand].primaryAction.OnLocalRelease(ctx.rad.hand, ctx, ctx.Hand[(int)useHand].itemID);
+                break;
+                    
+            case ActionOrder.Sec:
+                ctx.Hand[(int)useHand].secondaryAction.OnLocalRelease(ctx.rad.hand, ctx, ctx.Hand[(int)useHand].itemID);
+                break;
+            default :
+                break;
+        }
+        */
     }
     //if hit check the direction of of ray that hit you, and then compare it to the direction looking, with an offsett on either side depending on the type of sheild.
     // if its within that range it was blocked.
@@ -65,6 +89,8 @@ public class Block : State
     {
         // blend tree between these two for heft time.
         Hefting(deltaTime);
+
+        
     }
 
 
@@ -75,56 +101,25 @@ public class Block : State
             if(ctx.heftTime < ctx.shieldHeftTime)
             {
                 ctx.heftTime += deltaTime;
+                ctx.anim.SetFloat(ctx.raid.currentProgressHash,ctx.heftTime);
             }
             else if (ctx.heftTime >= ctx.shieldHeftTime)
             {
                 ctx.heftTime = ctx.shieldHeftTime;
                 ctx.shieldActive = true;
+                ctx.anim.SetFloat(ctx.raid.currentProgressHash,ctx.heftTime);
             }
 
-            if (!blocking)
-            {
-                blocking = true;
-                // if primary hand and the button clicked are the same then use primary of the correct hand other wise use secondary of the other.
-                switch (ctx.rad.order)
-                {
-                    case ActionOrder.Prim:
-                        ctx.Hand[(int)useHand].primaryAction.OnLocalStart(ctx.rad.hand, ctx, ctx.Hand[(int)useHand].itemID);
-                        break;
-
-                    case ActionOrder.Sec:
-                        ctx.Hand[(int)useHand].secondaryAction.OnLocalStart(ctx.rad.hand, ctx, ctx.Hand[(int)useHand].itemID);
-                        break;
-
-                    default :
-                        break;
-                }
-            }
         }
         else if (ctx.rad.type!=ActionType.Block)
         {
             if(ctx.shieldActive) ctx.shieldActive = false;
     
             ctx.heftTime -= deltaTime;
-
-            if (blocking)
-            {
-                blocking = false;
-
-                switch (ctx.rad.order)
-                {
-                    case ActionOrder.Prim:
-                        ctx.Hand[(int)useHand].primaryAction.OnLocalRelease(ctx.rad.hand, ctx, ctx.Hand[(int)useHand].itemID);
-                        break;
-                        
-                    case ActionOrder.Sec:
-                        ctx.Hand[(int)useHand].secondaryAction.OnLocalRelease(ctx.rad.hand, ctx, ctx.Hand[(int)useHand].itemID);
-                        break;
-
-                    default :
-                        break;
-                }
-            }
+            
+            if(ctx.heftTime <= 0) ctx.heftTime = 0;
+            
+            ctx.anim.SetFloat(ctx.raid.currentProgressHash,ctx.heftTime);
         }
     }
 }

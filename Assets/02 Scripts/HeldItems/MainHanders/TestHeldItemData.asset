@@ -20,7 +20,7 @@ MonoBehaviour:
   primaryActionTrigger: []
   secondaryActionTrigger: []
   primaryAction: {fileID: 11400000, guid: 7b1c3ad067aa2f34890c08ca000b7e9a, type: 2}
-  secondaryAction: {fileID: 11400000, guid: 13ded6d7a7e26aa488de40797b3f29cc, type: 2}
+  secondaryAction: {fileID: 11400000, guid: 28ff9a4efa248474c9ce3d10f80018fa, type: 2}
   rayPointName:
   - Ray1
   - Ray2

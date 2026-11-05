@@ -5,8 +5,9 @@ using UnityEngine.InputSystem;
 [CreateAssetMenu(menuName = "Item System/Item Action/MeleeAction")]
 public class MeleeAction : ItemAction
 {
-    private static readonly int TriggerHash = Animator.StringToHash("Swing");
-    
+    //private static readonly int TriggerHash = Animator.StringToHash("Swing");
+    public string actionLable = "Swing";
+
     public override void OnLocalStart(HandSlot hand, PlayerContext ctx, int itemID)
     {
         if(!CheckIfHandsAreCorrect(hand,ctx)) return; // check to see if there is anything for the hands to do. 
@@ -16,8 +17,13 @@ public class MeleeAction : ItemAction
         string side = hand.ToString(); // we can come back to this to figure out what is the best choice.
 
         // Set up trigger for local anim
-        string animTrigger = side + "Swing";
-        anim.SetTrigger(animTrigger);
+        string animTrigger = side + actionLable;
+        Debug.Log(animTrigger);
+        int hash = ActionAnimationHasher.GetTriggerHash(animTrigger);
+
+        // Set variable inside of RAID.
+        ctx.raid.currentActionHash = hash;
+        anim.SetTrigger(hash);
 
         // Broadcast the exact combo index to everyone else (using it as the actionTypeCode)
         int currentComboIndex=0;

@@ -9,7 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 102e1723282504544b0bf6e1708c632d, type: 3}
-  m_Name: TestBlock
-  m_EditorClassIdentifier: Assembly-CSharp::MeleeAction
+  m_Script: {fileID: 11500000, guid: 187701ee9d7442d4fa37f22854dceb5f, type: 3}
+  m_Name: TestBlockAction
+  m_EditorClassIdentifier: Assembly-CSharp::BlockAction
   actionType: 2
+  actionLable: Block
+  progressLable: BlockProgress

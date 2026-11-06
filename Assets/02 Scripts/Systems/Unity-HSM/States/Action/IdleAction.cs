@@ -21,4 +21,8 @@ public class IdleAction : State
                 return base.GetTransition();
         }
     }
+    protected override void OnEnter()
+    {
+        Debug.Log("Ideling");
+    }
 }

@@ -13,3 +13,10 @@ MonoBehaviour:
   m_Name: TestAttack
   m_EditorClassIdentifier: Assembly-CSharp::MeleeAction
   actionType: 1
+  unStopable: 1
+  actionLable: SwingActive
+  progressLable: Swing
+  chainLength: 0400000001000000
+  chainWindow:
+  - 0
+  - 1

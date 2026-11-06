@@ -7,6 +7,7 @@ using Unity.Netcode.Components;
 using Unity.Netcode;
 using NUnit.Framework;
 using UnityEngine.XR;
+using Unity.VisualScripting;
 //using UnityUtils;
 
 namespace HSM {
@@ -46,6 +47,14 @@ namespace HSM {
             ctx.psd = this;
             ctx.controller = cc;
             ctx.body = body;
+
+            // set up arrays to be the needed length
+            int numHands = ctx.Hand.Length;
+            ctx.rad.handChainNum = new int[numHands];
+            ctx.rad.blockHandInput = new bool[numHands];
+            ctx.raid.chainLength = new int[numHands][];
+            ctx.raid.chainWindow = new float[numHands][];
+            ctx.raid.unStopable = new bool[numHands];
             
             // fallback: create a groundCheck just below the collider's bounds
             if (groundCheck == null) {
@@ -252,7 +261,7 @@ namespace HSM {
         
         private void RightEvent()
         {
-            if(!ctx.rightDown && !ctx.leftDown) {
+            if(!ctx.rad.blockHandInput[1] && !ctx.rightDown && !ctx.leftDown) {
                 ctx.rightDown = true;
                 EvaluateHandActions(false,ctx.rightDown);
             }
@@ -266,7 +275,7 @@ namespace HSM {
         }
         private void LeftEvent()
         {
-            if(!ctx.leftDown && !ctx.rightDown){
+            if(!ctx.rad.blockHandInput[0] && !ctx.leftDown && !ctx.rightDown){
                 ctx.leftDown = true;
                 EvaluateHandActions(true,ctx.leftDown);
             }
@@ -315,11 +324,12 @@ namespace HSM {
                 }
             }
             //else return;
-            ctx.rad.type = ActionType.None;
+            if(chosenHand >= 0 && !ctx.raid.unStopable[chosenHand]) ctx.rad.type = ActionType.None;
 
             // Check if either condition passed
             if (chosenHand == -1) {
                 ctx.rad.order = ActionOrder.None;
+                ctx.rad.type = ActionType.None;
                 return;
             }
         }
@@ -427,6 +437,11 @@ namespace HSM {
             shieldHeftTime = loader.shieldHeftTime;
         }
 
+        public float GetAnimClipLength(int layer)
+        {
+            return anim.GetCurrentAnimatorStateInfo(layer).length;
+        }
+
         public void BroadcastAction(int itemID, HandSlot slot, int actionTypeCode) => sync.BroadcastAction(itemID, slot, actionTypeCode);
     }
 
@@ -436,6 +451,11 @@ namespace HSM {
         public HandSlot hand;
         public ActionType type;
         public ActionOrder order; // 0 = Primary, 1 = secondary 
+
+        public int[] handChainNum; // counter for the current chain
+
+        public bool[] blockHandInput;
+
     }
     
     [Serializable] // Data requested by the ItemAction to the State Machine. // ya i know its a weird name, raid is just easier to type than riad
@@ -443,5 +463,8 @@ namespace HSM {
     {
         public int currentActionHash = 0;
         public int currentProgressHash = 0;
+        public int[][] chainLength;
+        public float[][] chainWindow;
+        public bool[] unStopable;
     }
 }

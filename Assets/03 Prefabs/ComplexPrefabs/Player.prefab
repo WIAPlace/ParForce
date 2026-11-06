@@ -236,9 +236,12 @@ MonoBehaviour:
       hand: 0
       type: 0
       order: 0
+      handChainNum: 0000000000000000
+      blockHandInput: 0000
     raid:
       currentActionHash: 0
       currentProgressHash: 0
+      unStopable: 0000
   pcl: {fileID: 11400000, guid: 37518bb32ec5c194d806a3a51663cb8e, type: 2}
   input: {fileID: 11400000, guid: 028443aff179f3d449dd3efec43aa392, type: 2}
   cc: {fileID: 2770189871851831573}
@@ -1317,21 +1320,7 @@ MonoBehaviour:
   NetworkAnimatorExpanded: 0
   AuthorityMode: 1
   m_Animator: {fileID: 5228272574444758406}
-  TransitionStateInfoList:
-  - IsCrossFadeExit: 0
-    Layer: 1
-    OriginatingState: -1459219776
-    DestinationState: 1540733486
-    TransitionDuration: 0.1
-    TriggerNameHash: 13985236
-    TransitionIndex: 0
-  - IsCrossFadeExit: 0
-    Layer: 1
-    OriginatingState: -1459219776
-    DestinationState: 1540733486
-    TransitionDuration: 0.1
-    TriggerNameHash: 140712158
-    TransitionIndex: 1
+  TransitionStateInfoList: []
   AnimatorParameterEntries:
     ParameterEntries:
     - name: Motion
@@ -1369,11 +1358,19 @@ MonoBehaviour:
     - name: LeftHandSwing
       NameHash: 140712158
       Synchronize: 1
-      ParameterType: 9
+      ParameterType: 3
     - name: RightHandSwing
       NameHash: 13985236
       Synchronize: 1
-      ParameterType: 9
+      ParameterType: 3
+    - name: LeftHandSwingActive
+      NameHash: 328618365
+      Synchronize: 1
+      ParameterType: 4
+    - name: RightHandSwingActive
+      NameHash: -2059069797
+      Synchronize: 1
+      ParameterType: 4
   AnimatorParametersExpanded: 0
 --- !u!114 &2374211357861217221
 MonoBehaviour:

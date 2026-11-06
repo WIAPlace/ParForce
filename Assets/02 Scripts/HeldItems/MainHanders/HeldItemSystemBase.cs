@@ -24,9 +24,9 @@ public class HeldItemData : ScriptableObject
 
     
 
-    [Header("TriggerNames")]
-    public string[] primaryActionTrigger;
-    public string[] secondaryActionTrigger;
+    //[Header("TriggerNames")]
+    //public string[] primaryActionTrigger;
+    //public string[] secondaryActionTrigger;
 
     [Header("Actions")]
     public ItemAction primaryAction;
@@ -45,12 +45,14 @@ public class HeldItemData : ScriptableObject
     //[Header("Chain Actions")]
     //public int maxPrimaryChain = 1;
     //public int maxSecondaryChain = 1;
+    
 }   
 
 //[CreateAssetMenu(menuName = "Item System/Item Action")]
 public abstract class ItemAction : ScriptableObject
 {
     public ActionType actionType;
+    public bool unStopable;
     // Called the exact frame the button is pressed down
     public abstract void OnLocalStart(HandSlot hand, PlayerContext ctx, int itemID);
     

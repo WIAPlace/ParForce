@@ -129,6 +129,51 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1361487340182288383, guid: d083a1a0db22d7445ad75aa8edf04306, type: 3}
   m_PrefabInstance: {fileID: 1158725370}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &57142120
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 57142122}
+  - component: {fileID: 57142121}
+  m_Layer: 0
+  m_Name: HeldItemDatabase
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &57142121
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 57142120}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5347010d31f8c0e42bf868dfb1bf8665, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDatabaseBootstrap
+  database: {fileID: 11400000, guid: e3dd2513ad564d5478cdb4bc5fc74b16, type: 2}
+--- !u!4 &57142122
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 57142120}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -12.61972, y: -0.00706, z: -2.82725}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &64110518 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3968657407941712415, guid: d083a1a0db22d7445ad75aa8edf04306, type: 3}
@@ -1473,9 +1518,13 @@ PrefabInstance:
       value: -57.677063
       objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 9100000, guid: d40adfd364c78094b9bda55b23cd63ae, type: 2}
+      objectReference: {fileID: 0}
     - target: {fileID: 7168944828836017273, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
       propertyPath: m_LocalRotation.w
       value: 0.9996067
@@ -1682,10 +1731,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 89085975}
+      addedObject: {fileID: 89085976}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 89085976}
+      addedObject: {fileID: 89085977}
   m_SourcePrefab: {fileID: 100100000, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
 --- !u!4 &89085972 stripped
 Transform:
@@ -1702,74 +1751,6 @@ Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
   m_PrefabInstance: {fileID: 89085971}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &89085975
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 89085973}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8d0727d5ae3244e3b569694d3912374, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Components.NetworkAnimator
-  ShowTopMostFoldoutHeaderGroup: 1
-  NetworkAnimatorExpanded: 0
-  AuthorityMode: 0
-  m_Animator: {fileID: 89085974}
-  TransitionStateInfoList: []
-  AnimatorParameterEntries:
-    ParameterEntries:
-    - name: Motion
-      NameHash: -229464866
-      Synchronize: 1
-      ParameterType: 1
-    - name: IsCrouch
-      NameHash: -1201103980
-      Synchronize: 1
-      ParameterType: 4
-    - name: IsGrab
-      NameHash: -1458837968
-      Synchronize: 1
-      ParameterType: 4
-    - name: IsHit
-      NameHash: 2006285284
-      Synchronize: 1
-      ParameterType: 4
-    - name: LeftHandBlockProgress
-      NameHash: -844786456
-      Synchronize: 1
-      ParameterType: 1
-    - name: RightHandBlockProgress
-      NameHash: 758743650
-      Synchronize: 1
-      ParameterType: 1
-    - name: LeftHandBlock
-      NameHash: 1785608358
-      Synchronize: 1
-      ParameterType: 9
-    - name: RightHandBlock
-      NameHash: 1658340780
-      Synchronize: 1
-      ParameterType: 9
-    - name: LeftHandSwing
-      NameHash: 140712158
-      Synchronize: 1
-      ParameterType: 3
-    - name: RightHandSwing
-      NameHash: 13985236
-      Synchronize: 1
-      ParameterType: 3
-    - name: LeftHandSwingActive
-      NameHash: 328618365
-      Synchronize: 1
-      ParameterType: 4
-    - name: RightHandSwingActive
-      NameHash: -2059069797
-      Synchronize: 1
-      ParameterType: 4
-  AnimatorParametersExpanded: 0
 --- !u!114 &89085976
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1777,7 +1758,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 89085973}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b2d8418b0b9634b1892b0268dd9c2743, type: 3}
   m_Name: 
@@ -1828,6 +1809,21 @@ MonoBehaviour:
   - {fileID: 2120899791}
   - {fileID: 1643521192}
   - {fileID: 1904397538}
+--- !u!114 &89085977
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 89085973}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ad50f81b1d25c441943c37a89ba23f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Kybernetik.Animancer::Animancer.AnimancerComponent
+  _Animator: {fileID: 89085974}
+  _Transitions: {fileID: 0}
+  _ActionOnDisable: 0
 --- !u!1 &108168101 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: d083a1a0db22d7445ad75aa8edf04306, type: 3}
@@ -5219,3 +5215,4 @@ SceneRoots:
   - {fileID: 945775919}
   - {fileID: 1068834755}
   - {fileID: 460223100113690836}
+  - {fileID: 57142122}

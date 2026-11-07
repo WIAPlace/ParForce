@@ -52,11 +52,11 @@ public class Block : State
         switch (ctx.rad.order)
         {
             case ActionOrder.Prim:
-                ctx.Hand[(int)useHand].primaryAction.OnLocalStart(ctx.rad.hand, ctx, ctx.Hand[(int)useHand].itemID);
+                ctx.Hand[(int)useHand].primaryAction.OnLocalStart(ctx.rad.hand, ctx, ctx.Hand[(int)useHand].id);
                 break;
 
             case ActionOrder.Sec:
-                ctx.Hand[(int)useHand].secondaryAction.OnLocalStart(ctx.rad.hand, ctx, ctx.Hand[(int)useHand].itemID);
+                ctx.Hand[(int)useHand].secondaryAction.OnLocalStart(ctx.rad.hand, ctx, ctx.Hand[(int)useHand].id);
                 break;
             default :
                 break;

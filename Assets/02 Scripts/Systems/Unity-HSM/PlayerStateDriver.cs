@@ -8,6 +8,7 @@ using Unity.Netcode;
 using NUnit.Framework;
 using UnityEngine.XR;
 using Unity.VisualScripting;
+using Animancer;
 //using UnityUtils;
 
 namespace HSM {
@@ -27,6 +28,10 @@ namespace HSM {
         StateMachine actionMachine;
         State locomotionRoot;
         State actionRoot;
+
+        [Header("Testing Animancer")]
+        public AnimationClip animationClip;
+        public AnimancerComponent animancerComponent;
 
 
         
@@ -83,7 +88,7 @@ namespace HSM {
 
                 //ctx.skin.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
 
-                ctx.sync.OnStart(ctx);
+                ctx.sync.OnStart();
             }
         }
 
@@ -191,6 +196,7 @@ namespace HSM {
             input.AttackCancelledEvent += LeftEventCancelled;
             input.BlockEvent += RightEvent;
             input.BlockCancelledEvent += RightEventCancelled;
+            input.InteractEvent += InteractEvent;
         }
         private void EndEvents()
         {
@@ -205,6 +211,7 @@ namespace HSM {
             input.AttackCancelledEvent -= LeftEventCancelled;
             input.BlockEvent -= RightEvent;
             input.BlockCancelledEvent -= RightEventCancelled;
+            input.InteractEvent -= InteractEvent;
         }
 
         // Handle Events //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -259,6 +266,8 @@ namespace HSM {
             }
         }
         
+        
+
         private void RightEvent()
         {
             if(!ctx.rad.blockHandInput[1] && !ctx.rightDown && !ctx.leftDown) {
@@ -333,6 +342,21 @@ namespace HSM {
                 return;
             }
         }
+
+        bool test=false;
+        // Testing With this Button. "E"
+        private void InteractEvent()
+        {
+            if(!test){
+                ctx.equipmentManager.leftHandItemID.Value = 10; 
+                test=true;
+                return;
+            }
+
+            ctx.Hand[0].primaryAction.OnLocalStart(HandSlot.LeftHand, ctx, ctx.Hand[0].id);
+        }
+
+
     }
 
     [Serializable]
@@ -392,22 +416,25 @@ namespace HSM {
         public CinemachineCamera cinCam;
         public Transform cinCamTransform => cinCam.transform;
         public Animator anim;
+        public AnimancerComponent _anim;
         public NetworkAnimator netAnim;
         public SkinnedMeshRenderer skin;
 
         [Header("Held Item Refrences")]
         public EquipmentManager equipmentManager;
         public NetworkItemSync sync;
-        public HeldItemData[] Hand = new HeldItemData[2];
+        public HeldItemData[] Hand => equipmentManager.activeItems; // pointer to equipment in equipment manager
         
         [HideInInspector] public PlayerStateDriver psd;
 
         [HideInInspector] public Vector3 debugCurrentDir;
 
-        [Header("Debugging For R.A.D.")]
+        [Header("Debugging For RAD & RAID")]
         // Holder for information sent between player inputs and actions HSM.
         public RequestedActionData rad = new RequestedActionData();
         public RequestedActionItemData raid = new RequestedActionItemData();
+
+        
 
         public static readonly int MotionHash = Animator.StringToHash("Motion");
         public static readonly int IsCrouchHash = Animator.StringToHash("IsCrouch");
@@ -442,7 +469,7 @@ namespace HSM {
             return anim.GetCurrentAnimatorStateInfo(layer).length;
         }
 
-        public void BroadcastAction(int itemID, HandSlot slot, int actionTypeCode) => sync.BroadcastAction(itemID, slot, actionTypeCode);
+        public void BroadcastAction(ushort itemID, HandSlot slot, int actionTypeCode) => sync.BroadcastAction(itemID, slot, actionTypeCode);
     }
 
     [Serializable] // Data requested by player to the Action State Machine

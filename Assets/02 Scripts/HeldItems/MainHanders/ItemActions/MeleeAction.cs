@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Animancer;
 using HSM;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -12,7 +14,7 @@ public class MeleeAction : ItemAction
     [Range(0,1)]public float[] chainWindow;
     
 
-    public override void OnLocalStart(HandSlot hand, PlayerContext ctx, int itemID)
+    public override void OnLocalStart(HandSlot hand, PlayerContext ctx, ushort itemID)
     {
         if(!CheckIfHandsAreCorrect(hand,ctx)) return; // check to see if there is anything for the hands to do. 
         ctx.raid.chainLength[(int)hand] = chainLength; // set the chain length of both the light and heavy attack.
@@ -41,7 +43,7 @@ public class MeleeAction : ItemAction
         //PerformHitCheck(user, ctx, damageToDeal, hand);
     }
 
-    public override void OnLocalRelease(HandSlot hand, PlayerContext ctx, int itemID)
+    public override void OnLocalRelease(HandSlot hand, PlayerContext ctx, ushort itemID)
     {
         //throw new System.NotImplementedException();
     }
@@ -61,6 +63,11 @@ public class MeleeAction : ItemAction
             
             anim.SetTrigger(dynamicTrigger);
         //}
+    }
+
+    public override void PreloadAnimations(AnimancerComponent animancer, List<AnimationClip> RegisteredClips)
+    {
+        throw new System.NotImplementedException();
     }
 
     /*

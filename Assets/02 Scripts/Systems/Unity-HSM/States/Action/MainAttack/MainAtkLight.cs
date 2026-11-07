@@ -22,7 +22,7 @@ public class MainAtkLight : State
         {
             if(ctx.rad.type == ActionType.Attack && chainStep != ctx.raid.chainLength[useHand][0])
             {
-                Debug.Log("Continue");
+                //Debug.Log("Continue");
                 elapsedTime = 0;
                 ctx.rad.handChainNum[useHand] += 1;
                 OnEnter();
@@ -50,12 +50,12 @@ public class MainAtkLight : State
         // chain step is current chain step. rounds back after. 
         // possibly look into cooldown after chain, with variant, so like daggers wouldnt have a long cooldown vs a hammer
         chainStep = ctx.rad.handChainNum[useHand];// = (ctx.rad.handChainNum[useHand]%chainLength)+1; // lowest it should be in this state is 1, that means its occuring.
-        Debug.Log(chainStep);
+        //Debug.Log(chainStep);
         
         ctx.anim.SetInteger(ctx.raid.currentProgressHash,chainStep); // set the integer to 1 or whatever the combo is.
 
         clipTime = 3.33333f;//ctx.GetAnimClipLength(useHand+1); // get length of anim.
-        Debug.Log("ClipTime: " + clipTime);
+        //Debug.Log("ClipTime: " + clipTime);
 
         // get the length of the clip 
         float chainWindowPercent = ctx.raid.chainWindow[useHand][0];

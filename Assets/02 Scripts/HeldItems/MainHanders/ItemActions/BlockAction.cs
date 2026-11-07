@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Animancer;
 using HSM;
 using UnityEngine;
 
@@ -7,7 +9,7 @@ public class BlockAction : ItemAction
     public string actionLable;
     public string progressLable;
 
-    public override void OnLocalStart(HandSlot hand, PlayerContext ctx, int itemID)
+    public override void OnLocalStart(HandSlot hand, PlayerContext ctx, ushort itemID)
     {
         if(!CheckIfHandsAreCorrect(hand,ctx)) return; // check to see if there is anything for the hands to do. 
         Animator anim = ctx.anim;
@@ -32,7 +34,7 @@ public class BlockAction : ItemAction
         ctx.BroadcastAction(itemID,hand,0);
     }
 
-    public override void OnLocalRelease(HandSlot hand, PlayerContext ctx, int itemID)
+    public override void OnLocalRelease(HandSlot hand, PlayerContext ctx, ushort itemID)
     {
         throw new System.NotImplementedException();
     }
@@ -47,5 +49,8 @@ public class BlockAction : ItemAction
         anim.SetTrigger(ctx.raid.currentActionHash);
     }
 
-    
+    public override void PreloadAnimations(AnimancerComponent animancer, List<AnimationClip> RegisteredClips)
+    {
+        throw new System.NotImplementedException();
+    }
 }

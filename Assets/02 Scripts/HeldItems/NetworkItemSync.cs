@@ -4,21 +4,23 @@ using UnityEngine;
 
 public class NetworkItemSync : NetworkBehaviour
 {
+    [SerializeField] private PlayerStateDriver psd;
     private PlayerContext ctx;
     private EquipmentManager localEquipment;
     private Animator animator;
 
-    public void OnStart(PlayerContext ctx)
+    public void OnStart()
     {
-        this.ctx = ctx;
+        ctx = psd.ctx;
         localEquipment = ctx.equipmentManager;
+        localEquipment.animancer = ctx._anim;
         animator = ctx.anim;
     }
 
     /// <summary>
     /// 1. The local player calls this from their input script or ScriptableObject action.
     /// </summary>
-    public void BroadcastAction(int itemID, HandSlot slot, int actionTypeCode)
+    public void BroadcastAction(ushort itemID, HandSlot slot, int actionTypeCode)
     {
         // If we are the Host/Server, we can bypass the RPC and go straight to the clients
         if (IsServer)
@@ -36,7 +38,7 @@ public class NetworkItemSync : NetworkBehaviour
     /// 2. The Host/Server receives the input execution request from a client.
     /// </summary>
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-    private void ExecuteActionServerRpc(int itemID, HandSlot slot, int actionTypeCode)
+    private void ExecuteActionServerRpc(ushort itemID, HandSlot slot, int actionTypeCode)
     {
         // Host immediately forwards this down to all other players in the session
         ExecuteActionClientRpc(itemID, slot, actionTypeCode);
@@ -46,7 +48,7 @@ public class NetworkItemSync : NetworkBehaviour
     /// 3. Every connected machine executes this code to update puppet visuals.
     /// </summary>
     [ClientRpc]
-    private void ExecuteActionClientRpc(int itemID, HandSlot slot, int actionTypeCode)
+    private void ExecuteActionClientRpc(ushort itemID, HandSlot slot, int actionTypeCode)
     {
         // Safety First: Avoid running this on the client who originally swung the sword.
         // Their game already played the animation instantly on frame one!
@@ -59,7 +61,7 @@ public class NetworkItemSync : NetworkBehaviour
         if (item != null && item.primaryAction is ItemAction netAction)
         {
             // Run the non-laggy, purely visual side of the script for this remote player character
-            netAction.OnRemoteExecute(slot, ctx ,actionTypeCode);
+            netAction.OnRemoteExecute(slot, psd.ctx ,actionTypeCode);
         }
     }
 

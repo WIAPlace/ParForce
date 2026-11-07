@@ -30,7 +30,7 @@ public class MainAttack : State {
         ctx.rad.handChainNum[useHand] = 0; // set the chain count to 0 to start off.
 
         // activate the hands item SO to get datta.
-        ctx.Hand[useHand].primaryAction.OnLocalStart(ctx.rad.hand, ctx, ctx.Hand[useHand].itemID);
+        ctx.Hand[useHand].primaryAction.OnLocalStart(ctx.rad.hand, ctx, ctx.Hand[useHand].id);
 
         ctx.anim.SetBool(ctx.raid.currentActionHash,true); // set us to playing the anim.
     }

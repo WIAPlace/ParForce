@@ -23,6 +23,6 @@ public class IdleAction : State
     }
     protected override void OnEnter()
     {
-        Debug.Log("Ideling");
+        //Debug.Log("Ideling");
     }
 }

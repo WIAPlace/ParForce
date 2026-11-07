@@ -154,7 +154,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
       propertyPath: m_LocalPosition.y
@@ -162,7 +162,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 0.454
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
       propertyPath: m_LocalRotation.w
@@ -191,6 +191,10 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8664535837305688952, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8664535837305688952, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -1714,21 +1718,7 @@ MonoBehaviour:
   NetworkAnimatorExpanded: 0
   AuthorityMode: 0
   m_Animator: {fileID: 89085974}
-  TransitionStateInfoList:
-  - IsCrossFadeExit: 0
-    Layer: 1
-    OriginatingState: -1459219776
-    DestinationState: 1540733486
-    TransitionDuration: 0.1
-    TriggerNameHash: 13985236
-    TransitionIndex: 0
-  - IsCrossFadeExit: 0
-    Layer: 1
-    OriginatingState: -1459219776
-    DestinationState: 1540733486
-    TransitionDuration: 0.1
-    TriggerNameHash: 140712158
-    TransitionIndex: 1
+  TransitionStateInfoList: []
   AnimatorParameterEntries:
     ParameterEntries:
     - name: Motion
@@ -1766,11 +1756,19 @@ MonoBehaviour:
     - name: LeftHandSwing
       NameHash: 140712158
       Synchronize: 1
-      ParameterType: 9
+      ParameterType: 3
     - name: RightHandSwing
       NameHash: 13985236
       Synchronize: 1
-      ParameterType: 9
+      ParameterType: 3
+    - name: LeftHandSwingActive
+      NameHash: 328618365
+      Synchronize: 1
+      ParameterType: 4
+    - name: RightHandSwingActive
+      NameHash: -2059069797
+      Synchronize: 1
+      ParameterType: 4
   AnimatorParametersExpanded: 0
 --- !u!114 &89085976
 MonoBehaviour:

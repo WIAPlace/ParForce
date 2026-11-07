@@ -22,12 +22,6 @@ public class HeldItemData : ScriptableObject
     public SlotType slotType = SlotType.Empty;
     public HeldType heldType = HeldType.Empty;
 
-    
-
-    //[Header("TriggerNames")]
-    //public string[] primaryActionTrigger;
-    //public string[] secondaryActionTrigger;
-
     [Header("Actions")]
     public ItemAction primaryAction;
     public ItemAction secondaryAction;
@@ -40,12 +34,7 @@ public class HeldItemData : ScriptableObject
     public float windDownTime;
     
     [Header("Data")]
-    public float damage;
-
-    //[Header("Chain Actions")]
-    //public int maxPrimaryChain = 1;
-    //public int maxSecondaryChain = 1;
-    
+    public float baseDamage;    
 }   
 
 //[CreateAssetMenu(menuName = "Item System/Item Action")]
@@ -53,6 +42,9 @@ public abstract class ItemAction : ScriptableObject
 {
     public ActionType actionType;
     public bool unStopable;
+
+    public ItemActionState[] basicActions;
+
     // Called the exact frame the button is pressed down
     public abstract void OnLocalStart(HandSlot hand, PlayerContext ctx, int itemID);
     
@@ -79,3 +71,8 @@ public abstract class ItemAction : ScriptableObject
         return true;
     }
 }
+
+public abstract class ItemActionState : ScriptableObject
+{
+    
+} 

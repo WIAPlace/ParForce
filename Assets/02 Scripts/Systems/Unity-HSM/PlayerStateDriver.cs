@@ -9,6 +9,7 @@ using NUnit.Framework;
 using UnityEngine.XR;
 using Unity.VisualScripting;
 using Animancer;
+using Animancer.Editor;
 //using UnityUtils;
 
 namespace HSM {
@@ -32,8 +33,25 @@ namespace HSM {
         [Header("Testing Animancer")]
         public AnimationClip animationClip;
         public AnimancerComponent animancerComponent;
+        
 
+        private Vector2MixerState mixerState;
+        private Vector2 currentInput;
+        private Vector2 smoothVelocity;
+        [SerializeField] private float smoothTime = 0.1f; // Adjust for faster or slower fade
 
+        // 1. Create an unmanaged NetworkVariable to sync the 2D blend space position
+        private readonly NetworkVariable<Vector2> networkInputParam = new NetworkVariable<Vector2>(
+            default, 
+            NetworkVariableReadPermission.Everyone, 
+            NetworkVariableWritePermission.Server // Server-Authoritative
+        );
+        // Sync the state from Server to Clients
+        private NetworkVariable<MoveState> currentNetMoveState = new NetworkVariable<MoveState>(
+            MoveState.Idle, 
+            NetworkVariableReadPermission.Everyone, 
+            NetworkVariableWritePermission.Server
+        );
         
 
         void Awake() {
@@ -70,10 +88,17 @@ namespace HSM {
                 t.localPosition = new Vector3(0, y, 0);
                 groundCheck = t;
             }
+
+            // Animancer
+            mixerState = (Vector2MixerState)ctx._anim.States.GetOrCreate(ctx.ach.locomotionTransition);
+            //mixerState = (Vector2MixerState)ctx._anim.Play(locomotionTransition);
+            //ctx._anim.Play(ctx.ach.idleAnimation);
         }
 
         public override void OnNetworkSpawn()
         {
+            networkInputParam.OnValueChanged += OnInputParamChanged;
+
             if (IsOwner)
             {
                 Debug.Log("Owner Set Up");
@@ -89,11 +114,18 @@ namespace HSM {
                 //ctx.skin.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
 
                 ctx.sync.OnStart();
+
+                currentNetMoveState.OnValueChanged += OnMoveStateChange;
+                // Play initial state
+                PlayStateAnimation(currentNetMoveState.Value);
             }
         }
 
         public override void OnNetworkDespawn()
         {
+            networkInputParam.OnValueChanged -= OnInputParamChanged;
+            currentNetMoveState.OnValueChanged -= OnMoveStateChange;
+
             if (IsOwner)
             {
                 EndEvents();
@@ -126,6 +158,15 @@ namespace HSM {
             ctx.currentVelocityMag = (int)(tempVel.magnitude*100)/100;
             ctx.debugCurrentDir = tempVel;
 
+
+            if(currentNetMoveState.Value == MoveState.Move){
+                Vector2 targetNormalVel = new Vector2(ctx.velocity.x,ctx.velocity.z)/ctx.moveSpeed;
+
+                if(networkInputParam.Value != targetNormalVel)
+                {
+                    NetworkInput(targetNormalVel);
+                }
+            }
         }
 
         private void MachineTick()
@@ -151,6 +192,7 @@ namespace HSM {
             }
         }
        
+        
         // Gizmos /////////////////////////////////////////////////////////////////////////////////////////////////////////////
         private void OnDrawGizmos()
         {
@@ -357,6 +399,55 @@ namespace HSM {
         }
 
 
+        // Network Events /////////////////////////////////////////////////////////////////////////////////
+        [ServerRpc]
+        private void UpdateInputServerRpc(Vector2 input)
+        {
+            networkInputParam.Value = input;
+        }
+
+        [ServerRpc]
+        public void UpdateMoveStateServerRpc(MoveState newState)
+        {
+            currentNetMoveState.Value = newState;
+            //Debug.Log("Network Hit");
+        }
+
+        // fires for all clients when network variable changes
+        private void OnInputParamChanged(Vector2 previousValue, Vector2 newValue)
+        {
+            if (mixerState != null)
+            {
+                //Debug.Log("Fired");
+                // Feed the verified network position into the local Animancer graph
+                mixerState.Parameter = newValue;
+            }
+        }
+        public void OnMoveStateChange(MoveState previousState, MoveState newState)
+        {
+            PlayStateAnimation(newState);
+        }
+
+        // just a function called if the input vector / move and the network one isnt the same.
+        private void NetworkInput(Vector2 target)
+        {          
+            // Smoothly damp the input vector over time
+            currentInput = Vector2.SmoothDamp(currentInput, target, ref smoothVelocity, smoothTime);
+
+            UpdateInputServerRpc(currentInput);
+        }
+
+        private void PlayStateAnimation(MoveState state)
+        {
+            switch (state)
+            {
+                case MoveState.Idle: ctx._anim.Play(ctx.ach.idleAnimation,.25f); break;
+                case MoveState.Move: ctx._anim.Play(ctx.ach.locomotionTransition,.15f); break;
+                //case MoveState.Air:  ctx._anim.Play(_run); break;
+                default: ctx._anim.Play(ctx.ach.idleAnimation); break;
+            }
+        }
+
     }
 
     [Serializable]
@@ -403,6 +494,8 @@ namespace HSM {
         public bool rightDown;
         public bool leftDown;
         public bool shieldActive;
+        
+
         //public bool blocking;
         //public bool attacking;
 
@@ -417,7 +510,7 @@ namespace HSM {
         public Transform cinCamTransform => cinCam.transform;
         public Animator anim;
         public AnimancerComponent _anim;
-        public NetworkAnimator netAnim;
+        //public NetworkAnimator netAnim;
         public SkinnedMeshRenderer skin;
 
         [Header("Held Item Refrences")]
@@ -440,6 +533,8 @@ namespace HSM {
         public static readonly int IsCrouchHash = Animator.StringToHash("IsCrouch");
         public static readonly int IsAttackHash = Animator.StringToHash("IsGrab");
         public static readonly int IsHit = Animator.StringToHash("IsHit");
+
+        public AnimClipHolder ach;
 
 
         public void LoadContext (SO_PlayerContextLoader loader)
@@ -472,6 +567,15 @@ namespace HSM {
         public void BroadcastAction(ushort itemID, HandSlot slot, int actionTypeCode) => sync.BroadcastAction(itemID, slot, actionTypeCode);
     }
 
+    public enum MoveState{Idle, Move, Air, Crouch}
+
+    [Serializable]
+    public class AnimClipHolder
+    {
+        public AnimationClip idleAnimation;
+        public TransitionAsset locomotionTransition;
+    }
+
     [Serializable] // Data requested by player to the Action State Machine
     public class RequestedActionData
     {
@@ -482,6 +586,8 @@ namespace HSM {
         public int[] handChainNum; // counter for the current chain
 
         public bool[] blockHandInput;
+
+        public Vector2Int[] request; // Index = HandSlot, X = Action Order (1 = prim), Y = State (0 = OnStart , 1 = OnRelease)
 
     }
     

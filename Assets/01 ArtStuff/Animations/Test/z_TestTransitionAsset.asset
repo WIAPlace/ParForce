@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5a8877f26e7a6a43aaf06fade1a064a, type: 3}
+  m_Name: z_TestTransitionAsset
+  m_EditorClassIdentifier: Kybernetik.Animancer::Animancer.TransitionAsset
+  _Transition:
+    rid: 2215251123969458322
+  references:
+    version: 2
+    RefIds:
+    - rid: 2215251123969458322
+      type: {class: MixerTransition2D, ns: Animancer, asm: Kybernetik.Animancer}
+      data:
+        _FadeDuration: 1.32
+        _Speed: 1
+        _Events:
+          _NormalizedTimes:
+          - 0.8047619
+          _Callbacks: []
+          _Names: []
+        _Animations:
+        - {fileID: 7400000, guid: 10601c2257101a944b35ad3b7967954b, type: 2}
+        - {fileID: 7400000, guid: 264ac085f34a4d849aae552662f60079, type: 2}
+        - {fileID: 7400000, guid: eef827767b0444f4aabc8fbcdfa6e0cc, type: 2}
+        - {fileID: 7400000, guid: 21220791ff713c7419f93cdc1b46902a, type: 2}
+        - {fileID: 7400000, guid: 46d5ada6cccc0b446a3ae3406bbb0bad, type: 2}
+        - {fileID: 7400000, guid: 25c68c2f8650dc04190474e47d35b11d, type: 2}
+        - {fileID: 7400000, guid: 920f8365e22ddaa4eb29e093cffcc982, type: 2}
+        _Speeds: []
+        _SynchronizeChildren: 00
+        _Thresholds:
+        - {x: 0, y: 0}
+        - {x: 0, y: 1}
+        - {x: 0, y: -1}
+        - {x: 1, y: 0}
+        - {x: -1, y: 0}
+        - {x: 0, y: 2}
+        - {x: 0, y: -2}
+        _DefaultParameter: {x: 0, y: 0}
+        _Type: 0
+        _ParameterNameX: {fileID: 11400000, guid: 2e7ad29475f8ad243baf168598317e00, type: 2}
+        _ParameterNameY: {fileID: 11400000, guid: 5c26ad5ce8cb8f440ae230a612c0d2f6, type: 2}

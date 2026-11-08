@@ -19,7 +19,7 @@ namespace HSM {
         }
 
         protected override void OnEnter() {
-            //ctx.currentMoveSpeed = 0;
+            ctx.psd.UpdateMoveStateServerRpc(MoveState.Idle);
         }
 
         protected override void OnUpdate(float deltaTime)

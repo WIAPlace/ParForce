@@ -18,8 +18,24 @@ namespace HSM {
         protected override State GetTransition() {
             if (!ctx.grounded) return ((LocomotionRoot)Parent).Airborne;
             
-            return Mathf.Abs(ctx.move.magnitude) <= 0.01f ? ((Grounded)Parent).Idle : null;
+            if(Mathf.Abs(ctx.move.magnitude) <= 0.01f){
+
+                return ((Grounded)Parent).Idle; 
+            }
+            return null;
         }
+
+        protected override void OnEnter()
+        {
+            //ctx.moveAnimState = MoveState.Move;
+            ctx.psd.UpdateMoveStateServerRpc(MoveState.Move);
+            //ctx.psd.UpdateVisualState(MoveState.Move);
+        }
+        protected override void OnExit()
+        {
+            
+        }
+
 
         protected override void OnUpdate(float deltaTime) {
             float rateOfChange = 1f;
@@ -44,6 +60,8 @@ namespace HSM {
 
             ctx.velocity.x = targetx;
             ctx.velocity.z = targetz;
+
+
             
         }
     }

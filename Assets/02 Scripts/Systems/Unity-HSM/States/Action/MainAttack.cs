@@ -37,7 +37,7 @@ public class MainAttack : State {
 
     protected override void OnExit()
     {   
-        Debug.Log("ExitMain");
+        //Debug.Log("ExitMain");
         useHand = (int)ctx.rad.hand; // get which hand is being used
         ctx.rad.handChainNum[useHand] = 0; // set the chain count to 0 to end.
         ctx.raid.chainLength[useHand] = new int[0]; // reset this hand's chain length.

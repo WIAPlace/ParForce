@@ -76,6 +76,7 @@ GameObject:
   - component: {fileID: 9123940135590981327}
   - component: {fileID: 4627288873022377096}
   - component: {fileID: 2480282691316513251}
+  - component: {fileID: 5740251093585052476}
   - component: {fileID: 4727947373813138639}
   - component: {fileID: 2770189871851831573}
   m_Layer: 10
@@ -116,7 +117,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1289771948
+  GlobalObjectIdHash: 4038363772
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -194,7 +195,6 @@ MonoBehaviour:
     debugCurrentMotionLeaf: 
     debugCurrentActionLeaf: 
     currentVelocityMag: 0
-    moveAnimState: 0
     move: {x: 0, y: 0, z: 0}
     velocity: {x: 0, y: 0, z: 0}
     moveSpeed: 6
@@ -226,6 +226,7 @@ MonoBehaviour:
     anim: {fileID: 8963895608211653063}
     _anim: {fileID: 6079071984564005331}
     skin: {fileID: 1394430976865831552}
+    nas: {fileID: 5740251093585052476}
     equipmentManager: {fileID: 2480282691316513251}
     sync: {fileID: 4727947373813138639}
     psd: {fileID: 0}
@@ -255,7 +256,6 @@ MonoBehaviour:
   drawGizmos: 1
   animationClip: {fileID: 7400000, guid: b59da8f3b99f3d44aa2e8750361c4984, type: 2}
   animancerComponent: {fileID: 6079071984564005331}
-  smoothTime: 0.1
 --- !u!114 &2480282691316513251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -282,6 +282,26 @@ MonoBehaviour:
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 65535
   animancer: {fileID: 6079071984564005331}
+--- !u!114 &5740251093585052476
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4199087127087472185}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0a5f0ebd86e6f14490922a29304990e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetworkAnimSync
+  ShowTopMostFoldoutHeaderGroup: 1
+  smoothTime: 0.1
+  psd: {fileID: 4627288873022377096}
+  currentNetMoveState:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
 --- !u!114 &4727947373813138639
 MonoBehaviour:
   m_ObjectHideFlags: 0

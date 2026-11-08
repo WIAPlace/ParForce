@@ -28,7 +28,7 @@ namespace HSM {
         protected override void OnEnter()
         {
             //ctx.moveAnimState = MoveState.Move;
-            ctx.psd.UpdateMoveStateServerRpc(MoveState.Move);
+            ctx.nas.UpdateMoveStateServerRpc(MoveState.Move);
             //ctx.psd.UpdateVisualState(MoveState.Move);
         }
         protected override void OnExit()

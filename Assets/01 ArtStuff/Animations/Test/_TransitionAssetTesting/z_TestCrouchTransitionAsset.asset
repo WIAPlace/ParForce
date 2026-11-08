@@ -37,11 +37,11 @@ MonoBehaviour:
         _SynchronizeChildren: 00
         _Thresholds:
         - {x: 0, y: 0}
-        - {x: 0, y: 1}
-        - {x: 0, y: -1}
-        - {x: 1, y: 0}
-        - {x: 1, y: 0}
+        - {x: 0, y: 0.5}
+        - {x: 0, y: -0.5}
+        - {x: 0.5, y: 0}
+        - {x: -0.5, y: 0}
         _DefaultParameter: {x: 0, y: 0}
-        _Type: 0
+        _Type: 1
         _ParameterNameX: {fileID: 11400000, guid: 2e7ad29475f8ad243baf168598317e00, type: 2}
         _ParameterNameY: {fileID: 11400000, guid: 5c26ad5ce8cb8f440ae230a612c0d2f6, type: 2}

@@ -117,7 +117,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 4038363772
+  GlobalObjectIdHash: 1289771948
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -245,6 +245,10 @@ MonoBehaviour:
     ach:
       idleAnimation: {fileID: 7400000, guid: 10601c2257101a944b35ad3b7967954b, type: 2}
       locomotionTransition: {fileID: 11400000, guid: ea7e466db4d8d4a41a781bad960aa977, type: 2}
+      crouchTransition: {fileID: 11400000, guid: c9c83ff22f7412d448757d831e303730, type: 2}
+      airAnimation: {fileID: 7400000, guid: a3b39703b689f1f4191c04581075a88a, type: 2}
+      jumpAnimation: {fileID: -203655887218126122, guid: 4fab95d988836b742bfde2ffe45d152a, type: 3}
+      landAnimation: {fileID: 7400000, guid: 6fbd6e863a2173041a0ec7386ce66d04, type: 2}
   pcl: {fileID: 11400000, guid: 37518bb32ec5c194d806a3a51663cb8e, type: 2}
   input: {fileID: 11400000, guid: 028443aff179f3d449dd3efec43aa392, type: 2}
   cc: {fileID: 2770189871851831573}

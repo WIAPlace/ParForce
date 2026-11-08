@@ -133,7 +133,7 @@ namespace HSM {
             ctx.debugCurrentDir = tempVel;
 
 
-            if(ctx.nas.currentNetMoveState.Value == MoveState.Move){
+            if(ctx.nas.currentNetMoveState.Value == MoveState.Move || ctx.nas.currentNetMoveState.Value == MoveState.Crouch){
                 Vector2 targetNormalVel = new Vector2(ctx.velocity.x,ctx.velocity.z)/ctx.moveSpeed;
 
                 if(ctx.nas.networkInputParam.Value != targetNormalVel)
@@ -493,13 +493,17 @@ namespace HSM {
         public void BroadcastAction(ushort itemID, HandSlot slot, int actionTypeCode) => sync.BroadcastAction(itemID, slot, actionTypeCode);
     }
 
-    public enum MoveState{Idle, Move, Air, Crouch}
+    public enum MoveState{Idle, Move, Air, Crouch, Jump, Land}
 
     [Serializable]
     public class AnimClipHolder
     {
         public AnimationClip idleAnimation;
         public TransitionAsset locomotionTransition;
+        public TransitionAsset crouchTransition;
+        public AnimationClip airAnimation;
+        public AnimationClip jumpAnimation;
+        public AnimationClip landAnimation;
     }
 
     [Serializable] // Data requested by player to the Action State Machine

@@ -68,7 +68,8 @@ public class NetworkItemSync : NetworkBehaviour
     /// <summary>
     /// Casual client-authoritative damage processor running straight through the host.
     /// </summary>
-    [ServerRpc]
+    //[ServerRpc]
+    [Rpc(SendTo.Server)]
     public void ApplyDamageServerRpc(NetworkObjectReference targetNetObj, float damage)
     {
         if (targetNetObj.TryGet(out NetworkObject netObj))

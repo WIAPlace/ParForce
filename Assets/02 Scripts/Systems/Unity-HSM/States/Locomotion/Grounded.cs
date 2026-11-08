@@ -16,12 +16,18 @@ namespace HSM {
         protected override State GetInitialState() => Idle;
 
         protected override State GetTransition() {
-            if (ctx.jumpPressed) {
+            if (ctx.jumpPressed) { // if jumped
                 ctx.jumpPressed = false;
                 ctx.velocity.y = ctx.jumpForce;
+                ctx.nas.UpdateMoveStateServerRpc(MoveState.Jump); // send msg to server that we have jumped
                 return ((LocomotionRoot)Parent).Airborne;
             }
-            return ctx.grounded ? null : ((LocomotionRoot)Parent).Airborne;
+            if (!ctx.grounded) // if falling
+            {
+                ctx.nas.UpdateMoveStateServerRpc(MoveState.Air);
+                return  ((LocomotionRoot)Parent).Airborne;
+            }
+            return null;
         }
 
         protected override void OnUpdate(float deltaTime)

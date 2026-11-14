@@ -49,6 +49,8 @@ public class HeldItemData : ScriptableObject
     //[Header("Transform Positions")]
     //public string[] rayPointName; // points of the prefab that will be tracked during attack anims.
     public Vector3[] localPoints;
+    public Vector3 localRot;
+    public float pointRadius;
 
     [Header("Timer")]
     public float windUpTime;
@@ -57,8 +59,8 @@ public class HeldItemData : ScriptableObject
     [Header("Data")]
     public float baseDamage;    
 
-    //[Header("Passive Animations")]
-    //public AnimationClip idle;
+    [Header("Passive Animations")]
+    public ClipTransition idle;
     //public AnimationClip walk;
     //public AnimationClip run;
 

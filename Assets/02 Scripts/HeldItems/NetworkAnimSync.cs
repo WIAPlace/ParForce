@@ -121,24 +121,24 @@ public class NetworkAnimSync : NetworkBehaviour
     {
         switch (state)
         {
-            case MoveState.Idle: ctx._anim.Play(ctx.ach.idleAnimation,.25f); break;
-            case MoveState.Move: ctx._anim.Play(ctx.ach.locomotionTransition,.15f); break;
-            case MoveState.Crouch: ctx._anim.Play(ctx.ach.crouchTransition,.15f); break;
+            case MoveState.Idle: ctx.baseLayer.Play(ctx.ach.idleAnimation,.25f); break;
+            case MoveState.Move: ctx.baseLayer.Play(ctx.ach.locomotionTransition,.15f); break;
+            case MoveState.Crouch: ctx.baseLayer.Play(ctx.ach.crouchTransition,.15f); break;
 
-            case MoveState.Air:  ctx._anim.Play(ctx.ach.airAnimation,.15f); break;
+            case MoveState.Air:  ctx.baseLayer.Play(ctx.ach.airAnimation,.15f); break;
             case MoveState.Jump: 
                 // play inital jump anim
-                AnimancerState animState = ctx._anim.Play(ctx.ach.jumpAnimation,.15f);
+                AnimancerState animState = ctx.baseLayer.Play(ctx.ach.jumpAnimation,.15f);
 
                 // Register callback once it has finished to change to air;
                 animState.Events(this).OnEnd = () =>
                 {
-                    ctx._anim.Play(ctx.ach.airAnimation,.25f);
+                    ctx.baseLayer.Play(ctx.ach.airAnimation,.25f);
                 };
                 break;
 
             default: 
-                ctx._anim.Play(ctx.ach.idleAnimation); 
+                ctx.baseLayer.Play(ctx.ach.idleAnimation); 
                 break;
         }
         // We could posibly look into a sort of priority que, so while something is playing, it will play the next thing after. idk

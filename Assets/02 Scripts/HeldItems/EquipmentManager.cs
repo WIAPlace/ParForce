@@ -55,11 +55,11 @@ public class EquipmentManager : NetworkBehaviour
 
             LocalEquipAndPool(itemID,index);
 
-            if (item.visualPrefab != null)
+            if (item.visualPrefab != null) 
             {
                 currentModel = Instantiate(item.visualPrefab, handBone);
                 currentModel.transform.localPosition = Vector3.zero;
-                currentModel.transform.localRotation = Quaternion.identity;
+                currentModel.transform.localRotation = Quaternion.identity * Quaternion.Euler(item.localRot);
             }
 
             if (IsOwner)

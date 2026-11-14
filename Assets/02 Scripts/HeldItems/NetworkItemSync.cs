@@ -18,6 +18,7 @@ public class NetworkItemSync : NetworkBehaviour
     private Vector3[] previousWorldPoints;
     private readonly HashSet<NetworkObject> hitTargets = new HashSet<NetworkObject>();
     private int currentSwingId;
+    private float currentRadius;
 
     [Header("Temp for Hand")]
     [SerializeField] private Transform weaponSocket;
@@ -89,7 +90,8 @@ public class NetworkItemSync : NetworkBehaviour
     // Melee Tracing for Server based hit ditection
     public int StartTrace(HeldItemData weapon)//////////////////////////////////////////// Start
     {
-        if (!IsServer || weapon == null || weapon.localPoints.Length == 0) return -1;
+        if(isTracing) StopTrace(currentSwingId);
+        if (!IsServer || weapon == null || weapon.localPoints.Length == 0 ) return -1;
 
         currentSwingId++; // update the ID so that hit ques wont overlap
         currentItem = weapon;
@@ -102,6 +104,8 @@ public class NetworkItemSync : NetworkBehaviour
         {
             previousWorldPoints[i] = weaponSocket.TransformPoint(weapon.localPoints[i]);
         }
+        
+        currentRadius = weapon.pointRadius;
 
         isTracing = true;
         return currentSwingId;
@@ -134,7 +138,7 @@ public class NetworkItemSync : NetworkBehaviour
             if (distance > 0.001f)
             {
                 // Cast a ray from last frame's point to this frame's point
-                if (Physics.Raycast(prevWorldPoint, direction.normalized, out RaycastHit hit, distance, targetLayers))
+                if (Physics.SphereCast(prevWorldPoint, currentRadius, direction.normalized, out RaycastHit hit, distance, targetLayers))
                 {
                     ProcessHit(hit.collider);
                 }
@@ -163,8 +167,19 @@ public class NetworkItemSync : NetworkBehaviour
             damageable.OnHit();
         }
     }
-    
 
+    void OnDrawGizmos()
+    {
+        if(currentItem==null) return;
+        Gizmos.color = Color.azure;
+
+        var localPoints = currentItem.localPoints;
+        
+        for (int i = 0; i < localPoints.Length; i++)
+        {
+            Gizmos.DrawWireSphere(weaponSocket.TransformPoint(localPoints[i]),currentItem.pointRadius);
+        }
+    }
 
 
 }

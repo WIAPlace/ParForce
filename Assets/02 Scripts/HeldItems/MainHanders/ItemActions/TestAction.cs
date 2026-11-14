@@ -14,7 +14,7 @@ public class TestAction : ItemAction
     {
         HeldItemData item = HeldItemDatabase.Instance.GetItemByID(itemID);
 
-        ctx._anim.Play(testAnimClips[0]);
+        //ctx._anim.Play(testAnimClips[0]);
 
         ctx.BroadcastAction(itemID,hand,1);
     }
@@ -27,7 +27,7 @@ public class TestAction : ItemAction
 
     public override void OnRemoteExecute(HandSlot hand, PlayerContext ctx, int actionTypeCode,bool isServer,bool isClient)
     {
-        var state = ctx._anim.Play(testAnimClips[0]);
+        var state = ctx.upperBodyLayer.Play(testAnimClips[0]);
 
         if (isServer && ctx.sync != null && actionTypeCode == 1) // only play on server and if it is released.
         {
@@ -40,7 +40,11 @@ public class TestAction : ItemAction
             var events = state.Events(ctx.sync);
             events.SetCallback("_StartHit", () => swingId = ctx.sync.StartTrace(ctx.Hand[slot]));
             events.SetCallback("_EndHit", () => ctx.sync.StopTrace(swingId));
-            events.OnEnd = () => ctx.sync.StopTrace(swingId);
+            events.OnEnd = () => {
+                ctx.sync.StopTrace(swingId);
+                state.StartFade(0f,0.25f);
+                ctx.upperBodyLayer.Play(ctx.Hand[slot].idle);
+            };
         }
     }
 

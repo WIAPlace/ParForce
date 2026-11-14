@@ -73,6 +73,10 @@ namespace HSM {
             
             //mixerState = (Vector2MixerState)ctx._anim.Play(locomotionTransition);
             //ctx._anim.Play(ctx.ach.idleAnimation);
+            //ctx._anim.Layers[1].SetDebugName("Upper Body");
+            ctx.baseLayer = ctx._anim.Layers[0];
+            ctx.upperBodyLayer = ctx._anim.Layers[1];
+            ctx.upperBodyLayer.Mask = ctx.ach.upperBodyMask;
         }
 
         public override void OnNetworkSpawn()
@@ -453,7 +457,9 @@ namespace HSM {
         public RequestedActionData rad = new RequestedActionData();
         public RequestedActionItemData raid = new RequestedActionItemData();
 
-        
+        [Header("Layers")] // use instead of calling _anim, layers corispond to what is going on.
+        public AnimancerLayer baseLayer;
+        public AnimancerLayer upperBodyLayer;
 
         public static readonly int MotionHash = Animator.StringToHash("Motion");
         public static readonly int IsCrouchHash = Animator.StringToHash("IsCrouch");
@@ -497,13 +503,18 @@ namespace HSM {
 
     [Serializable]
     public class AnimClipHolder
-    {
+    {   
+        [Header("Clip Assets")]
         public AnimationClip idleAnimation;
         public TransitionAsset locomotionTransition;
         public TransitionAsset crouchTransition;
         public AnimationClip airAnimation;
         public AnimationClip jumpAnimation;
         public AnimationClip landAnimation;
+        [Header("Masks")]
+        public AvatarMask upperBodyMask;
+
+        
     }
 
     [Serializable] // Data requested by player to the Action State Machine

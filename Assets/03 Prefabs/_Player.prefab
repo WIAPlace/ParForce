@@ -249,6 +249,7 @@ MonoBehaviour:
       airAnimation: {fileID: 7400000, guid: a3b39703b689f1f4191c04581075a88a, type: 2}
       jumpAnimation: {fileID: -203655887218126122, guid: 4fab95d988836b742bfde2ffe45d152a, type: 3}
       landAnimation: {fileID: 7400000, guid: 6fbd6e863a2173041a0ec7386ce66d04, type: 2}
+      upperBodyMask: {fileID: 31900000, guid: 1311a53090cb79f4fa6db6048f46744f, type: 2}
   pcl: {fileID: 11400000, guid: 37518bb32ec5c194d806a3a51663cb8e, type: 2}
   input: {fileID: 11400000, guid: 028443aff179f3d449dd3efec43aa392, type: 2}
   cc: {fileID: 2770189871851831573}
@@ -323,7 +324,7 @@ MonoBehaviour:
   targetLayers:
     serializedVersion: 2
     m_Bits: 64
-  weaponSocket: {fileID: 1925209531668895143}
+  weaponSocket: {fileID: 2095684694929263446}
 --- !u!143 &2770189871851831573
 CharacterController:
   m_ObjectHideFlags: 0

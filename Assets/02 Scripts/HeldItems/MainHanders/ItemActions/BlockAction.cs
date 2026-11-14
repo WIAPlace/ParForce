@@ -39,7 +39,7 @@ public class BlockAction : ItemAction
         throw new System.NotImplementedException();
     }
 
-    public override void OnRemoteExecute(HandSlot hand, PlayerContext ctx, int actionTypeCode)
+    public override void OnRemoteExecute(HandSlot hand, PlayerContext ctx, int actionTypeCode, bool isServer, bool isClient)
     {
         Animator anim = ctx.anim;
             //string side = (hand == HandSlot.LeftHand) ? "Left" : "Right";

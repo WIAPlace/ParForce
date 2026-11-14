@@ -48,7 +48,7 @@ public class MeleeAction : ItemAction
         //throw new System.NotImplementedException();
     }
 
-    public override void OnRemoteExecute(HandSlot hand, PlayerContext ctx, int actionTypeCode)
+    public override void OnRemoteExecute(HandSlot hand, PlayerContext ctx, int actionTypeCode, bool isServer, bool isClient)
     {
         // Remote puppets receive the raw combo index as the actionTypeCode
         int remoteComboIndex = actionTypeCode;

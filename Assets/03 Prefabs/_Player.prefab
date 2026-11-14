@@ -274,7 +274,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EquipmentManager
   ShowTopMostFoldoutHeaderGroup: 1
   leftHandBone: {fileID: 1925209531668895143}
-  rightHandBone: {fileID: 1925209531668895143}
+  rightHandBone: {fileID: 2095684694929263446}
   leftHandItemID:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -320,6 +320,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NetworkItemSync
   ShowTopMostFoldoutHeaderGroup: 1
   psd: {fileID: 4627288873022377096}
+  targetLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  weaponSocket: {fileID: 1925209531668895143}
 --- !u!143 &2770189871851831573
 CharacterController:
   m_ObjectHideFlags: 0

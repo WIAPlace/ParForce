@@ -19,10 +19,10 @@ MonoBehaviour:
   heldType: 1
   primaryAction: {fileID: 11400000, guid: 46628707493781647a4488f5f34f49a2, type: 2}
   secondaryAction: {fileID: 11400000, guid: 46628707493781647a4488f5f34f49a2, type: 2}
-  rayPointName:
-  - Ray1
-  - Ray2
-  - Ray3
+  localPoints:
+  - {x: 0, y: 0.8, z: 0}
+  - {x: 0, y: 3.51, z: 0}
+  - {x: 0, y: 6.51, z: 0}
   windUpTime: 0
   windDownTime: 0
   baseDamage: 0

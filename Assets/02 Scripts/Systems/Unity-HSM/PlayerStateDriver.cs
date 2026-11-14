@@ -364,12 +364,12 @@ namespace HSM {
         private void InteractEvent()
         {
             if(!test){
-                ctx.equipmentManager.leftHandItemID.Value = 10; 
+                ctx.equipmentManager.rightHandItemID.Value = 10; 
                 test=true;
                 return;
             }
 
-            ctx.Hand[0].primaryAction.OnLocalStart(HandSlot.LeftHand, ctx, ctx.Hand[0].id);
+            ctx.Hand[1].primaryAction.OnLocalStart(HandSlot.RightHand, ctx, ctx.Hand[1].id);
         }
 
 

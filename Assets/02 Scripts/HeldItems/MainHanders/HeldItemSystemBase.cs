@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using Animancer;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.XR;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -44,8 +46,9 @@ public class HeldItemData : ScriptableObject
     public ItemAction primaryAction;
     public ItemAction secondaryAction;
 
-    [Header("Transform Positions")]
-    public string[] rayPointName; // points of the prefab that will be tracked during attack anims.
+    //[Header("Transform Positions")]
+    //public string[] rayPointName; // points of the prefab that will be tracked during attack anims.
+    public Vector3[] localPoints;
 
     [Header("Timer")]
     public float windUpTime;
@@ -137,8 +140,8 @@ public abstract class ItemAction : ScriptableObject
     // Called the frame the button is released
     public abstract void OnLocalRelease(HandSlot hand, PlayerContext ctx, ushort itemID);
     
-    // Executed on other clients via RPCs to display visuals/animations
-    public abstract void OnRemoteExecute(HandSlot hand, PlayerContext ctx, int actionTypeCode);
+    // Executed on other clients and server via RPCs to display visuals/animations and perform certain logic, if its the server
+    public abstract void OnRemoteExecute(HandSlot hand, PlayerContext ctx, int actionTypeCode, bool isServer, bool isClient);
 
     protected bool CheckIfHandsAreCorrect(HandSlot hand, PlayerContext ctx)
     {
@@ -155,6 +158,21 @@ public abstract class ItemAction : ScriptableObject
                 break;
         }
         return true;
+    }
+
+    protected int CheckHandUsed(HandSlot hand, PlayerContext ctx)
+    {
+        switch (hand)
+        {
+            case HandSlot.TwoHanded: 
+                return ctx.Hand[0] != null ? 0 : 1; 
+            case HandSlot.LeftHand when ctx.Hand[0] != null:
+                return 0;
+            case HandSlot.RightHand when ctx.Hand[1] != null:
+                return 1;
+            default:
+                return -1;
+        }
     }
 
     public abstract void PreloadAnimations(AnimancerComponent animancer, List<AnimationClip> RegisteredClips);

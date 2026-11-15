@@ -22,7 +22,7 @@ public class TestAction : ItemAction
     // On Release
     public override void OnLocalRelease(HandSlot hand, PlayerContext ctx, ushort itemID)
     {
-        
+        //ctx.BroadcastAction(itemID,hand,1);
     }
 
     public override void OnRemoteExecute(HandSlot hand, PlayerContext ctx, int actionTypeCode,bool isServer,bool isClient)

@@ -217,6 +217,7 @@ namespace HSM {
             input.BlockEvent += RightEvent;
             input.BlockCancelledEvent += RightEventCancelled;
             input.InteractEvent += InteractEvent;
+            input.InteractCancelledEvent += InteractEventCancelled;
         }
         private void EndEvents()
         {
@@ -232,6 +233,7 @@ namespace HSM {
             input.BlockEvent -= RightEvent;
             input.BlockCancelledEvent -= RightEventCancelled;
             input.InteractEvent -= InteractEvent;
+            input.InteractCancelledEvent -= InteractEventCancelled;
         }
 
         // Handle Events //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -367,13 +369,17 @@ namespace HSM {
         // Testing With this Button. "E"
         private void InteractEvent()
         {
+            if(test) ctx.Hand[1].primaryAction.OnLocalStart(HandSlot.RightHand, ctx, ctx.Hand[1].id);
+        }
+        private void InteractEventCancelled()
+        {
             if(!test){
                 ctx.equipmentManager.rightHandItemID.Value = 10; 
                 test=true;
                 return;
             }
+            ctx.Hand[1].primaryAction.OnLocalRelease(HandSlot.RightHand, ctx, ctx.Hand[1].id);
 
-            ctx.Hand[1].primaryAction.OnLocalStart(HandSlot.RightHand, ctx, ctx.Hand[1].id);
         }
 
 
@@ -423,6 +429,8 @@ namespace HSM {
         public bool rightDown;
         public bool leftDown;
         public bool shieldActive;
+        // will is busy means that certain interactions wont fire.
+        public bool[] handIsBusy = new bool[]{false,false};
         
 
         //public bool blocking;

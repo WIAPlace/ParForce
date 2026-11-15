@@ -78,6 +78,7 @@ public class InputReader : ScriptableObject, InputSystem.IPlayerActions, InputSy
     public event Action BlockEvent;
     public event Action BlockCancelledEvent;
     public event Action InteractEvent;
+    public event Action InteractCancelledEvent;
 
     ////// Player Events ///////////////
     /// 
@@ -152,6 +153,10 @@ public class InputReader : ScriptableObject, InputSystem.IPlayerActions, InputSy
         if (context.phase == InputActionPhase.Performed)
         {
             InteractEvent?.Invoke();
+        }
+        if (context.phase == InputActionPhase.Canceled)
+        {
+            InteractCancelledEvent?.Invoke();
         }
     }
 

@@ -17,8 +17,8 @@ MonoBehaviour:
   visualPrefab: {fileID: 4553138882470368957, guid: 065b7633c0c82f74983e5f32570f4a7c, type: 3}
   slotType: 1
   heldType: 1
-  primaryAction: {fileID: 11400000, guid: 46628707493781647a4488f5f34f49a2, type: 2}
-  secondaryAction: {fileID: 11400000, guid: 46628707493781647a4488f5f34f49a2, type: 2}
+  primaryAction: {fileID: 11400000, guid: 78d529592f2290247acb4b34693531d4, type: 2}
+  secondaryAction: {fileID: 11400000, guid: 78d529592f2290247acb4b34693531d4, type: 2}
   localPoints:
   - {x: 0, y: 0, z: 0.3}
   - {x: 0, y: 0, z: 0.5}

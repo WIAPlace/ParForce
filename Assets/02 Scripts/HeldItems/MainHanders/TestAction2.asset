@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba4ea9fd79bd39e4a8db82699dd267cd, type: 3}
+  m_Name: TestAction2
+  m_EditorClassIdentifier: Assembly-CSharp::TestAction
+  actionType: 1
+  unStopable: 0
+  testAnimClips:
+  - _FadeDuration: 0.25
+    _Speed: 1
+    _Events:
+      _NormalizedTimes:
+      - 0.20027845
+      - 0.47961417
+      - NaN
+      _Callbacks: []
+      _Names:
+      - {fileID: 11400000, guid: e2fbf505426815040a3dba16e8276e92, type: 2}
+      - {fileID: 11400000, guid: a738c9b660c3a314982d49677a903d36, type: 2}
+    _Clip: {fileID: -203655887218126122, guid: 7f8015acccae16d4695822d82cf913e6, type: 3}
+    _NormalizedStartTime: NaN
+  references:
+    version: 2
+    RefIds: []

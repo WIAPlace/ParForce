@@ -29,8 +29,7 @@ public class TestAction : ItemAction
     {
         var state = ctx.upperBodyLayer.Play(testAnimClips[0]);
 
-        if (isServer && ctx.sync != null && actionTypeCode == 1) // only play on server and if it is released.
-        {
+        if(actionTypeCode == 1){
             int swingId = -1;
 
             int slot = CheckHandUsed(hand,ctx);
@@ -38,13 +37,26 @@ public class TestAction : ItemAction
 
             // Use rayTracer as the owner key so events stay isolated per character
             var events = state.Events(ctx.sync);
-            events.SetCallback("_StartHit", () => swingId = ctx.sync.StartTrace(ctx.Hand[slot]));
-            events.SetCallback("_EndHit", () => ctx.sync.StopTrace(swingId));
-            events.OnEnd = () => {
-                ctx.sync.StopTrace(swingId);
-                state.StartFade(0f,0.25f);
-                ctx.upperBodyLayer.Play(ctx.Hand[slot].idle);
-            };
+
+            if (isServer && ctx.sync != null) // only play on server and if it is released.
+            {
+                events.SetCallback("_StartHit", () => swingId = ctx.sync.StartTrace(ctx.Hand[slot]));
+                events.SetCallback("_EndHit", () => ctx.sync.StopTrace(swingId));
+                events.OnEnd = () => {
+                    ctx.sync.StopTrace(swingId);
+                    state.StartFade(0f,0.25f);
+                    ctx.upperBodyLayer.Play(ctx.Hand[slot].idle);
+                };
+            }
+
+            if (!isServer) // !server because host is both client and server.
+            { // we only need to fix the on end event for the player, so it will tranistion into idle
+                events.OnEnd = () =>
+                {
+                    state.StartFade(0f,0.25f);
+                    ctx.upperBodyLayer.Play(ctx.Hand[slot].idle);
+                };
+            }
         }
     }
 

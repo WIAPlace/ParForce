@@ -4,16 +4,11 @@ using HSM;
 public class HeldItemsAction : State
 {
     readonly PlayerContext ctx;
-    //Vector2Int[] requestedAction;//e
-    InputBuffer<Vector2Int>[] requestedAction;
+    //Vector2Int[] ctx.requestedAction;//e
+    
 
     public HeldItemsAction(StateMachine m, State parent, PlayerContext ctx) : base(m, parent) {
         this.ctx = ctx;
-        requestedAction = new InputBuffer<Vector2Int>[ctx.lastAction.Length];
-        for(int i =0;i<requestedAction.Length;i++) // Initialize the array
-        { 
-            requestedAction[i] = new InputBuffer<Vector2Int>(12);
-        }
     }
 
     protected override State GetTransition()
@@ -66,7 +61,7 @@ public class HeldItemsAction : State
                         int keyState = isDown ? 0 : 1; // 0 is on start, 1 is on release
                         // Have the off Hand perform an action related to the order given, 1 is primary, 2 is secondary. 
                         
-                        requestedAction[offHand].Add(new Vector2Int(order,keyState),ctx.currentTick); 
+                        ctx.requestedAction[offHand].Add(new Vector2Int(order,keyState),ctx.currentTick); 
                         continue;
                     }
                     // if it is less than zero then continue. outside of the if statement.
@@ -76,15 +71,29 @@ public class HeldItemsAction : State
                 if(ctx.Hand[i]!=null && ctx.Hand[i].heldType!=HeldType.Empty) 
                 {
                     // If Hand has something in it///////////////////////////////////
+                    if(ctx.lastAction[i].x >= 1)
+                    {
+                        int order = ctx.Hand[i].MainInputWhileActive(isDown,i,ctx.lastAction[i]);
+                        if(order == 0) continue;
+                        else if(order > 0)
+                        {
+                            int keyState = isDown ? 0 : 1; // 0 is on start, 1 is on release
+                            // Have the off Hand perform an action related to the order given, 1 is primary, 2 is secondary. 
+                            
+                            ctx.requestedAction[i].Add(new Vector2Int(order,keyState),ctx.currentTick); 
+                            continue;
+                        }
+                    }
+
                     if (isDown) // if Key is Down
                     {
                         // Decide what action should be taken here and On Start.
-                        requestedAction[i].Add(new Vector2Int(1,0),ctx.currentTick); // Primary, on start
+                        ctx.requestedAction[i].Add(new Vector2Int(1,0),ctx.currentTick); // Primary, on start
                         continue;
                     }
                     else // If Key is not Down
                     {
-                        requestedAction[i].Add(new Vector2Int(1,1),ctx.currentTick); // Primary, on Release
+                        ctx.requestedAction[i].Add(new Vector2Int(1,1),ctx.currentTick); // Primary, on Release
                         continue;
                     }
                 }
@@ -95,12 +104,12 @@ public class HeldItemsAction : State
                     if (isDown) // if Key is Down
                     {
                         // Decide what action should be taken here and On Start.
-                        requestedAction[offHand].Add(new Vector2Int(2,0),ctx.currentTick); // Primary, on start
+                        ctx.requestedAction[offHand].Add(new Vector2Int(2,0),ctx.currentTick); // Primary, on start
                         continue;
                     }
                     else // If Key is not Down
                     {
-                        requestedAction[offHand].Add(new Vector2Int(2,1),ctx.currentTick); // Primary, on Release
+                        ctx.requestedAction[offHand].Add(new Vector2Int(2,1),ctx.currentTick); // Primary, on Release
                         continue;
                     }
                 }
@@ -111,9 +120,9 @@ public class HeldItemsAction : State
         for(int i = 0; i<ctx.lastAction.Length; i++) ///////////////////////////////////////////////////////////////////////////////// Requested Actions
         {
             //Debug.Log(ctx.handIsBusy[i]);
-            if(ctx.handIsBusy[i] || !requestedAction[i].Check()) continue; // null catch
+            if(ctx.handIsBusy[i] || !ctx.requestedAction[i].Check()) continue; // null catch
 
-            if (requestedAction[i].TryConsume(ctx.currentTick, out ctx.lastAction[i]))
+            if (ctx.requestedAction[i].TryConsume(ctx.currentTick, out ctx.lastAction[i]))
             { // if something has changed lets reflect it, once the hand is not busy.
 
                 int requestedOrder = ctx.lastAction[i].x-1;

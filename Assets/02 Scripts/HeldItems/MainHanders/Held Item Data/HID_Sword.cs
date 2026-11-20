@@ -10,4 +10,18 @@ public class HID_Sword : HeldItemData
     {   // Active Action at the moment will always be 0,0
         return base.OffInputWhileActive(key, isDown, activeHand, activeAction, otherItem);
     }
+
+    public override int MainInputWhileActive(bool isDown, int activeHand, Vector2Int activeAction)
+    {
+        if(activeAction.x == 2 && activeAction.y == 0) // if blocking
+        {
+            if(!isDown) return 0; // block input from this. 
+            return 4;
+        }
+        if (activeAction.x == 4)
+        {
+            return 0;
+        }
+        return base.MainInputWhileActive(isDown, activeHand, activeAction);
+    }
 }

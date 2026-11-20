@@ -407,6 +407,10 @@ namespace HSM {
 
         [HideInInspector] public int currentTick=>psd.NetworkManager.NetworkTickSystem.LocalTime.Tick;
         // Index = HandSlot, X = Action Order (1 = prim), Y = State (0 = OnStart , 1 = OnRelease)
+        public InputBuffer<Vector2Int>[] requestedAction = new InputBuffer<Vector2Int>[hands]
+        {
+            new InputBuffer<Vector2Int>(),new InputBuffer<Vector2Int>()
+        };
         public Vector2Int[] lastAction = new Vector2Int[hands]; 
         
 

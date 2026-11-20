@@ -3,10 +3,6 @@ using HSM;
 using System;
 using System.Collections.Generic;
 using Animancer;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.XR;
-using UnityEngine.InputSystem;
 
 
 
@@ -24,7 +20,7 @@ public enum ActionOrder {None, Prim, Sec, PrimSec, SecPrim}
 
 
 
-[CreateAssetMenu(menuName = "Item System/HeldItemData")]
+[CreateAssetMenu(menuName = "Item System/HeldItemData/_Basic")]
 public class HeldItemData : ScriptableObject
 {
     [Header("Network Identity")]
@@ -76,6 +72,7 @@ public class HeldItemData : ScriptableObject
         // Preload Logic
         foreach(ItemAction act in actions)
         {   // preload anims from each order
+            if(act==null) continue;
             act.PreloadAnimations(animancer,RegisteredClips);
         }
     }
@@ -102,7 +99,7 @@ public class HeldItemData : ScriptableObject
     }
 
     // If this item has an action activly happening while the player presses an input it will go through this.
-    public virtual int InputWhileActive(int key, bool isDown, int activeHand, int activeAction, HeldItemData otherItem)
+    public virtual int InputWhileActive(int key, bool isDown, int activeHand, Vector2Int activeAction, HeldItemData otherItem)
     {
         return -1; // simply let them do what they want.
 

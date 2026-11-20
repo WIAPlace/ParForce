@@ -301,17 +301,15 @@ namespace HSM {
         // Testing With this Button. "E"
         private void InteractEvent()
         {
-            if(test) ctx.Hand[1].actions[0].OnLocalStart(HandSlot.RightHand, ctx, ctx.Hand[1].id);
-        }
-        private void InteractEventCancelled()
-        {
             if(!test){
-                ctx.equipmentManager.rightHandItemID.Value = 10; 
+                ctx.equipmentManager.rightHandItemID.Value = 1; 
                 test=true;
                 return;
             }
-            ctx.Hand[1].actions[0].OnLocalRelease(HandSlot.RightHand, ctx, ctx.Hand[1].id);
-
+        }
+        private void InteractEventCancelled()
+        {
+            
         }
 
 
@@ -409,7 +407,7 @@ namespace HSM {
 
         [HideInInspector] public int currentTick=>psd.NetworkManager.NetworkTickSystem.LocalTime.Tick;
         // Index = HandSlot, X = Action Order (1 = prim), Y = State (0 = OnStart , 1 = OnRelease)
-        [HideInInspector]public Vector2Int[] lastAction = new Vector2Int[hands]; 
+        public Vector2Int[] lastAction = new Vector2Int[hands]; 
         
 
 

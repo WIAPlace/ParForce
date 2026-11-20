@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 582efaace0b503e448d54bb5c07a9606, type: 3}
-  m_Name: TestHeldItemData
+  m_Name: HID_TestHeldItemData
   m_EditorClassIdentifier: Assembly-CSharp::HeldItemData
   serializedId: 10
   heldItemName: TestItem

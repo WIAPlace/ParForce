@@ -43,6 +43,7 @@ public class InputBuffer<T> where T : struct
     }
 
     public void ClearBuffer() => _bufferedItem = null; 
+    public bool Check()=> _bufferedItem!=null;
 }
 
 public class ChainBuffer

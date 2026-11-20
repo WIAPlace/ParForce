@@ -219,6 +219,7 @@ MonoBehaviour:
     rightDown: 0
     leftDown: 0
     shieldActive: 0
+    handIsBusy: 0000
     body: {fileID: 4199087127087472185}
     controller: {fileID: 2770189871851831573}
     cameraPosition: {fileID: 792851641943504789}
@@ -231,17 +232,9 @@ MonoBehaviour:
     sync: {fileID: 4727947373813138639}
     psd: {fileID: 0}
     debugCurrentDir: {x: 0, y: 0, z: 0}
-    rad:
-      hand: 0
-      type: 0
-      order: 0
-      handChainNum: 0000000000000000
-      blockHandInput: 0000
-      request: []
-    raid:
-      currentActionHash: 0
-      currentProgressHash: 0
-      unStopable: 0000
+    lastAction:
+    - {x: 0, y: 0}
+    - {x: 0, y: 0}
     ach:
       idleAnimation: {fileID: 7400000, guid: 10601c2257101a944b35ad3b7967954b, type: 2}
       locomotionTransition: {fileID: 11400000, guid: ea7e466db4d8d4a41a781bad960aa977, type: 2}
@@ -1486,6 +1479,10 @@ PrefabInstance:
     - target: {fileID: 5622517116908181920, guid: d083a1a0db22d7445ad75aa8edf04306, type: 3}
       propertyPath: m_LocalRotation.z
       value: -0.0132774655
+      objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: d083a1a0db22d7445ad75aa8edf04306, type: 3}
+      propertyPath: m_CullingMode
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: d083a1a0db22d7445ad75aa8edf04306, type: 3}
       propertyPath: m_ApplyRootMotion

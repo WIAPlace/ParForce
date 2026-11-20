@@ -58,7 +58,7 @@ public class HeldItemsAction : State
                 if(ctx.lastAction[offHand].x >= 1 && offHandItem != null && offHandItem.heldType != HeldType.Empty)
                 {
                     // Get 'opinion' from active item.
-                    int order = offHandItem.InputWhileActive(i,isDown,offHand,ctx.lastAction[offHand].x,ctx.Hand[i]);
+                    int order = offHandItem.InputWhileActive(i,isDown,offHand,ctx.lastAction[offHand],ctx.Hand[i]);
                     if(order == 0) 
                     {
                         // Block input.
@@ -130,7 +130,7 @@ public class HeldItemsAction : State
         for(int i = 0; i<ctx.lastAction.Length; i++) ///////////////////////////////////////////////////////////////////////////////// Requested Actions
         {
             //Debug.Log(ctx.handIsBusy[i]);
-            if(requestedAction == null || requestedAction[i]==null || ctx.handIsBusy[i]) continue; // null catch
+            if(ctx.handIsBusy[i]) continue; // null catch
 
             if (requestedAction[i].TryConsume(ctx.currentTick, out ctx.lastAction[i]))
             { // if something has changed lets reflect it, once the hand is not busy.

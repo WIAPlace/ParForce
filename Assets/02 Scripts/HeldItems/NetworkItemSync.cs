@@ -66,7 +66,9 @@ public class NetworkItemSync : NetworkBehaviour
         // CRITICAL DATA LINK: Look up the structural asset locally using the network integer ID
         HeldItemData item = HeldItemDatabase.Instance.GetItemByID(itemID);
         
-        if (item != null && item.primaryAction is ItemAction netAction)
+        // item.actions[ctx.lastAction[(int)slot].x] is basicly just a guess that this should work. its the current order given. of what is likley this hand.
+        // should hopefully work
+        if (item != null && item.actions[ctx.lastAction[(int)slot].x] is ItemAction netAction)
         {
             // Run the remote server logic
             netAction.OnRemoteExecute(slot, psd.ctx ,actionTypeCode,IsServer,IsClient);

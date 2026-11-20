@@ -288,39 +288,38 @@ namespace HSM {
             }
         }
         
-        
-
         private void RightEvent()
         {
             if(!ctx.rad.blockHandInput[1] && !ctx.rightDown && !ctx.leftDown) {
                 ctx.rightDown = true;
-                EvaluateHandActions(false,ctx.rightDown);
+                //EvaluateHandActions(false,ctx.rightDown);
             }
         }
         private void RightEventCancelled()
         {
             if(ctx.rightDown) {
                 ctx.rightDown = false;
-                EvaluateHandActions(false,ctx.rightDown);
+                //EvaluateHandActions(false,ctx.rightDown);
             }
         }
         private void LeftEvent()
         {
             if(!ctx.rad.blockHandInput[0] && !ctx.leftDown && !ctx.rightDown){
                 ctx.leftDown = true;
-                EvaluateHandActions(true,ctx.leftDown);
+                //EvaluateHandActions(true,ctx.leftDown);
             }
         }
         private void LeftEventCancelled()
         {
             if(ctx.leftDown){
                 ctx.leftDown = false;
-                EvaluateHandActions(true,ctx.leftDown);
+                //EvaluateHandActions(true,ctx.leftDown);
             }
         }
 
         // Evaluates which hand for action type and switching states
         // if we need to have right only or left only slot type clauses, fix that later.
+        /*
         private void EvaluateHandActions(bool isLeft, bool down)
         {
             int hand = isLeft ? 0 : 1;
@@ -364,12 +363,12 @@ namespace HSM {
                 return;
             }
         }
-
+        */
         bool test=false;
         // Testing With this Button. "E"
         private void InteractEvent()
         {
-            if(test) ctx.Hand[1].primaryAction.OnLocalStart(HandSlot.RightHand, ctx, ctx.Hand[1].id);
+            if(test) ctx.Hand[1].actions[0].OnLocalStart(HandSlot.RightHand, ctx, ctx.Hand[1].id);
         }
         private void InteractEventCancelled()
         {
@@ -378,7 +377,7 @@ namespace HSM {
                 test=true;
                 return;
             }
-            ctx.Hand[1].primaryAction.OnLocalRelease(HandSlot.RightHand, ctx, ctx.Hand[1].id);
+            ctx.Hand[1].actions[0].OnLocalRelease(HandSlot.RightHand, ctx, ctx.Hand[1].id);
 
         }
 
@@ -431,7 +430,6 @@ namespace HSM {
         public bool shieldActive;
         // will is busy means that certain interactions wont fire.
         public bool[] handIsBusy = new bool[]{false,false};
-        
 
         //public bool blocking;
         //public bool attacking;
@@ -464,6 +462,19 @@ namespace HSM {
         // Holder for information sent between player inputs and actions HSM.
         public RequestedActionData rad = new RequestedActionData();
         public RequestedActionItemData raid = new RequestedActionItemData();
+
+        const int hands = 2; // ya, hands are more a matter of abilities rather than actual limbs. for now.
+
+        // We will use this buffer for inputs so that after it occurs it will be thrown out
+        // for the action that was taken as the result of this, we will store it in a circular buffer 
+        // so that we can refrence it later as needed. 
+        public InputBuffer<bool>[] actionInputs = new InputBuffer<bool>[hands]; // 0 = left, // 1 = right
+        [HideInInspector] public int currentTick;
+        //[HideInInspector] public int[] activeOrder = new int[hands]; // 0 = left, // 1 = right. // Unnessesary, order is already held in last action
+        // Index = HandSlot, X = Action Order (1 = prim), Y = State (0 = OnStart , 1 = OnRelease)
+        [HideInInspector]public Vector2Int[] lastAction = new Vector2Int[hands]; 
+        
+
 
         [Header("Layers")] // use instead of calling _anim, layers corispond to what is going on.
         public AnimancerLayer baseLayer;
@@ -536,7 +547,7 @@ namespace HSM {
 
         public bool[] blockHandInput;
 
-        public Vector2Int[] request; // Index = HandSlot, X = Action Order (1 = prim), Y = State (0 = OnStart , 1 = OnRelease)
+        
 
     }
     

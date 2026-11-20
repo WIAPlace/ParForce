@@ -6,13 +6,15 @@ using Animancer;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.XR;
+using UnityEngine.InputSystem;
+
 
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-public enum SlotType {Empty, Either, RightOnly, LeftOnly, Both}
+public enum SlotType {Empty, Single, RightOnly, LeftOnly, TwoHanded}
 public enum HandSlot {LeftHand, RightHand, TwoHanded}
 
 public enum HeldType {Empty, Weapon, Shield, Magic}
@@ -43,8 +45,7 @@ public class HeldItemData : ScriptableObject
     
 
     [Header("Actions")]
-    public ItemAction primaryAction;
-    public ItemAction secondaryAction;
+    public ItemAction[] actions;
 
     //[Header("Transform Positions")]
     //public string[] rayPointName; // points of the prefab that will be tracked during attack anims.
@@ -73,8 +74,10 @@ public class HeldItemData : ScriptableObject
         RegisteredClips.Clear();
 
         // Preload Logic
-        primaryAction.PreloadAnimations(animancer,RegisteredClips);
-        primaryAction.PreloadAnimations(animancer,RegisteredClips);
+        foreach(ItemAction act in actions)
+        {   // preload anims from each order
+            act.PreloadAnimations(animancer,RegisteredClips);
+        }
     }
 
     // Safely clears out clips from Animancer's graph when this item is unequipped.
@@ -96,6 +99,19 @@ public class HeldItemData : ScriptableObject
         if (clip == null) return;
         animancer.States.GetOrCreate(clip);
         RegisteredClips.Add(clip);
+    }
+
+    // If this item has an action activly happening while the player presses an input it will go through this.
+    public virtual int InputWhileActive(int key, bool isDown, int activeHand, int activeAction, HeldItemData otherItem)
+    {
+        return -1; // simply let them do what they want.
+
+        //Return Meaning
+        // -1 Do whatever the other hand wants
+        // 0 Block actions
+        // 1 This Primary
+        // 2 This Secondary
+        // so on.
     }
 
     #if UNITY_EDITOR
@@ -125,7 +141,6 @@ public class HeldItemData : ScriptableObject
         }
     }
     #endif
-
 }   
 
 //[CreateAssetMenu(menuName = "Item System/Item Action")]

@@ -13,7 +13,7 @@ public class TestActionBlock : ItemAction
         if(ctx.handIsBusy[slot]) return;
         int order = ctx.lastAction[slot].x-1;
 
-        ctx.BroadcastAction(itemID,hand,order,0,0);
+        ctx.BroadcastAction(itemID,hand,order,0,30);
     }
 
     public override void OnLocalRelease(HandSlot hand, PlayerContext ctx, ushort itemID)
@@ -22,21 +22,24 @@ public class TestActionBlock : ItemAction
         if(ctx.handIsBusy[slot]) return;
         int order = ctx.lastAction[slot].x-1;
 
-        ctx.BroadcastAction(itemID,hand,order,1,0);
+        ctx.BroadcastAction(itemID,hand,order,1,30);
     }
 
     public override void OnRemoteExecute(HandSlot hand, PlayerContext ctx, int actionTypeCode, int actionDetails, bool isServer, bool isClient)
     {
         int slot = (int)hand;
+        float fadeDuration = actionDetails / 100f;
         
         if (actionTypeCode == 0)
         {
-            ctx.upperBodyLayer.Play(block);
+            ctx.upperBodyLayer.Play(block,fadeDuration);
         }
         else
         {
             //state.StartFade(0f,0.25f);
-            ctx.upperBodyLayer.Play(ctx.Hand[slot].idle,1f);
+            ctx.upperBodyLayer.Play(ctx.Hand[slot].idle,fadeDuration);
+            ctx.lastAction[slot] = Vector2Int.zero;
+            
         }
     }
 

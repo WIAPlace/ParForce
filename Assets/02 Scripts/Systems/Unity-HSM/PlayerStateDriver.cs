@@ -399,7 +399,7 @@ namespace HSM {
             new InputBuffer<bool>(12), new InputBuffer<bool>(12)
         }; // 0 = left, // 1 = right
 
-        // C
+        // Chain buffer
         public ChainBuffer[] chainBuffer = new ChainBuffer[hands] 
         {
             new ChainBuffer(240), new ChainBuffer(240)

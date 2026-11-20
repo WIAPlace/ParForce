@@ -1,8 +1,5 @@
 using UnityEngine;
 using HSM;
-using System.Linq;
-using NUnit.Framework;
-using UnityEditor.Build.Pipeline.Injector;
 
 public class HeldItemsAction : State
 {
@@ -58,7 +55,7 @@ public class HeldItemsAction : State
                 if(ctx.lastAction[offHand].x >= 1 && offHandItem != null && offHandItem.heldType != HeldType.Empty)
                 {
                     // Get 'opinion' from active item.
-                    int order = offHandItem.InputWhileActive(i,isDown,offHand,ctx.lastAction[offHand],ctx.Hand[i]);
+                    int order = offHandItem.OffInputWhileActive(i,isDown,offHand,ctx.lastAction[offHand],ctx.Hand[i]);
                     if(order == 0) 
                     {
                         // Block input.
@@ -78,23 +75,7 @@ public class HeldItemsAction : State
                 // If Hand actualy has something in it. ////////////////////////////////////////////////////////////////////////////////
                 if(ctx.Hand[i]!=null && ctx.Hand[i].heldType!=HeldType.Empty) 
                 {
-                    // If Item is Already Active ////////////////////////////
-                    if (ctx.lastAction[i].x > 0) // if current item is active
-                    {
-                        if (!isDown) // Release
-                        {
-                            // ctx.lastAction[i].x = action Order, OnRelease = 1.
-                            requestedAction[i].Add(new Vector2Int(ctx.lastAction[i].x,1),ctx.currentTick); 
-                            continue;
-                        }
-                        else // On Down while animation is playing or something.
-                        { 
-                            requestedAction[i].Add(new Vector2Int(ctx.lastAction[i].x,0),ctx.currentTick); 
-                            continue;
-                        }
-                    }
-
-                    // If Nothing is Active ///////////////////////////////////
+                    // If Hand has something in it///////////////////////////////////
                     if (isDown) // if Key is Down
                     {
                         // Decide what action should be taken here and On Start.
@@ -130,7 +111,7 @@ public class HeldItemsAction : State
         for(int i = 0; i<ctx.lastAction.Length; i++) ///////////////////////////////////////////////////////////////////////////////// Requested Actions
         {
             //Debug.Log(ctx.handIsBusy[i]);
-            if(ctx.handIsBusy[i]) continue; // null catch
+            if(ctx.handIsBusy[i] || !requestedAction[i].Check()) continue; // null catch
 
             if (requestedAction[i].TryConsume(ctx.currentTick, out ctx.lastAction[i]))
             { // if something has changed lets reflect it, once the hand is not busy.

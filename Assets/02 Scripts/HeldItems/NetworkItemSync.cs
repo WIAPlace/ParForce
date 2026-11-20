@@ -2,8 +2,6 @@ using HSM;
 using Unity.Netcode;
 using UnityEngine;
 using System.Collections.Generic;
-using Unity.VisualScripting;
-using Mono.Cecil.Cil;
 
 public class NetworkItemSync : NetworkBehaviour
 {

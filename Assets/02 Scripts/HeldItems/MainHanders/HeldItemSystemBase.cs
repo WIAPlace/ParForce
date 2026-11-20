@@ -99,7 +99,7 @@ public class HeldItemData : ScriptableObject
     }
 
     // If this item has an action activly happening while the player presses an input it will go through this.
-    public virtual int InputWhileActive(int key, bool isDown, int activeHand, Vector2Int activeAction, HeldItemData otherItem)
+    public virtual int OffInputWhileActive(int key, bool isDown, int activeHand, Vector2Int activeAction, HeldItemData otherItem)
     {
         return -1; // simply let them do what they want.
 
@@ -110,6 +110,19 @@ public class HeldItemData : ScriptableObject
         // 2 This Secondary
         // so on.
     }
+    // If this item has an action activly happening while the player presses an input it will go through this.
+    public virtual int MainInputWhileActive(bool isDown, int activeHand, Vector2Int activeAction)
+    {
+        return -1; // simply let them do what they want.
+
+        //Return Meaning
+        // -1 Do whatever the other hand wants
+        // 0 Block actions
+        // 1 This Primary
+        // 2 This Secondary
+        // so on.
+    }
+
 
     #if UNITY_EDITOR
     private void OnValidate()

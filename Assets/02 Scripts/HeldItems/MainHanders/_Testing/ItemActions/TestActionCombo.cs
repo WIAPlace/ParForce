@@ -54,13 +54,13 @@ public class TestActionCombo : ItemAction
     {
         if(actionTypeCode == 0)
         {
-            ctx.upperBodyLayer.Play(windUps[actionDetails]);
+            ctx.upperBodyLayer.Play(windUps[actionDetails],.2f);
             //Debug.Log(hand + " played wind up on tick = "+ctx.currentTick);
         }
 
         if(actionTypeCode == 1){
             
-            var state = ctx.upperBodyLayer.Play(actions[actionDetails]);
+            var state = ctx.upperBodyLayer.Play(actions[actionDetails],.1f);
             int swingId = -1;
 
             int slot = (int)hand;
@@ -91,6 +91,7 @@ public class TestActionCombo : ItemAction
                     state.StartFade(0f,0.25f);
                     ctx.upperBodyLayer.Play(ctx.Hand[slot].idle);
                     ctx.handIsBusy[slot] = false;
+                    ctx.lastAction[slot] = Vector2Int.zero;
                     //Debug.Log(hand + " set to free on tick = "+ ctx.currentTick);
                 };
             }

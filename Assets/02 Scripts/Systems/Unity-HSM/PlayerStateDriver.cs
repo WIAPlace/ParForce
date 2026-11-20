@@ -8,6 +8,8 @@ using Unity.Netcode;
 using NUnit.Framework;
 using UnityEngine.XR;
 using Unity.VisualScripting;
+using Animancer;
+using Animancer.Editor;
 //using UnityUtils;
 
 namespace HSM {
@@ -28,8 +30,9 @@ namespace HSM {
         State locomotionRoot;
         State actionRoot;
 
-
-        
+        [Header("Testing Animancer")]
+        public AnimationClip animationClip;
+        public AnimancerComponent animancerComponent;
 
         void Awake() {
             Cursor.visible = false;
@@ -46,7 +49,7 @@ namespace HSM {
 
             ctx.psd = this;
             ctx.controller = cc;
-            ctx.body = body;
+            ctx.body = body; 
 
             // set up arrays to be the needed length
             int numHands = ctx.Hand.Length;
@@ -65,10 +68,20 @@ namespace HSM {
                 t.localPosition = new Vector3(0, y, 0);
                 groundCheck = t;
             }
+
+            // Animancer
+            
+            //mixerState = (Vector2MixerState)ctx._anim.Play(locomotionTransition);
+            //ctx._anim.Play(ctx.ach.idleAnimation);
+            //ctx._anim.Layers[1].SetDebugName("Upper Body");
+            ctx.baseLayer = ctx._anim.Layers[0];
+            ctx.upperBodyLayer = ctx._anim.Layers[1];
+            ctx.upperBodyLayer.Mask = ctx.ach.upperBodyMask;
         }
 
         public override void OnNetworkSpawn()
         {
+
             if (IsOwner)
             {
                 Debug.Log("Owner Set Up");
@@ -83,7 +96,9 @@ namespace HSM {
 
                 //ctx.skin.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
 
-                ctx.sync.OnStart(ctx);
+                ctx.sync.OnStart();
+
+                
             }
         }
 
@@ -121,6 +136,15 @@ namespace HSM {
             ctx.currentVelocityMag = (int)(tempVel.magnitude*100)/100;
             ctx.debugCurrentDir = tempVel;
 
+
+            if(ctx.nas.currentNetMoveState.Value == MoveState.Move || ctx.nas.currentNetMoveState.Value == MoveState.Crouch){
+                Vector2 targetNormalVel = new Vector2(ctx.velocity.x,ctx.velocity.z)/ctx.moveSpeed;
+
+                if(ctx.nas.networkInputParam.Value != targetNormalVel)
+                {
+                    ctx.nas.NetworkInput(targetNormalVel);
+                }
+            }
         }
 
         private void MachineTick()
@@ -146,6 +170,7 @@ namespace HSM {
             }
         }
        
+        
         // Gizmos /////////////////////////////////////////////////////////////////////////////////////////////////////////////
         private void OnDrawGizmos()
         {
@@ -191,6 +216,8 @@ namespace HSM {
             input.AttackCancelledEvent += LeftEventCancelled;
             input.BlockEvent += RightEvent;
             input.BlockCancelledEvent += RightEventCancelled;
+            input.InteractEvent += InteractEvent;
+            input.InteractCancelledEvent += InteractEventCancelled;
         }
         private void EndEvents()
         {
@@ -205,6 +232,8 @@ namespace HSM {
             input.AttackCancelledEvent -= LeftEventCancelled;
             input.BlockEvent -= RightEvent;
             input.BlockCancelledEvent -= RightEventCancelled;
+            input.InteractEvent -= InteractEvent;
+            input.InteractCancelledEvent -= InteractEventCancelled;
         }
 
         // Handle Events //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -263,33 +292,34 @@ namespace HSM {
         {
             if(!ctx.rad.blockHandInput[1] && !ctx.rightDown && !ctx.leftDown) {
                 ctx.rightDown = true;
-                EvaluateHandActions(false,ctx.rightDown);
+                //EvaluateHandActions(false,ctx.rightDown);
             }
         }
         private void RightEventCancelled()
         {
             if(ctx.rightDown) {
                 ctx.rightDown = false;
-                EvaluateHandActions(false,ctx.rightDown);
+                //EvaluateHandActions(false,ctx.rightDown);
             }
         }
         private void LeftEvent()
         {
             if(!ctx.rad.blockHandInput[0] && !ctx.leftDown && !ctx.rightDown){
                 ctx.leftDown = true;
-                EvaluateHandActions(true,ctx.leftDown);
+                //EvaluateHandActions(true,ctx.leftDown);
             }
         }
         private void LeftEventCancelled()
         {
             if(ctx.leftDown){
                 ctx.leftDown = false;
-                EvaluateHandActions(true,ctx.leftDown);
+                //EvaluateHandActions(true,ctx.leftDown);
             }
         }
 
         // Evaluates which hand for action type and switching states
         // if we need to have right only or left only slot type clauses, fix that later.
+        /*
         private void EvaluateHandActions(bool isLeft, bool down)
         {
             int hand = isLeft ? 0 : 1;
@@ -333,6 +363,25 @@ namespace HSM {
                 return;
             }
         }
+        */
+        bool test=false;
+        // Testing With this Button. "E"
+        private void InteractEvent()
+        {
+            if(test) ctx.Hand[1].actions[0].OnLocalStart(HandSlot.RightHand, ctx, ctx.Hand[1].id);
+        }
+        private void InteractEventCancelled()
+        {
+            if(!test){
+                ctx.equipmentManager.rightHandItemID.Value = 10; 
+                test=true;
+                return;
+            }
+            ctx.Hand[1].actions[0].OnLocalRelease(HandSlot.RightHand, ctx, ctx.Hand[1].id);
+
+        }
+
+
     }
 
     [Serializable]
@@ -379,6 +428,9 @@ namespace HSM {
         public bool rightDown;
         public bool leftDown;
         public bool shieldActive;
+        // will is busy means that certain interactions wont fire.
+        public bool[] handIsBusy = new bool[]{false,false};
+
         //public bool blocking;
         //public bool attacking;
 
@@ -392,27 +444,48 @@ namespace HSM {
         public CinemachineCamera cinCam;
         public Transform cinCamTransform => cinCam.transform;
         public Animator anim;
-        public NetworkAnimator netAnim;
+        public AnimancerComponent _anim;
+        //public NetworkAnimator netAnim;
         public SkinnedMeshRenderer skin;
+        public NetworkAnimSync nas;
 
         [Header("Held Item Refrences")]
         public EquipmentManager equipmentManager;
         public NetworkItemSync sync;
-        public HeldItemData[] Hand = new HeldItemData[2];
+        public HeldItemData[] Hand => equipmentManager.activeItems; // pointer to equipment in equipment manager
         
         [HideInInspector] public PlayerStateDriver psd;
 
         [HideInInspector] public Vector3 debugCurrentDir;
 
-        [Header("Debugging For R.A.D.")]
+        [Header("Debugging For RAD & RAID")]
         // Holder for information sent between player inputs and actions HSM.
         public RequestedActionData rad = new RequestedActionData();
         public RequestedActionItemData raid = new RequestedActionItemData();
+
+        const int hands = 2; // ya, hands are more a matter of abilities rather than actual limbs. for now.
+
+        // We will use this buffer for inputs so that after it occurs it will be thrown out
+        // for the action that was taken as the result of this, we will store it in a circular buffer 
+        // so that we can refrence it later as needed. 
+        public InputBuffer<bool>[] actionInputs = new InputBuffer<bool>[hands]; // 0 = left, // 1 = right
+        [HideInInspector] public int currentTick;
+        //[HideInInspector] public int[] activeOrder = new int[hands]; // 0 = left, // 1 = right. // Unnessesary, order is already held in last action
+        // Index = HandSlot, X = Action Order (1 = prim), Y = State (0 = OnStart , 1 = OnRelease)
+        [HideInInspector]public Vector2Int[] lastAction = new Vector2Int[hands]; 
+        
+
+
+        [Header("Layers")] // use instead of calling _anim, layers corispond to what is going on.
+        public AnimancerLayer baseLayer;
+        public AnimancerLayer upperBodyLayer;
 
         public static readonly int MotionHash = Animator.StringToHash("Motion");
         public static readonly int IsCrouchHash = Animator.StringToHash("IsCrouch");
         public static readonly int IsAttackHash = Animator.StringToHash("IsGrab");
         public static readonly int IsHit = Animator.StringToHash("IsHit");
+
+        public AnimClipHolder ach;
 
 
         public void LoadContext (SO_PlayerContextLoader loader)
@@ -442,7 +515,25 @@ namespace HSM {
             return anim.GetCurrentAnimatorStateInfo(layer).length;
         }
 
-        public void BroadcastAction(int itemID, HandSlot slot, int actionTypeCode) => sync.BroadcastAction(itemID, slot, actionTypeCode);
+        public void BroadcastAction(ushort itemID, HandSlot slot, int actionTypeCode) => sync.BroadcastAction(itemID, slot, actionTypeCode);
+    }
+
+    public enum MoveState{Idle, Move, Air, Crouch, Jump, Land}
+
+    [Serializable]
+    public class AnimClipHolder
+    {   
+        [Header("Clip Assets")]
+        public AnimationClip idleAnimation;
+        public TransitionAsset locomotionTransition;
+        public TransitionAsset crouchTransition;
+        public AnimationClip airAnimation;
+        public AnimationClip jumpAnimation;
+        public AnimationClip landAnimation;
+        [Header("Masks")]
+        public AvatarMask upperBodyMask;
+
+        
     }
 
     [Serializable] // Data requested by player to the Action State Machine
@@ -455,6 +546,8 @@ namespace HSM {
         public int[] handChainNum; // counter for the current chain
 
         public bool[] blockHandInput;
+
+        
 
     }
     

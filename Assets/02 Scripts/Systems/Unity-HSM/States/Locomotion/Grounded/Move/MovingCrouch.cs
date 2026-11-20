@@ -21,10 +21,12 @@ public class MovingCrouch : State
         
         if (ctx.sprinting)
         {
+            ctx.nas.UpdateMoveStateServerRpc(MoveState.Move);
             return ((Move)Parent).Run;
         }
         if (!ctx.crouching)
         {
+            ctx.nas.UpdateMoveStateServerRpc(MoveState.Move);
             return ((Move)Parent).Walk;
         }
 
@@ -32,6 +34,7 @@ public class MovingCrouch : State
     }
     protected override void OnEnter()
     {
+        ctx.nas.UpdateMoveStateServerRpc(MoveState.Crouch);
         ctx.currentMoveSpeed = ctx.moveSpeed * ctx.crouchMod;
     }
 }

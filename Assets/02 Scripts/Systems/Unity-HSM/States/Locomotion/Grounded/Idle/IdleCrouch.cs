@@ -16,6 +16,7 @@ public class IdleCrouch : State
     {
         if(ctx.crouching)
         {
+            ctx.nas.UpdateMoveStateServerRpc(MoveState.Crouch);
             ctx.anim.SetBool(PlayerContext.IsCrouchHash,true);
         }
     }

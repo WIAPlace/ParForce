@@ -10,7 +10,7 @@ public class HeldItemDatabase : ScriptableObject
     [Header("Master Item Registry")]
     [SerializeField] private List<HeldItemData> allItems = new List<HeldItemData>();
 
-    private Dictionary<int, HeldItemData> itemLookupCache;
+    private Dictionary<ushort, HeldItemData> itemLookupCache;
 
     public void RegisterAsGlobalInstance()
     {
@@ -21,18 +21,18 @@ public class HeldItemDatabase : ScriptableObject
     private void InitializeLookupDictionary() 
     {
         if (itemLookupCache != null) return; 
-        itemLookupCache = new Dictionary<int, HeldItemData>();
+        itemLookupCache = new Dictionary<ushort, HeldItemData>();
 
         foreach (var item in allItems) 
         {
             if (item == null) continue;
-            if (itemLookupCache.ContainsKey(item.itemID)) continue;
+            if (itemLookupCache.ContainsKey(item.id)) continue;
             
-            itemLookupCache.Add(item.itemID, item);
+            itemLookupCache.Add(item.id, item);
         }
     }
 
-    public HeldItemData GetItemByID(int id) 
+    public HeldItemData GetItemByID(ushort id) 
     {
         if (itemLookupCache == null) InitializeLookupDictionary();
         return itemLookupCache.TryGetValue(id, out var foundItem) ? foundItem : null;

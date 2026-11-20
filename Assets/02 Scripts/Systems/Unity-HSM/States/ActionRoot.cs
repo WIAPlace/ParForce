@@ -9,5 +9,5 @@ public class ActionRoot : State {
         HeldItems = new HeldItemsAction(m, this, ctx);
     }
 
-   // protected override State GetInitialState()=>Idle;
+    protected override State GetInitialState()=>HeldItems;
 }

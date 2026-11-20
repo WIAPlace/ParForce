@@ -19,7 +19,7 @@ MonoBehaviour:
   heldType: 1
   actions:
   - {fileID: 11400000, guid: e48d6eb8b25ea034f9349d67b552d434, type: 2}
-  - {fileID: 11400000, guid: 46628707493781647a4488f5f34f49a2, type: 2}
+  - {fileID: 11400000, guid: e48d6eb8b25ea034f9349d67b552d434, type: 2}
   localPoints:
   - {x: 0, y: 0, z: 0.3}
   - {x: 0, y: 0, z: 0.5}

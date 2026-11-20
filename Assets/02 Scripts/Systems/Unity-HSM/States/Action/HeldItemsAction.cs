@@ -7,11 +7,16 @@ using UnityEditor.Build.Pipeline.Injector;
 public class HeldItemsAction : State
 {
     readonly PlayerContext ctx;
-    Vector2Int[] requestedAction;//e
+    //Vector2Int[] requestedAction;//e
+    InputBuffer<Vector2Int>[] requestedAction;
 
     public HeldItemsAction(StateMachine m, State parent, PlayerContext ctx) : base(m, parent) {
         this.ctx = ctx;
-        requestedAction = new Vector2Int[ctx.lastAction.Length];
+        requestedAction = new InputBuffer<Vector2Int>[ctx.lastAction.Length];
+        for(int i =0;i<requestedAction.Length;i++) // Initialize the array
+        { 
+            requestedAction[i] = new InputBuffer<Vector2Int>(12);
+        }
     }
 
     protected override State GetTransition()
@@ -34,9 +39,11 @@ public class HeldItemsAction : State
         // check if there is anything in the Input Buffers of either Hand
         // go through each of them.
         // 0 is left, 1 is right, and so on...
+        //// Check For any new Inputs //////////////////////////////////////////////////////////////////////////////////////////////////////
         for(int i = 0; i < ctx.actionInputs.Length; i++) /////////////////////////////////////////////////////////////////////////// Inputs
         {
-            
+            if(ctx.actionInputs == null || ctx.actionInputs[i] == null) continue;
+            //// Check if there is a new input in the Buffer ///////////////////////////////////////////////////////////////////////////////
             if (ctx.actionInputs[i].TryConsume(ctx.currentTick, out bool isDown))
             {
                 // evaluate what this key being down means then store that inside of a struct 
@@ -45,7 +52,6 @@ public class HeldItemsAction : State
 
                 int offHand = -1;// -1 means we arnt dealing with left or right hand. use under specific circumstances.
                 if(i<2) offHand = (i+1)%2; // should set 1 to 0 / 0 to 1 to get the off hand if this is primary.
-
 
                 // If Off Hand Item Is Active ////////////////////////////////////////////////////////////////////////////////
                 HeldItemData offHandItem = ctx.Hand[offHand];
@@ -63,54 +69,86 @@ public class HeldItemsAction : State
                         int keyState = isDown ? 0 : 1; // 0 is on start, 1 is on release
                         // Have the off Hand perform an action related to the order given, 1 is primary, 2 is secondary. 
                         
-                        requestedAction[offHand] = new Vector2Int(order,keyState); 
+                        requestedAction[offHand].Add(new Vector2Int(order,keyState),ctx.currentTick); 
                         continue;
                     }
                     // if it is less than zero then continue. outside of the if statement.
                 }
 
-                if(ctx.Hand[i]!=null && ctx.Hand[i].heldType!=HeldType.Empty) //////////////////// If Hand actualy has something in it.
+                // If Hand actualy has something in it. ////////////////////////////////////////////////////////////////////////////////
+                if(ctx.Hand[i]!=null && ctx.Hand[i].heldType!=HeldType.Empty) 
                 {
-                    // If Item is Already Active ////////////////////////////////////////////////////////////////////////////////////
+                    // If Item is Already Active ////////////////////////////
                     if (ctx.lastAction[i].x > 0) // if current item is active
                     {
                         if (!isDown) // Release
                         {
                             // ctx.lastAction[i].x = action Order, OnRelease = 1.
-                            requestedAction[i] = new Vector2Int(ctx.lastAction[i].x,1); 
+                            requestedAction[i].Add(new Vector2Int(ctx.lastAction[i].x,1),ctx.currentTick); 
                             continue;
                         }
-                        else
-                        { // I don't think this should happen. 
-                            Debug.Log("Item is active, when it probably should not be");
+                        else // On Down while animation is playing or something.
+                        { 
+                            requestedAction[i].Add(new Vector2Int(ctx.lastAction[i].x,0),ctx.currentTick); 
+                            continue;
                         }
                     }
 
-                    // If Nothing is Active /////////////////////////////////////////////////////////////////////////////////////////
-                    if (isDown) // I dont think anything should be possible on release while inactive.
+                    // If Nothing is Active ///////////////////////////////////
+                    if (isDown) // if Key is Down
                     {
                         // Decide what action should be taken here and On Start.
+                        requestedAction[i].Add(new Vector2Int(1,0),ctx.currentTick); // Primary, on start
+                        continue;
+                    }
+                    else // If Key is not Down
+                    {
+                        requestedAction[i].Add(new Vector2Int(1,1),ctx.currentTick); // Primary, on Release
                         continue;
                     }
                 }
-                
+
+                // If No Item is Active, but only Other Hand Has Item in it /////////////////////////////////////////////////////////////
+                if(i<2 && offHandItem != null && offHandItem.heldType != HeldType.Empty && offHandItem.actions.Length >= 2) // <2 cause this will only work for left/right hand
+                {
+                    if (isDown) // if Key is Down
+                    {
+                        // Decide what action should be taken here and On Start.
+                        requestedAction[offHand].Add(new Vector2Int(2,0),ctx.currentTick); // Primary, on start
+                        continue;
+                    }
+                    else // If Key is not Down
+                    {
+                        requestedAction[offHand].Add(new Vector2Int(2,1),ctx.currentTick); // Primary, on Release
+                        continue;
+                    }
+                }
             }
         }
-
+        
+        //// Check if there is a new Requested Action //////////////////////////////////////////////////////////////////////////////////////////////////
         for(int i = 0; i<ctx.lastAction.Length; i++) ///////////////////////////////////////////////////////////////////////////////// Requested Actions
         {
-            if (ctx.lastAction[i] != requestedAction[i] && !ctx.handIsBusy[i])
+            //Debug.Log(ctx.handIsBusy[i]);
+            if(requestedAction == null || requestedAction[i]==null || ctx.handIsBusy[i]) continue; // null catch
+
+            if (requestedAction[i].TryConsume(ctx.currentTick, out ctx.lastAction[i]))
             { // if something has changed lets reflect it, once the hand is not busy.
-                ctx.lastAction[i] = requestedAction[i];
-                switch (requestedAction[i].y)
+
+                int requestedOrder = ctx.lastAction[i].x-1;
+                ushort id = ctx.Hand[i].id;
+
+                switch (ctx.lastAction[i].y)
                 {   // on Start
                     case 0:
                         // action order based off of x-1
-
+                        //Debug.Log((HandSlot)i + " started their " + (ActionOrder)(requestedOrder+1) + " Action on Tick = " +ctx.currentTick);
+                        ctx.Hand[i].actions[requestedOrder].OnLocalStart((HandSlot)i,ctx,id);
                         continue;
                     case 1:
                         // action order based off of x-1
-
+                        //Debug.Log((HandSlot)i + " released their " + (ActionOrder)(requestedOrder+1) + " Action on Tick = " +ctx.currentTick);
+                        ctx.Hand[i].actions[requestedOrder].OnLocalRelease((HandSlot)i,ctx,id);
                         continue;
                     default:
                         Debug.Log("Current Action's Key State is outside of Range");

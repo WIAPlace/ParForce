@@ -3,6 +3,7 @@ using Unity.Netcode;
 using UnityEngine;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using Mono.Cecil.Cil;
 
 public class NetworkItemSync : NetworkBehaviour
 {
@@ -32,31 +33,31 @@ public class NetworkItemSync : NetworkBehaviour
     }
     
     // 1. The local player calls this from their input script or ScriptableObject action.
-    public void BroadcastAction(ushort itemID, HandSlot slot, int actionTypeCode)
+    public void BroadcastAction(ushort itemID, HandSlot slot, int actionOrder, int actionTypeCode,int actionDetails)
     {
         // If we are the Host/Server, we can bypass the RPC and go straight to the clients
         if (IsServer)
         {
-            ExecuteActionClientRpc(itemID, slot, actionTypeCode);
+            ExecuteActionClientRpc(itemID, slot,actionOrder, actionTypeCode, actionDetails);
         }
         else
         {
             // If we are a client, request that the server/host broadcasts this action
-            ExecuteActionServerRpc(itemID, slot, actionTypeCode);
+            ExecuteActionServerRpc(itemID, slot,actionOrder, actionTypeCode, actionDetails);
         }
     }
 
     // 2. The Host/Server receives the input execution request from a client.
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-    private void ExecuteActionServerRpc(ushort itemID, HandSlot slot, int actionTypeCode)
+    private void ExecuteActionServerRpc(ushort itemID, HandSlot slot, int actionOrder, int actionTypeCode, int actionDetails)
     {
         // Host immediately forwards this down to all other players in the session
-        ExecuteActionClientRpc(itemID, slot, actionTypeCode);
+        ExecuteActionClientRpc(itemID, slot, actionOrder, actionTypeCode, actionDetails);
     }
 
     // 3. Every connected machine executes this code to update puppet visuals.
     [Rpc(SendTo.Everyone)]
-    private void ExecuteActionClientRpc(ushort itemID, HandSlot slot, int actionTypeCode)
+    private void ExecuteActionClientRpc(ushort itemID, HandSlot slot, int actionOrder, int actionTypeCode, int actionDetails)
     {
         // Safety First: Avoid running this on the client who originally swung the sword.
         // Their game already played the animation instantly on frame one!
@@ -67,11 +68,12 @@ public class NetworkItemSync : NetworkBehaviour
         HeldItemData item = HeldItemDatabase.Instance.GetItemByID(itemID);
         
         // item.actions[ctx.lastAction[(int)slot].x] is basicly just a guess that this should work. its the current order given. of what is likley this hand.
-        // should hopefully work
-        if (item != null && item.actions[ctx.lastAction[(int)slot].x] is ItemAction netAction)
+        // should hopefully work // it doesnt.
+        //Debug.Log(actionOrder);
+        if (item != null && item.actions[actionOrder] is ItemAction netAction)
         {
             // Run the remote server logic
-            netAction.OnRemoteExecute(slot, psd.ctx ,actionTypeCode,IsServer,IsClient);
+            netAction.OnRemoteExecute(slot, psd.ctx, actionTypeCode, actionDetails, IsServer, IsClient);
         }
     }
 

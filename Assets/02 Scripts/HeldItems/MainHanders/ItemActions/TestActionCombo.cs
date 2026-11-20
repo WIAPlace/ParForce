@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Animancer;
 using HSM;
@@ -13,38 +14,56 @@ public class TestActionCombo : ItemAction
     // On Start
     public override void OnLocalStart(HandSlot hand, PlayerContext ctx, ushort itemID)
     {
-        HeldItemData item = HeldItemDatabase.Instance.GetItemByID(itemID);
+        //HeldItemData item = HeldItemDatabase.Instance.GetItemByID(itemID);
 
         //return if this hand is busy.
-        int slot = CheckHandUsed(hand,ctx);
+        int slot = (int)hand;
         if(ctx.handIsBusy[slot]) return;
+        int order = ctx.lastAction[slot].x-1;
 
-        ctx.BroadcastAction(itemID,hand,0);
+        // step through the chain. 
+        int chain = ctx.chainBuffer[slot].CheckCount();
+        //Debug.Log(ctx.chainBuffer[slot].CheckTick());
+
+        ctx.BroadcastAction(itemID,hand,order,0,chain);
     }
 
     // On Release
     public override void OnLocalRelease(HandSlot hand, PlayerContext ctx, ushort itemID)
     {
         // return if this hand is busy.
-        int slot = CheckHandUsed(hand,ctx);
+        int slot = (int)hand;
         if(ctx.handIsBusy[slot]) return;
 
-        ctx.BroadcastAction(itemID,hand,1);
+        ctx.handIsBusy[slot] = true; // set true for user immediatly
+        //Debug.Log(hand + " set to busy on tick = "+ctx.currentTick);
+
+        int order = ctx.lastAction[slot].x-1;
+
+        // Check wich chain step we are on
+        int chain = ctx.chainBuffer[slot].CheckCount();
+
+        ctx.BroadcastAction(itemID,hand,order,1,chain);
+        
+        // step through the chain after release 
+        ctx.chainBuffer[slot].Step(actions.Length,ctx.currentTick);
+        //Debug.Log(chain);
     }
 
-    public override void OnRemoteExecute(HandSlot hand, PlayerContext ctx, int actionTypeCode,bool isServer,bool isClient)
+    public override void OnRemoteExecute(HandSlot hand, PlayerContext ctx, int actionTypeCode,int actionDetails, bool isServer,bool isClient)
     {
         if(actionTypeCode == 0)
         {
-            ctx.upperBodyLayer.Play(windUps[0]);
+            ctx.upperBodyLayer.Play(windUps[actionDetails]);
+            //Debug.Log(hand + " played wind up on tick = "+ctx.currentTick);
         }
 
         if(actionTypeCode == 1){
             
-            var state = ctx.upperBodyLayer.Play(actions[0]);
+            var state = ctx.upperBodyLayer.Play(actions[actionDetails]);
             int swingId = -1;
 
-            int slot = CheckHandUsed(hand,ctx);
+            int slot = (int)hand;
             if(slot<0) return;
             
             ctx.handIsBusy[slot] = true;
@@ -61,6 +80,7 @@ public class TestActionCombo : ItemAction
                     state.StartFade(0f,0.25f);
                     ctx.upperBodyLayer.Play(ctx.Hand[slot].idle);
                     ctx.handIsBusy[slot] = false;
+                    //Debug.Log(hand + " set to free on tick = "+ ctx.currentTick);
                 };
             }
 
@@ -71,6 +91,7 @@ public class TestActionCombo : ItemAction
                     state.StartFade(0f,0.25f);
                     ctx.upperBodyLayer.Play(ctx.Hand[slot].idle);
                     ctx.handIsBusy[slot] = false;
+                    //Debug.Log(hand + " set to free on tick = "+ ctx.currentTick);
                 };
             }
         }

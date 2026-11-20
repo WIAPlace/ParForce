@@ -158,7 +158,7 @@ public abstract class ItemAction : ScriptableObject
     public abstract void OnLocalRelease(HandSlot hand, PlayerContext ctx, ushort itemID);
     
     // Executed on other clients and server via RPCs to display visuals/animations and perform certain logic, if its the server
-    public abstract void OnRemoteExecute(HandSlot hand, PlayerContext ctx, int actionTypeCode, bool isServer, bool isClient);
+    public abstract void OnRemoteExecute(HandSlot hand, PlayerContext ctx, int actionTypeCode,int actionDetails, bool isServer, bool isClient);
 
     protected bool CheckIfHandsAreCorrect(HandSlot hand, PlayerContext ctx)
     {

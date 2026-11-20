@@ -290,80 +290,21 @@ namespace HSM {
         
         private void RightEvent()
         {
-            if(!ctx.rad.blockHandInput[1] && !ctx.rightDown && !ctx.leftDown) {
-                ctx.rightDown = true;
-                //EvaluateHandActions(false,ctx.rightDown);
-            }
+            ctx.actionInputs[1].Add(true,ctx.currentTick);
         }
         private void RightEventCancelled()
         {
-            if(ctx.rightDown) {
-                ctx.rightDown = false;
-                //EvaluateHandActions(false,ctx.rightDown);
-            }
+            ctx.actionInputs[1].Add(false,ctx.currentTick);
         }
         private void LeftEvent()
         {
-            if(!ctx.rad.blockHandInput[0] && !ctx.leftDown && !ctx.rightDown){
-                ctx.leftDown = true;
-                //EvaluateHandActions(true,ctx.leftDown);
-            }
+            ctx.actionInputs[0].Add(true,ctx.currentTick);
         }
         private void LeftEventCancelled()
         {
-            if(ctx.leftDown){
-                ctx.leftDown = false;
-                //EvaluateHandActions(true,ctx.leftDown);
-            }
+            ctx.actionInputs[0].Add(false,ctx.currentTick);
         }
 
-        // Evaluates which hand for action type and switching states
-        // if we need to have right only or left only slot type clauses, fix that later.
-        /*
-        private void EvaluateHandActions(bool isLeft, bool down)
-        {
-            int hand = isLeft ? 0 : 1;
-            int offHand = isLeft? 1 : 0;
-
-            int chosenHand = -1; // -1 means neither hand met the condition
-
-            if (ctx.Hand[hand] != null && ctx.Hand[hand].slotType != SlotType.Empty)
-            {
-                chosenHand = hand;
-
-                if(ctx.Hand[hand].slotType == SlotType.Both) ctx.rad.hand = HandSlot.TwoHanded;
-                else ctx.rad.hand = (HandSlot)chosenHand;
-
-                if(down){
-                    ctx.rad.type = ctx.Hand[hand].primaryAction.actionType;
-                    ctx.rad.order = ActionOrder.Prim;
-                    return;
-                }
-            }
-            else if (ctx.Hand[offHand] != null && ctx.Hand[offHand].slotType != SlotType.Empty && ctx.Hand[offHand].secondaryAction != null)
-            {
-                chosenHand = offHand;
-
-                if(ctx.Hand[offHand].slotType == SlotType.Both) ctx.rad.hand = HandSlot.TwoHanded;
-                else ctx.rad.hand = (HandSlot)chosenHand;
-
-                if(down){
-                    ctx.rad.type = ctx.Hand[offHand].secondaryAction.actionType;
-                    ctx.rad.order = ActionOrder.Sec;
-                    return;
-                }
-            }
-            //else return;
-            if(chosenHand >= 0 && !ctx.raid.unStopable[chosenHand]) ctx.rad.type = ActionType.None;
-
-            // Check if either condition passed
-            if (chosenHand == -1) {
-                ctx.rad.order = ActionOrder.None;
-                ctx.rad.type = ActionType.None;
-                return;
-            }
-        }
-        */
         bool test=false;
         // Testing With this Button. "E"
         private void InteractEvent()
@@ -468,9 +409,18 @@ namespace HSM {
         // We will use this buffer for inputs so that after it occurs it will be thrown out
         // for the action that was taken as the result of this, we will store it in a circular buffer 
         // so that we can refrence it later as needed. 
-        public InputBuffer<bool>[] actionInputs = new InputBuffer<bool>[hands]; // 0 = left, // 1 = right
-        [HideInInspector] public int currentTick;
-        //[HideInInspector] public int[] activeOrder = new int[hands]; // 0 = left, // 1 = right. // Unnessesary, order is already held in last action
+        public InputBuffer<bool>[] actionInputs = new InputBuffer<bool>[hands]
+        {
+            new InputBuffer<bool>(12), new InputBuffer<bool>(12)
+        }; // 0 = left, // 1 = right
+
+        // C
+        public ChainBuffer[] chainBuffer = new ChainBuffer[hands] 
+        {
+            new ChainBuffer(240), new ChainBuffer(240)
+        };
+
+        [HideInInspector] public int currentTick=>psd.NetworkManager.NetworkTickSystem.LocalTime.Tick;
         // Index = HandSlot, X = Action Order (1 = prim), Y = State (0 = OnStart , 1 = OnRelease)
         [HideInInspector]public Vector2Int[] lastAction = new Vector2Int[hands]; 
         
@@ -515,7 +465,8 @@ namespace HSM {
             return anim.GetCurrentAnimatorStateInfo(layer).length;
         }
 
-        public void BroadcastAction(ushort itemID, HandSlot slot, int actionTypeCode) => sync.BroadcastAction(itemID, slot, actionTypeCode);
+        public void BroadcastAction(ushort itemID, HandSlot slot, int actionOrder, int actionTypeCode, int actionDetails) => 
+                                                sync.BroadcastAction(itemID, slot, actionOrder, actionTypeCode, actionDetails);
     }
 
     public enum MoveState{Idle, Move, Air, Crouch, Jump, Land}

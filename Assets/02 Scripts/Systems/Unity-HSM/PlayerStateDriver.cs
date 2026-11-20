@@ -50,14 +50,6 @@ namespace HSM {
             ctx.psd = this;
             ctx.controller = cc;
             ctx.body = body; 
-
-            // set up arrays to be the needed length
-            int numHands = ctx.Hand.Length;
-            ctx.rad.handChainNum = new int[numHands];
-            ctx.rad.blockHandInput = new bool[numHands];
-            ctx.raid.chainLength = new int[numHands][];
-            ctx.raid.chainWindow = new float[numHands][];
-            ctx.raid.unStopable = new bool[numHands];
             
             // fallback: create a groundCheck just below the collider's bounds
             if (groundCheck == null) {
@@ -399,11 +391,6 @@ namespace HSM {
 
         [HideInInspector] public Vector3 debugCurrentDir;
 
-        [Header("Debugging For RAD & RAID")]
-        // Holder for information sent between player inputs and actions HSM.
-        public RequestedActionData rad = new RequestedActionData();
-        public RequestedActionItemData raid = new RequestedActionItemData();
-
         const int hands = 2; // ya, hands are more a matter of abilities rather than actual limbs. for now.
 
         // We will use this buffer for inputs so that after it occurs it will be thrown out
@@ -487,28 +474,5 @@ namespace HSM {
         
     }
 
-    [Serializable] // Data requested by player to the Action State Machine
-    public class RequestedActionData
-    {
-        public HandSlot hand;
-        public ActionType type;
-        public ActionOrder order; // 0 = Primary, 1 = secondary 
-
-        public int[] handChainNum; // counter for the current chain
-
-        public bool[] blockHandInput;
-
-        
-
-    }
     
-    [Serializable] // Data requested by the ItemAction to the State Machine. // ya i know its a weird name, raid is just easier to type than riad
-    public class RequestedActionItemData
-    {
-        public int currentActionHash = 0;
-        public int currentProgressHash = 0;
-        public int[][] chainLength;
-        public float[][] chainWindow;
-        public bool[] unStopable;
-    }
 }

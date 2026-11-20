@@ -42,10 +42,10 @@ namespace HSM {
 
             float currentMoveSpeed = ctx.currentMoveSpeed;
 
-            if(ctx.rad.type != ActionType.None)
-            {
-                currentMoveSpeed /=2;
-            }
+            //if(ctx.rad.type != ActionType.None)
+            //{
+                //currentMoveSpeed /=2;
+            //}
 
             float targetx = ctx.move.x * currentMoveSpeed;
             float targetz = ctx.move.z * currentMoveSpeed;

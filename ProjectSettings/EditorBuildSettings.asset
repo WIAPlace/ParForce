@@ -11,6 +11,9 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/NGO_Minimal_Setup/NGO_Setup.unity
     guid: 716b45adedea9164083d47db4506ef29
+  - enabled: 1
+    path: Assets/Scenes/TerrianTest.unity
+    guid: 3ccbcf3b405f3884896f6c9501b8434f
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 35052bc34a35298449b32c3f90244170, type: 3}
   m_UseUCBPForAssetBundles: 0

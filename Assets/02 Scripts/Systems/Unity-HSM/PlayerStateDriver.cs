@@ -303,8 +303,8 @@ namespace HSM {
         private void InteractEvent()
         {
             if(!test){
-                //ctx.equipmentManager.rightHandItemID.Value = 1; 
-                ctx.equipmentManager.leftHandItemID.Value = 1; 
+                ctx.equipmentManager.rightHandItemID.Value = 1; 
+                //ctx.equipmentManager.leftHandItemID.Value = 1; 
                 test=true;
                 return;
             }

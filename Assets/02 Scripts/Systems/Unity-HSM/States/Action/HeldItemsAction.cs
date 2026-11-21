@@ -42,15 +42,33 @@ public class HeldItemsAction : State
                 // then store that struct in a circular buffer 
                 // so we can see what the last action taken was for future evaluations
 
+                int mainHand = i; // usable for if a bool is active, for marshall.
+                
                 int offHand = -1;// -1 means we arnt dealing with left or right hand. use under specific circumstances.
-                if(i<2) offHand = (i+1)%2; // should set 1 to 0 / 0 to 1 to get the off hand if this is primary.
+                if(mainHand<2) offHand = (mainHand+1)%2; // should set 1 to 0 / 0 to 1 to get the off hand if this is primary.
 
-                // If Off Hand Item Is Active ////////////////////////////////////////////////////////////////////////////////
+
+                if (ctx.zeroIsMain)
+                {
+                    bool mainHandFull = ctx.Hand[mainHand]!=null && ctx.Hand[mainHand].heldType!=HeldType.Empty;
+                    bool offHandFull = ctx.Hand[offHand]!=null && ctx.Hand[offHand].heldType!=HeldType.Empty;
+
+                    if (mainHandFull ^ offHandFull)
+                    {
+                        // invert
+                        int holder = mainHand;
+                        mainHand = offHand;
+                        offHand = holder;
+                        
+                    }
+                }
+                
                 HeldItemData offHandItem = ctx.Hand[offHand];
+                // If Off Hand Item Is Active ////////////////////////////////////////////////////////////////////////////////
                 if(ctx.lastAction[offHand].x >= 1 && offHandItem != null && offHandItem.heldType != HeldType.Empty)
                 {
                     // Get 'opinion' from active item.
-                    int order = offHandItem.OffInputWhileActive(i,isDown,offHand,ctx.lastAction[offHand],ctx.Hand[i]);
+                    int order = offHandItem.OffInputWhileActive(mainHand,isDown,offHand,ctx.lastAction[offHand],ctx.Hand[mainHand]);
                     if(order == 0) 
                     {
                         // Block input.
@@ -68,19 +86,19 @@ public class HeldItemsAction : State
                 }
 
                 // If Hand actualy has something in it. ////////////////////////////////////////////////////////////////////////////////
-                if(ctx.Hand[i]!=null && ctx.Hand[i].heldType!=HeldType.Empty) 
+                if(ctx.Hand[mainHand]!=null && ctx.Hand[mainHand].heldType!=HeldType.Empty) 
                 {
                     // If Hand has something in it///////////////////////////////////
-                    if(ctx.lastAction[i].x >= 1)
+                    if(ctx.lastAction[mainHand].x >= 1)
                     {
-                        int order = ctx.Hand[i].MainInputWhileActive(isDown,i,ctx.lastAction[i]);
+                        int order = ctx.Hand[mainHand].MainInputWhileActive(isDown,mainHand,ctx.lastAction[mainHand]);
                         if(order == 0) continue;
                         else if(order > 0)
                         {
                             int keyState = isDown ? 0 : 1; // 0 is on start, 1 is on release
                             // Have the off Hand perform an action related to the order given, 1 is primary, 2 is secondary. 
                             
-                            ctx.requestedAction[i].Add(new Vector2Int(order,keyState),ctx.currentTick); 
+                            ctx.requestedAction[mainHand].Add(new Vector2Int(order,keyState),ctx.currentTick); 
                             continue;
                         }
                     }
@@ -88,12 +106,12 @@ public class HeldItemsAction : State
                     if (isDown) // if Key is Down
                     {
                         // Decide what action should be taken here and On Start.
-                        ctx.requestedAction[i].Add(new Vector2Int(1,0),ctx.currentTick); // Primary, on start
+                        ctx.requestedAction[mainHand].Add(new Vector2Int(1,0),ctx.currentTick); // Primary, on start
                         continue;
                     }
                     else // If Key is not Down
                     {
-                        ctx.requestedAction[i].Add(new Vector2Int(1,1),ctx.currentTick); // Primary, on Release
+                        ctx.requestedAction[mainHand].Add(new Vector2Int(1,1),ctx.currentTick); // Primary, on Release
                         continue;
                     }
                 }

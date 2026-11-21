@@ -303,7 +303,8 @@ namespace HSM {
         private void InteractEvent()
         {
             if(!test){
-                ctx.equipmentManager.rightHandItemID.Value = 1; 
+                //ctx.equipmentManager.rightHandItemID.Value = 1; 
+                ctx.equipmentManager.leftHandItemID.Value = 1; 
                 test=true;
                 return;
             }
@@ -322,6 +323,7 @@ namespace HSM {
         public string debugCurrentMotionLeaf;
         public string debugCurrentActionLeaf;
         public float currentVelocityMag;
+        public bool zeroIsMain;
 
         [Header("Game Variables")]
         public Vector3 move;

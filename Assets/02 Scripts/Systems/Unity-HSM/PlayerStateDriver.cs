@@ -90,6 +90,7 @@ namespace HSM {
 
                 ctx.sync.OnStart();
 
+                ctx.skin.material = ctx.mat;
                 
             }
         }
@@ -377,8 +378,10 @@ namespace HSM {
         public Animator anim;
         public AnimancerComponent _anim;
         //public NetworkAnimator netAnim;
+        public Material mat;
         public SkinnedMeshRenderer skin;
         public NetworkAnimSync nas;
+
 
         [Header("Held Item Refrences")]
         public EquipmentManager equipmentManager;

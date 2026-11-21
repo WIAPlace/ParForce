@@ -12,15 +12,35 @@ public class NetworkItemSync : NetworkBehaviour
 
     // things for hit ditection
     [SerializeField] private LayerMask targetLayers;
-    private bool isTracing;
-    private HeldItemData currentItem;
-    private Vector3[] previousWorldPoints;
-    private readonly HashSet<NetworkObject> hitTargets = new HashSet<NetworkObject>();
-    private int currentSwingId;
-    private float currentRadius;
 
-    [Header("Temp for Hand")]
-    [SerializeField] private Transform weaponSocket;
+    public struct CurrentItemInfo{
+        public bool isTracing;
+        public HeldItemData currentItem;
+        public Vector3[] previousWorldPoints;
+        public readonly HashSet<NetworkObject> hitTargets;// = new HashSet<NetworkObject>();
+        public int currentSwingId;
+        public float currentRadius;
+        public Transform weaponSocket;
+
+        public CurrentItemInfo(HeldItemData newItem=null)
+        {
+            isTracing = false;
+            currentItem = newItem;
+            previousWorldPoints=new Vector3[3];
+            hitTargets = new HashSet<NetworkObject>();
+            currentSwingId = 0;
+            currentRadius = .01f;
+            weaponSocket = null;
+        }
+    } 
+    private CurrentItemInfo[] currentItems = new CurrentItemInfo[PlayerContext.hands]
+    {
+        new CurrentItemInfo(null),new CurrentItemInfo(null)
+    };
+
+
+    //[Header("Temp for Hand")]
+    //[SerializeField] private Transform weaponSocket;
 
     public void OnStart()
     {
@@ -90,79 +110,91 @@ public class NetworkItemSync : NetworkBehaviour
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////// Melee Tracing
     // Melee Tracing for Server based hit ditection
-    public int StartTrace(HeldItemData weapon)//////////////////////////////////////////// Start
+    public int StartTrace(HeldItemData weapon,int hand)//////////////////////////////////////////// Start
     {
-        if(isTracing) StopTrace(currentSwingId);
+        if(currentItems[hand].isTracing) StopTrace(currentItems[hand].currentSwingId,hand);
         if (!IsServer || weapon == null || weapon.localPoints.Length == 0 ) return -1;
 
-        currentSwingId++; // update the ID so that hit ques wont overlap
-        currentItem = weapon;
-        hitTargets.Clear();
-
+        currentItems[hand].currentSwingId++; // update the ID so that hit ques wont overlap
+        currentItems[hand].currentItem = weapon;
+        currentItems[hand].hitTargets.Clear();
+        
+        int sign=1;
+        // Set where the weapon should originate from
+        if(hand<2){
+            currentItems[hand].weaponSocket = hand==0 ? ctx.equipmentManager.leftHandBone : ctx.equipmentManager.rightHandBone;
+            sign = (hand*2)-1;
+        }
         // Initialize previous points to the exact starting position of the active swing
         int count = weapon.localPoints.Length;
-        previousWorldPoints = new Vector3[count];
+        currentItems[hand].previousWorldPoints = new Vector3[count];
         for (int i = 0; i < count; i++)
         {
-            previousWorldPoints[i] = weaponSocket.TransformPoint(weapon.localPoints[i]);
+            currentItems[hand].previousWorldPoints[i] = currentItems[hand].weaponSocket.TransformPoint(weapon.localPoints[i]*sign);
         }
         
-        currentRadius = weapon.pointRadius;
+        currentItems[hand].currentRadius = weapon.pointRadius;
 
-        isTracing = true;
-        return currentSwingId;
+        currentItems[hand].isTracing = true;
+        return currentItems[hand].currentSwingId;
     }
-    public void StopTrace(int swingId)////////////////////////////////////////////////// Stop
+    public void StopTrace(int swingId,int hand)////////////////////////////////////////////////// Stop
     {
         if (!IsServer) return;
 
-        if(swingId == currentSwingId){
-            isTracing = false;
-            currentItem = null;
+        if(swingId == currentItems[hand].currentSwingId){
+            currentItems[hand].isTracing = false;
+            currentItems[hand].currentItem = null;
         }
     }
 
     // LateUpdate ensures Animancer has already updated bone transforms for this frame
     private void LateUpdate()///////////////////////////////////////////////////////////// Late Update
     {
-        if (!IsServer || !isTracing || currentItem == null) return;
+        if(currentItems==null) return;
+        for(int hand = 0; hand < currentItems.Length;hand++){
+            if (!IsServer || !currentItems[hand].isTracing || currentItems[hand].currentItem == null) continue;
 
-        var localPoints = currentItem.localPoints;
+            var localPoints = currentItems[hand].currentItem.localPoints;
 
-        for (int i = 0; i < localPoints.Length; i++)
-        {
-            Vector3 currentWorldPoint = weaponSocket.TransformPoint(localPoints[i]);
-            Vector3 prevWorldPoint = previousWorldPoints[i];
+            int sign = hand<2 ? (hand*2)-1 : 1;
 
-            Vector3 direction = currentWorldPoint - prevWorldPoint;
-            float distance = direction.magnitude;
-
-            if (distance > 0.001f)
+            for (int i = 0; i < localPoints.Length; i++)
             {
-                // Cast a ray from last frame's point to this frame's point
-                if (Physics.SphereCast(prevWorldPoint, currentRadius, direction.normalized, out RaycastHit hit, distance, targetLayers))
+                Vector3 currentWorldPoint = currentItems[hand].weaponSocket.TransformPoint(localPoints[i]*sign);
+                Vector3 prevWorldPoint = currentItems[hand].previousWorldPoints[i];
+
+                Vector3 direction = currentWorldPoint - prevWorldPoint;
+                float distance = direction.magnitude;
+
+                if (distance > 0.001f)
                 {
-                    ProcessHit(hit.collider);
+                    // Cast a ray from last frame's point to this frame's point
+                    if (Physics.SphereCast(prevWorldPoint, currentItems[hand].currentRadius, 
+                                direction.normalized, out RaycastHit hit, distance, targetLayers))
+                    {
+                        ProcessHit(hit.collider,hand);
+                    }
+
+                    // Optional: Visualize the swing arc in the Server Scene view
+                    Debug.DrawLine(prevWorldPoint, currentWorldPoint, Color.red, 1.0f);
                 }
 
-                // Optional: Visualize the swing arc in the Server Scene view
-                Debug.DrawLine(prevWorldPoint, currentWorldPoint, Color.red, 1.0f);
+                // Store current position as the previous position for the next frame
+                currentItems[hand].previousWorldPoints[i] = currentWorldPoint;
             }
-
-            // Store current position as the previous position for the next frame
-            previousWorldPoints[i] = currentWorldPoint;
         }
     }
 
     
-    private void ProcessHit(Collider hitCollider) /////////////////////////////////////////// Process Hit
+    private void ProcessHit(Collider hitCollider,int hand) /////////////////////////////////////////// Process Hit
     {
         var targetNetObj = hitCollider.GetComponentInParent<NetworkObject>();
         if (targetNetObj == null || targetNetObj == NetworkObject) return;
 
         // Ensure each target is only damaged once per swing
-        if (hitTargets.Contains(targetNetObj)) return;
-        hitTargets.Add(targetNetObj);
+        if (currentItems[hand].hitTargets.Contains(targetNetObj)) return;
+        currentItems[hand].hitTargets.Add(targetNetObj);
 
         if (targetNetObj.TryGetComponent<IHitable>(out var damageable))
         {
@@ -172,14 +204,19 @@ public class NetworkItemSync : NetworkBehaviour
 
     void OnDrawGizmos()
     {
-        if(currentItem==null) return;
-        Gizmos.color = Color.azure;
+        if(currentItems==null) return;
+        for(int hand = 0; hand < currentItems.Length;hand++){
+            if(currentItems[hand].currentItem==null) continue;
+            Gizmos.color = Color.azure;
 
-        var localPoints = currentItem.localPoints;
-        
-        for (int i = 0; i < localPoints.Length; i++)
-        {
-            Gizmos.DrawWireSphere(weaponSocket.TransformPoint(localPoints[i]),currentItem.pointRadius);
+            var localPoints = currentItems[hand].currentItem.localPoints;
+            int sign = hand<2 ? (hand*2)-1 : 1;
+            
+            for (int i = 0; i < localPoints.Length; i++)
+            {
+                Gizmos.DrawWireSphere(currentItems[hand].weaponSocket.TransformPoint(localPoints[i]*sign),
+                                                currentItems[hand].currentItem.pointRadius);
+            }
         }
     }
 

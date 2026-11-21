@@ -65,7 +65,7 @@ public class HeldItemData : ScriptableObject
     [NonSerialized] protected readonly List<AnimationClip> RegisteredClips = new List<AnimationClip>();
 
     // Preload animations, override in cases where held item data has diffrent information it will give
-    public virtual void PreloadAnimations(AnimancerComponent animancer)
+    public virtual void PreloadAnimations(AnimancerComponent animancer,int slot)
     {
         RegisteredClips.Clear();
 
@@ -73,7 +73,7 @@ public class HeldItemData : ScriptableObject
         foreach(ItemAction act in actions)
         {   // preload anims from each order
             if(act==null) continue;
-            act.PreloadAnimations(animancer,RegisteredClips);
+            act.PreloadAnimations(animancer,RegisteredClips,slot);
         }
     }
 
@@ -202,13 +202,19 @@ public abstract class ItemAction : ScriptableObject
         }
     }
 
-    public abstract void PreloadAnimations(AnimancerComponent animancer, List<AnimationClip> RegisteredClips);
+    public abstract void PreloadAnimations(AnimancerComponent animancer, List<AnimationClip> RegisteredClips, int slot);
 
     // Helper method for child classes to register safely
-    protected void PoolClip(AnimancerComponent animancer, AnimationClip clip, List<AnimationClip> RegisteredClips)
+    protected void PoolClip(AnimancerComponent animancer, AnimationClip clip, List<AnimationClip> RegisteredClips, int slot)
     {
         if (clip == null) return;
         animancer.States.GetOrCreate(clip);
         RegisteredClips.Add(clip);
+    }
+
+    [System.Serializable]
+    public struct ClipVarient
+    {
+        public ClipTransition[] hand;
     }
 }

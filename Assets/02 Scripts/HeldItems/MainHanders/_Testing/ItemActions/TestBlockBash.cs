@@ -34,10 +34,10 @@ public class TestActionBash : ItemAction
 
     }
 
-    public override void PreloadAnimations(AnimancerComponent animancer, List<AnimationClip> RegisteredClips)
+    public override void PreloadAnimations(AnimancerComponent animancer, List<AnimationClip> RegisteredClips,int slot)
     {
         if(bash==null) return;
-        PoolClip(animancer, bash.Clip, RegisteredClips);
+        PoolClip(animancer, bash.Clip, RegisteredClips,slot);
     }
 
     

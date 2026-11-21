@@ -43,9 +43,9 @@ public class TestActionBlock : ItemAction
         }
     }
 
-    public override void PreloadAnimations(AnimancerComponent animancer, List<AnimationClip> RegisteredClips)
+    public override void PreloadAnimations(AnimancerComponent animancer, List<AnimationClip> RegisteredClips,int slot)
     {
         if(block==null) return;
-        PoolClip(animancer, block.Clip, RegisteredClips);
+        PoolClip(animancer, block.Clip, RegisteredClips,slot);
     }
 }

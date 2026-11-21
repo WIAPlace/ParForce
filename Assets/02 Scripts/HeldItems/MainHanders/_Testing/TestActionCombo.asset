@@ -14,40 +14,76 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TestActionCombo
   actionType: 1
   unStopable: 0
-  windUps:
-  - _FadeDuration: 0.060000002
-    _Speed: 1
-    _Events:
-      _NormalizedTimes: []
-      _Callbacks: []
-      _Names: []
-    _Clip: {fileID: -203655887218126122, guid: a65cdb0ae259dbc45952bdb73429fde0, type: 3}
-    _NormalizedStartTime: NaN
-  - _FadeDuration: 0.033333335
-    _Speed: 1
-    _Events:
-      _NormalizedTimes: []
-      _Callbacks: []
-      _Names: []
-    _Clip: {fileID: -2061910772549006292, guid: a65cdb0ae259dbc45952bdb73429fde0, type: 3}
-    _NormalizedStartTime: NaN
-  actions:
-  - _FadeDuration: 0.05
-    _Speed: 1
-    _Events:
-      _NormalizedTimes: []
-      _Callbacks: []
-      _Names: []
-    _Clip: {fileID: 4061839508520268033, guid: a65cdb0ae259dbc45952bdb73429fde0, type: 3}
-    _NormalizedStartTime: NaN
-  - _FadeDuration: 0.13000003
-    _Speed: 1
-    _Events:
-      _NormalizedTimes: []
-      _Callbacks: []
-      _Names: []
-    _Clip: {fileID: -6556537087697243763, guid: a65cdb0ae259dbc45952bdb73429fde0, type: 3}
-    _NormalizedStartTime: NaN
+  windUp:
+  - hand:
+    - _FadeDuration: 0.060000002
+      _Speed: 1
+      _Events:
+        _NormalizedTimes: []
+        _Callbacks: []
+        _Names: []
+      _Clip: {fileID: -7312523220118785054, guid: a65cdb0ae259dbc45952bdb73429fde0, type: 3}
+      _NormalizedStartTime: 0
+    - _FadeDuration: 0.060000002
+      _Speed: 1
+      _Events:
+        _NormalizedTimes: []
+        _Callbacks: []
+        _Names: []
+      _Clip: {fileID: -203655887218126122, guid: a65cdb0ae259dbc45952bdb73429fde0, type: 3}
+      _NormalizedStartTime: 0
+  - hand:
+    - _FadeDuration: 0.033333335
+      _Speed: 1
+      _Events:
+        _NormalizedTimes: []
+        _Callbacks: []
+        _Names: []
+      _Clip: {fileID: 4855898492335706288, guid: a65cdb0ae259dbc45952bdb73429fde0, type: 3}
+      _NormalizedStartTime: 0
+    - _FadeDuration: 0.033333335
+      _Speed: 1
+      _Events:
+        _NormalizedTimes: []
+        _Callbacks: []
+        _Names: []
+      _Clip: {fileID: -2061910772549006292, guid: a65cdb0ae259dbc45952bdb73429fde0, type: 3}
+      _NormalizedStartTime: 0
+  action:
+  - hand:
+    - _FadeDuration: 0.05
+      _Speed: 1
+      _Events:
+        _NormalizedTimes: []
+        _Callbacks: []
+        _Names: []
+      _Clip: {fileID: 7929627388348835219, guid: a65cdb0ae259dbc45952bdb73429fde0, type: 3}
+      _NormalizedStartTime: 0
+    - _FadeDuration: 0.05
+      _Speed: 1
+      _Events:
+        _NormalizedTimes: []
+        _Callbacks: []
+        _Names: []
+      _Clip: {fileID: 4061839508520268033, guid: a65cdb0ae259dbc45952bdb73429fde0, type: 3}
+      _NormalizedStartTime: 0
+  - hand:
+    - _FadeDuration: 0.13000003
+      _Speed: 1
+      _Events:
+        _NormalizedTimes: []
+        _Callbacks: []
+        _Names: []
+      _Clip: {fileID: 7883161949135384379, guid: a65cdb0ae259dbc45952bdb73429fde0, type: 3}
+      _NormalizedStartTime: 0
+    - _FadeDuration: 0.13000003
+      _Speed: 1
+      _Events:
+        _NormalizedTimes: []
+        _Callbacks: []
+        _Names: []
+      _Clip: {fileID: -6556537087697243763, guid: a65cdb0ae259dbc45952bdb73429fde0, type: 3}
+      _NormalizedStartTime: 0
   references:
     version: 2
     RefIds: []

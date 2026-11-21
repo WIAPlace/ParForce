@@ -8,8 +8,14 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Item System/Item Action/TestActionCombo")]
 public class TestActionCombo : ItemAction
 {
-    public ClipTransition[] windUps;
-    public ClipTransition[] actions;
+    //[Header("Right Hand")]
+    //public ClipTransition[] windUps;
+    //public ClipTransition[] actions;
+
+    [Header("Animation Clips")]
+    public ClipVarient[] windUp;
+    public ClipVarient[] action;
+
 
     // On Start
     public override void OnLocalStart(HandSlot hand, PlayerContext ctx, ushort itemID)
@@ -46,7 +52,7 @@ public class TestActionCombo : ItemAction
         ctx.BroadcastAction(itemID,hand,order,1,chain);
         
         // step through the chain after release 
-        ctx.chainBuffer[slot].Step(actions.Length,ctx.currentTick);
+        ctx.chainBuffer[slot].Step(action.Length,ctx.currentTick);
         //Debug.Log(chain);
     }
 
@@ -54,13 +60,13 @@ public class TestActionCombo : ItemAction
     {
         if(actionTypeCode == 0)
         {
-            ctx.upperBodyLayer.Play(windUps[actionDetails],.2f);
+            ctx.upperBodyLayer.Play(windUp[actionDetails].hand[(int)hand],.2f);
             //Debug.Log(hand + " played wind up on tick = "+ctx.currentTick);
         }
 
         if(actionTypeCode == 1){
             
-            var state = ctx.upperBodyLayer.Play(actions[actionDetails],.1f);
+            var state = ctx.upperBodyLayer.Play(action[actionDetails].hand[(int)hand],.1f);
             int swingId = -1;
 
             int slot = (int)hand;
@@ -73,15 +79,23 @@ public class TestActionCombo : ItemAction
 
             if (isServer && ctx.sync != null) // only play on server and if it is released.
             {
-                swingId = ctx.sync.StartTrace(ctx.Hand[slot]);
+                swingId = ctx.sync.StartTrace(ctx.Hand[slot],slot);
                 
                 events.OnEnd = () => {
-                    ctx.sync.StopTrace(swingId);
                     state.StartFade(0f,0.25f);
                     ctx.upperBodyLayer.Play(ctx.Hand[slot].idle);
-                    ctx.handIsBusy[slot] = false;
                     //Debug.Log(hand + " set to free on tick = "+ ctx.currentTick);
                 };
+                
+                ctx.exitEvents[slot].Node = state;
+                ctx.exitEvents[slot].Callback = () =>
+                {
+                    ctx.sync.StopTrace(swingId,slot);
+                    ctx.handIsBusy[slot] = false;
+                    ctx.lastAction[slot] = Vector2Int.zero;
+                    ctx.exitEvents[slot].Node=null;
+                };
+                ctx.exitEvents[slot].InvokeOnStartExiting = false;
             }
 
             if (!isServer) // !server because host is both client and server.
@@ -90,32 +104,40 @@ public class TestActionCombo : ItemAction
                 {
                     state.StartFade(0f,0.25f);
                     ctx.upperBodyLayer.Play(ctx.Hand[slot].idle);
-                    ctx.handIsBusy[slot] = false;
-                    ctx.lastAction[slot] = Vector2Int.zero;
                     //Debug.Log(hand + " set to free on tick = "+ ctx.currentTick);
                 };
+                ctx.exitEvents[slot].Node = state;
+                ctx.exitEvents[slot].Callback = () =>
+                {
+                    ctx.handIsBusy[slot] = false;
+                    ctx.lastAction[slot] = Vector2Int.zero;
+                    ctx.exitEvents[slot].Node=null;
+                };
+                ctx.exitEvents[slot].InvokeOnStartExiting = false;
             }
         }
     }
 
-    public override void PreloadAnimations(AnimancerComponent animancer, List<AnimationClip> RegisteredClips)
+    public override void PreloadAnimations(AnimancerComponent animancer, List<AnimationClip> RegisteredClips,int slot)
     {
-        if(windUps!=null) {
-        
+        if(windUp!=null) {
             // run through all clips in test clip and pool them to register them.
-            foreach(ClipTransition clip in windUps)
-            {
-                if(clip==null) continue;
-                PoolClip(animancer, clip.Clip, RegisteredClips);
+            foreach(ClipVarient varient in windUp){
+                foreach(ClipTransition clip in varient.hand)
+                {
+                    if(clip==null) continue;
+                    PoolClip(animancer, clip.Clip, RegisteredClips, slot);
+                }
             }
         }
-        if(actions!=null) {
-        
+        if(action!=null) {
             // run through all clips in test clip and pool them to register them.
-            foreach(ClipTransition clip in actions)
-            {
-                if(clip==null) continue;
-                PoolClip(animancer, clip.Clip, RegisteredClips);
+            foreach(ClipVarient varient in action){
+                foreach(ClipTransition clip in varient.hand)
+                {
+                    if(clip==null) continue;
+                    PoolClip(animancer, clip.Clip, RegisteredClips,slot);
+                }
             }
         }
     }

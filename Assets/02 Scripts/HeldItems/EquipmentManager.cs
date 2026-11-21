@@ -59,7 +59,9 @@ public class EquipmentManager : NetworkBehaviour
             {
                 currentModel = Instantiate(item.visualPrefab, handBone);
                 currentModel.transform.localPosition = Vector3.zero;
-                currentModel.transform.localRotation = Quaternion.identity * Quaternion.Euler(item.localRot);
+                currentModel.transform.localRotation = index==0 ? 
+                    Quaternion.identity * Quaternion.Euler(-item.localRot):
+                    Quaternion.identity * Quaternion.Euler(item.localRot);
             }
 
             if (IsOwner)
@@ -86,6 +88,7 @@ public class EquipmentManager : NetworkBehaviour
         }
     }
 
+    // pool animations of of the weapon, use index to only get the ones relevent to the equiped slot
     private void LocalEquipAndPool(ushort itemID, int index)
     {
         if (activeItems[index] != null) activeItems[index].UnloadAnimations(animancer);
@@ -94,7 +97,7 @@ public class EquipmentManager : NetworkBehaviour
         
         if (activeItems[index] != null)
         {
-            activeItems[index].PreloadAnimations(animancer);
+            activeItems[index].PreloadAnimations(animancer,index);
         }
     }
 }

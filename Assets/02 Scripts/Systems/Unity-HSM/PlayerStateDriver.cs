@@ -304,7 +304,7 @@ namespace HSM {
         {
             if(!test){
                 ctx.equipmentManager.rightHandItemID.Value = 1; 
-                //ctx.equipmentManager.leftHandItemID.Value = 1; 
+                ctx.equipmentManager.leftHandItemID.Value = 1; 
                 test=true;
                 return;
             }
@@ -394,7 +394,7 @@ namespace HSM {
 
         [HideInInspector] public Vector3 debugCurrentDir;
 
-        const int hands = 2; // ya, hands are more a matter of abilities rather than actual limbs. for now.
+        public const int hands = 2; // ya, hands are more a matter of abilities rather than actual limbs. for now.
 
         // We will use this buffer for inputs so that after it occurs it will be thrown out
         // for the action that was taken as the result of this, we will store it in a circular buffer 
@@ -417,6 +417,10 @@ namespace HSM {
             new InputBuffer<Vector2Int>(),new InputBuffer<Vector2Int>()
         };
         public Vector2Int[] lastAction = new Vector2Int[hands]; 
+        public ExitEvent[] exitEvents = new ExitEvent[hands]
+        {
+            new ExitEvent(null,null),  new ExitEvent(null,null)
+        };
         
 
 

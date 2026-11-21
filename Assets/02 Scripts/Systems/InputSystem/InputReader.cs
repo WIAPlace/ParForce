@@ -2,6 +2,10 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 /// <summary>
 ///  Tool for utilizing the event system with the input actions
 /// </summary>
@@ -9,12 +13,36 @@ using System;
 public class InputReader : ScriptableObject, InputSystem.IPlayerActions, InputSystem.IUIActions
 {
     private InputSystem _gameInput;
-
+    
     ////////////////////////////////////////////////////////////////////////// Set Up
     /// House Keeping to make sure it starts up and ends correctly.
     /// Make sure in scripts if you subscribe to an event to unsubscibe on Disable/Destroy
     
     private void OnEnable()
+    {
+#if UNITY_EDITOR
+        EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+        EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+
+        // Only initialize immediately if we are actually in Play Mode (avoids running in Edit Mode)
+        if (EditorApplication.isPlaying)
+        {
+            InitializeInput();
+        }
+#else
+        InitializeInput();
+#endif
+    }
+
+    private void OnDisable()
+    {
+#if UNITY_EDITOR
+        EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+#endif
+        CleanupInput();
+    }
+
+    private void InitializeInput()
     {
         if (_gameInput == null)
         {
@@ -23,31 +51,41 @@ public class InputReader : ScriptableObject, InputSystem.IPlayerActions, InputSy
             _gameInput.Player.SetCallbacks(this);
             _gameInput.UI.SetCallbacks(this);
 
-            SetPlayer(); 
+            SetPlayer();
         }
     }
-    private void OnDisable()
+
+    private void CleanupInput()
     {
         if (_gameInput != null)
         {
-            // Ensure both action maps and the asset are disabled before this object is unloaded
+            // Remove callbacks before disabling/disposing
+            _gameInput.Player.RemoveCallbacks(this);
+            _gameInput.UI.RemoveCallbacks(this);
+
             _gameInput.Player.Disable();
             _gameInput.UI.Disable();
-            // Disable the whole asset (defensive) and dispose the generated object to destroy the underlying asset
             _gameInput.Disable();
+            
+            // Dispose the generated C# wrapper and null it out so it rebuilds cleanly next session
+            _gameInput.Dispose();
+            _gameInput = null;
         }
     }
-    private void OnDestroy()
+
+#if UNITY_EDITOR
+    private void OnPlayModeStateChanged(PlayModeStateChange state)
     {
-        if (_gameInput != null)
+        if (state == PlayModeStateChange.EnteredPlayMode)
         {
-           // Ensure both action maps and the asset are disabled before this object is unloaded
-            _gameInput.Player.Disable();
-            _gameInput.UI.Disable();
-            // Disable the whole asset (defensive) and dispose the generated object to destroy the underlying asset
-            _gameInput.Disable();
+            InitializeInput();
+        }
+        else if (state == PlayModeStateChange.ExitingPlayMode)
+        {
+            CleanupInput();
         }
     }
+#endif
 
     ////////////////////////////////////////////////////////////////////////// Switch Input Functions
     /// Changes which Events will react to inputs.

@@ -18,6 +18,7 @@ namespace Systems.Inventory {
                 .Build();
         }
          
+        // Called by Save and load system.
         public void Bind(InventoryData data) {
             controller.Bind(data);
             data.Id = Id;

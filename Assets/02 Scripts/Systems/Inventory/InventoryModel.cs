@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using UnityEngine;
 
 namespace Systems.Inventory {
-    public class InventoryModel { 
+    public class InventoryModel {  // will likeley want to make some sort of interface, to distingush between diffrent model types, equipment vs inventory.
         ObservableArray<Item> Items { get; }
         InventoryData inventoryData = new InventoryData();
         readonly int capacity;
@@ -26,7 +27,11 @@ namespace Systems.Inventory {
             }
         }
 
+        
+
+        // Basicly is only called by save and load system. 
         public void Bind(InventoryData data) {
+            //Debug.Log("Inventory Model Bind went Off");
             inventoryData = data;
             inventoryData.Capacity = capacity;
             
@@ -57,11 +62,14 @@ namespace Systems.Inventory {
         public Item Get(int index) => Items[index];
         public void Clear() => Items.Clear();
         public bool Add(Item item) => Items.TryAdd(item);
+        public bool AddAt(int index,Item item) => Items.TryAddAt(index,item);
         public bool Remove(Item item) => Items.TryRemove(item);
+        public bool RemoveAt(int index) => Items.TryRemoveAt(index);
         
         public void Swap(int source, int target) => Items.Swap(source, target);
         
         public int Combine(int source, int target) {
+            //Debug.Log("Comined");
             var total = Items[source].quantity + Items[target].quantity;
             Items[target].quantity = total;
             Remove(Items[source]);

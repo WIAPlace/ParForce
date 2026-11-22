@@ -195,6 +195,7 @@ MonoBehaviour:
     debugCurrentMotionLeaf: 
     debugCurrentActionLeaf: 
     currentVelocityMag: 0
+    zeroIsMain: 0
     move: {x: 0, y: 0, z: 0}
     velocity: {x: 0, y: 0, z: 0}
     moveSpeed: 6
@@ -318,7 +319,6 @@ MonoBehaviour:
   targetLayers:
     serializedVersion: 2
     m_Bits: 64
-  weaponSocket: {fileID: 2095684694929263446}
 --- !u!143 &2770189871851831573
 CharacterController:
   m_ObjectHideFlags: 0

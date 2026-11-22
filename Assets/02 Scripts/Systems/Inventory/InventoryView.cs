@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using Unity.Properties;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -8,7 +9,8 @@ namespace Systems.Inventory {
         [SerializeField] string panelName = "Inventory";
 
         public override IEnumerator InitializeView(ViewModel viewModel) {
-            Slots = new Slot[viewModel.Capacity];
+            slotPool = new List<Slot>(viewModel.Capacity);
+            slotPool.Clear();
             root = document.rootVisualElement;
             root.Clear(); 
 
@@ -20,10 +22,12 @@ namespace Systems.Inventory {
             inventory.CreateChild("inventoryFrame");
             inventory.CreateChild("inventoryHeader").Add(new Label(panelName));
 
-            var slotsContainer = inventory.CreateChild("slotsContainer");
+            //Debug.Log(slotPool.Capacity);
+            slotsContainer = inventory.CreateChild("slotsContainer");
             for (int i = 0; i < viewModel.Capacity; i++) {
+                //Debug.Log(i);
                 var slot = slotsContainer.CreateChild<Slot>("slot");
-                Slots[i] = slot;
+                slotPool.Add(slot);
             }
             
             var coins = inventory.CreateChild("coins");

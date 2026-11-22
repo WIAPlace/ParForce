@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 096b156da869479a9367bd920214e066, type: 3}
+  m_Name: TestItem1
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.ItemDetails
+  Name: Test1
+  maxStack: 1
+  Id:
+    Part1: 1868209415
+    Part2: 1233900100
+    Part3: 1764237246
+    Part4: 1271340022
+  Icon: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  Description: 

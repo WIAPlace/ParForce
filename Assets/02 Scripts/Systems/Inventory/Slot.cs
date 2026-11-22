@@ -9,6 +9,7 @@ namespace Systems.Inventory {
         public int Index => parent.IndexOf(this);
         public SerializableGuid ItemId { get; private set; } = SerializableGuid.Empty;
         public Sprite BaseSprite;
+        public InventoryController controlRef{get;private set;}
 
         public event Action<Vector2, Slot> OnStartDrag = delegate { };
 
@@ -34,10 +35,19 @@ namespace Systems.Inventory {
             StackLabel.text = qty > 1 ? qty.ToString() : string.Empty;
             StackLabel.visible = qty > 1;
         }
+        public void Set(Sprite icon,int qty = 0)
+        {
+            Set(ItemId,icon,qty);
+        }
 
         public void Remove() {
             ItemId = SerializableGuid.Empty;
             Icon.image = null;
+        }
+
+        public void AssignController(InventoryController control)
+        {
+            controlRef = control;
         }
     }
 }

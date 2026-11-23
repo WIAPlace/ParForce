@@ -1,0 +1,114 @@
+/* Self-contained fallback styling: deliberately contains no external asset URLs. */
+.inventory-panel-root {
+    flex-grow: 1;
+    position: relative;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.inventory {
+    width: 300px;
+    max-height: 500px;
+    padding: 10px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    background-color: rgb(35, 39, 47);
+    border-width: 2px;
+    border-color: rgb(105, 115, 130);
+    border-radius: 6px;
+}
+
+.inventoryHeader {
+    min-height: 42px;
+    margin-bottom: 8px;
+    justify-content: center;
+    padding-left: 8px;
+    background-color: rgb(53, 61, 74);
+    border-radius: 4px;
+}
+
+.inventoryHeader Label {
+    color: rgb(245, 245, 245);
+    -unity-font-style: bold;
+    font-size: 18px;
+}
+
+.slotsContainer {
+    flex-grow: 1;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.slot {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    margin: 4px;
+    background-color: rgb(61, 68, 80);
+    border-width: 1px;
+    border-color: rgb(105, 115, 130);
+}
+
+.slotIcon {
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    right: 3px;
+    bottom: 3px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.slotFrame {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 60px;
+    height: 60px;
+    border-width: 1px;
+    border-color: rgba(190, 200, 215, 0.35);
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.stackCount {
+    position: absolute;
+    right: 3px;
+    bottom: 1px;
+    color: white;
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
+.inventoryDragGhost {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    background-color: rgba(255, 220, 80, 0.35);
+    border-width: 2px;
+    border-color: rgb(255, 220, 80);
+    visibility: hidden;
+}
+
+.inventoryDragGhost.visible {
+    visibility: visible;
+}
+
+.inventory-item-dragging {
+    opacity: 0.35;
+}
+
+/* Fallback tint when an ItemDetails asset has no Icon Sprite assigned. */
+.slotIconMissing {
+    background-color: rgba(255, 0, 255, 0.12);
+}
+
+/* Item visuals occupy their parent slot; the slot itself is the drop target. */
+.slotItem {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}

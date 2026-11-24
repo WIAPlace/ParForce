@@ -7,8 +7,8 @@ namespace Systems.Inventory.Architecture
 {
     /// <summary>
     /// Fixed-slot collection inventory. Empty slots remain addressable, allowing
-    /// exact placement and local rearrangement. This is still a simple 1x1-slot
-    /// model; grid footprints and rotation belong to the later grid model.
+    /// exact placement and local rearrangement. Each item occupies one indexed slot;
+    /// grid footprints and rotation are provided by GridInventoryModel instead.
     /// </summary>
     public sealed class CollectionInventoryModel : ISlotInventoryModel
     {

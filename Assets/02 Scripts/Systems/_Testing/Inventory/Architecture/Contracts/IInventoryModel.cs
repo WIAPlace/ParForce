@@ -12,7 +12,14 @@ namespace Systems.Inventory.Architecture
     {
         SerializableGuid Id { get; }
         string DisplayName { get; }
+        /// <summary>Number of non-empty item entries. A stack counts as one entry.</summary>
         int ItemCount { get; }
+        /// <summary>
+        /// Storage-specific capacity. For grid models this is the number of usable
+        /// cells (not necessarily Width * Height); for slot/equipment models it is
+        /// the number of configured positions. Prefer capability-specific queries
+        /// when the exact meaning matters.
+        /// </summary>
         int Capacity { get; }
         IReadOnlyList<Item> Items { get; }
 

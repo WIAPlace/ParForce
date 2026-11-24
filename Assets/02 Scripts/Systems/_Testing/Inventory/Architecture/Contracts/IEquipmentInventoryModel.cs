@@ -9,9 +9,12 @@ namespace Systems.Inventory.Architecture
         IReadOnlyList<EquipmentSlotDefinition> SlotDefinitions { get; }
         /// <summary>Total number of individually identified equipment slots.</summary>
         int TotalEquipmentSlots { get; }
-        /// <summary>Number of equipment slots currently containing an item.</summary>
+        /// <summary>
+        /// Number of equipment slots currently containing an item. A stack occupies
+        /// one slot regardless of its quantity.
+        /// </summary>
         int OccupiedEquipmentSlots { get; }
-        /// <summary>Number of equipment slots currently empty.</summary>
+        /// <summary>Number of configured equipment slots currently empty.</summary>
         int AvailableEquipmentSlots { get; }
         /// <summary>Sum of occupied grid cells if every equipped item were placed in a grid.</summary>
         int TotalGridEquivalentOccupiedCells { get; }

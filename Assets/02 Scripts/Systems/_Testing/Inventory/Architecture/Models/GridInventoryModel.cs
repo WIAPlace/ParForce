@@ -21,7 +21,11 @@ namespace Systems.Inventory.Architecture
         public string DisplayName { get; }
         public int Width { get; }
         public int Height { get; }
-        /// <summary>Legacy capacity value: the number of cells permitted by this grid's mask.</summary>
+        /// <summary>
+        /// Number of usable cells permitted by the layout mask. This is intentionally
+        /// not the rectangular coordinate area (Width * Height) when cells are blocked.
+        /// Kept as the common IInventoryModel capacity value for compatibility.
+        /// </summary>
         public int Capacity { get; }
         /// <summary>Total number of usable cells, excluding cells blocked by the layout mask.</summary>
         public int TotalUsableCells => Capacity;

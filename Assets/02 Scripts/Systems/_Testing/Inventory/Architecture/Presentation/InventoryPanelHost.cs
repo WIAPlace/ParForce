@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Systems.Inventory.Architecture.Persistence;
 
 namespace Systems.Inventory.Architecture
 {
@@ -59,8 +60,8 @@ namespace Systems.Inventory.Architecture
         }
 
         /// <summary>
-        /// Dynamically displays an existing inventory model in this panel. The host does not
-        /// own or destroy the supplied model; it only binds the panel to it.
+        /// Dynamically displays an existing inventory model in this panel and registers it
+        /// with InventoryPersistence. The host does not own or destroy the supplied model.
         /// </summary>
         public void Open(IInventoryModel model, InventoryAppearance appearance = null)
         {
@@ -69,7 +70,7 @@ namespace Systems.Inventory.Architecture
 
             EnsurePanelInitialized();
             view.CancelActiveDrag();
-            Model = model;
+            Model = InventoryPersistence.Register(model);
             view.SetAppearance(appearance != null ? appearance : defaultAppearance);
             view.SetPanelVisible(true);
             controller.Bind(Model);
@@ -176,6 +177,8 @@ namespace Systems.Inventory.Architecture
 
         private void OnDestroy()
         {
+            // Registered models intentionally outlive their panel host. This allows
+            // closed/world-container inventories to remain available to the save system.
             controller?.Dispose();
         }
     }

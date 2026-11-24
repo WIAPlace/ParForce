@@ -72,6 +72,27 @@ namespace Systems.Inventory.Architecture
             Check("Cross-transfer service rejects same-inventory transfer", !sameInventory.Success &&
                   sameInventory.Failure == InventoryTransferFailure.SameInventory);
 
+            // Regression: a masked grid's usable-cell Capacity can be smaller than
+            // Width * Height. A valid cell in a later row has a flattened index that
+            // may be >= Capacity and must still be reachable by targeted transfer.
+            bool[] maskedCells =
+            {
+                true, true, true, true,
+                false, false, false, false,
+                true, true, true, true
+            };
+            var maskedGrid = new GridInventoryModel(SerializableGuid.NewGuid(),
+                "Masked Grid Destination", 4, 3, null, maskedCells);
+            var maskedSource = new CollectionInventoryModel(SerializableGuid.NewGuid(),
+                "Masked Grid Source", 2);
+            Item maskedTransferItem = testItemDefinition.Create(1);
+            maskedSource.TryAddAt(maskedTransferItem, 0, out _);
+            InventoryTransferResult maskedTransfer = service.TryTransferAt(
+                maskedSource, maskedGrid, maskedTransferItem.Id, 8);
+            Check("Transfer to a valid later-row cell succeeds when its index exceeds usable-cell capacity",
+                maskedTransfer.Success && maskedGrid.TryGetItemAtCell(0, 2, out Item maskedReceived) &&
+                maskedReceived.Id == maskedTransferItem.Id);
+
             var fullDestination = new CollectionInventoryModel(SerializableGuid.NewGuid(), "Full Destination", 1,
                 new[] { secondTestItemDefinition.Create(1) });
             InventoryTransferResult full = service.TryTransfer(source, fullDestination, rejectedItem.Id);

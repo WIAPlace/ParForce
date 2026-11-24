@@ -72,7 +72,7 @@ namespace Systems.Inventory.Architecture
             if (item == null) { failure = InventoryOperationFailure.InvalidItem; return false; }
             if (item.Id == SerializableGuid.Empty) { failure = InventoryOperationFailure.InvalidItemId; return false; }
             if (Contains(item.Id)) { failure = InventoryOperationFailure.DuplicateItem; return false; }
-            int maxStack = item.details != null && item.details.category != ItemCategory.Equipment ? Math.Max(1, item.details.maxStack) : 1;
+            int maxStack = InventoryItemMatching.GetMaxStack(item);
             if (item.quantity < 1 || item.quantity > maxStack) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
             if (!IsValidIndex(index)) { failure = InventoryOperationFailure.InventoryFull; return false; }
             if (slots[index] != null) { failure = InventoryOperationFailure.InventoryFull; return false; }
@@ -89,7 +89,7 @@ namespace Systems.Inventory.Architecture
         public bool TrySetQuantity(SerializableGuid itemInstanceId, int quantity, out InventoryOperationFailure failure)
         {
             if (!TryGetItem(itemInstanceId, out Item item)) { failure = InventoryOperationFailure.ItemNotFound; return false; }
-            int maximum = item.details != null && item.details.category != ItemCategory.Equipment ? Math.Max(1, item.details.maxStack) : 1;
+            int maximum = InventoryItemMatching.GetMaxStack(item);
             if (quantity < 1 || quantity > maximum) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
             item.quantity = quantity;
             RaiseChanged(InventoryChangeKind.StackChanged, itemInstanceId);
@@ -103,6 +103,79 @@ namespace Systems.Inventory.Architecture
             slots[index] = item;
             RaiseChanged(InventoryChangeKind.ItemAdded, item.Id);
             return true;
+        }
+
+        public bool TryRemoveQuantity(SerializableGuid itemInstanceId, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
+        {
+            removedQuantity = 0;
+            if (quantity <= 0) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
+            if (!TryGetItem(itemInstanceId, out Item item)) { failure = InventoryOperationFailure.ItemNotFound; return false; }
+            removedQuantity = Math.Min(quantity, item.quantity);
+            int remaining = item.quantity - removedQuantity;
+            if (remaining == 0)
+            {
+                if (!TryRemove(itemInstanceId, out _, out failure)) { removedQuantity = 0; return false; }
+            }
+            else if (!TrySetQuantity(itemInstanceId, remaining, out failure)) { removedQuantity = 0; return false; }
+            failure = InventoryOperationFailure.None;
+            return true;
+        }
+
+        public bool TryRemoveQuantity(Item item, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
+        {
+            if (item == null) { removedQuantity = 0; failure = InventoryOperationFailure.InvalidItem; return false; }
+            return TryRemoveQuantity(item.Id, quantity, out removedQuantity, out failure);
+        }
+
+        public bool TryRemoveQuantity(ItemDetails definition, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
+        {
+            removedQuantity = 0;
+            if (definition == null) { failure = InventoryOperationFailure.InvalidItem; return false; }
+            if (quantity <= 0) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
+            Item[] matches = Items.Where(item => InventoryItemMatching.MatchesDefinition(item, definition)).ToArray();
+            if (matches.Length == 0) { failure = InventoryOperationFailure.ItemNotFound; return false; }
+            int remaining = quantity;
+            foreach (Item item in matches)
+            {
+                if (remaining <= 0) break;
+                if (!TryRemoveQuantity(item.Id, remaining, out int taken, out failure)) continue;
+                removedQuantity += taken;
+                remaining -= taken;
+            }
+            failure = InventoryOperationFailure.None;
+            return removedQuantity > 0;
+        }
+
+        public bool TryRemoveQuantityAtIndex(int itemIndex, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
+        {
+            removedQuantity = 0;
+            if (itemIndex < 0 || itemIndex >= Items.Count || Items[itemIndex] == null)
+            { failure = InventoryOperationFailure.ItemNotFound; return false; }
+            return TryRemoveQuantity(Items[itemIndex].Id, quantity, out removedQuantity, out failure);
+        }
+
+        public bool TryRemoveQuantityAt(int slotIndex, int quantity, out int removedQuantity, out InventoryOperationFailure failure) =>
+            TryRemoveQuantityAtIndex(slotIndex, quantity, out removedQuantity, out failure);
+
+        public bool TryRemoveExact(ItemDetails definition, int quantity, out InventoryOperationFailure failure)
+        {
+            if (definition == null) { failure = InventoryOperationFailure.InvalidItem; return false; }
+            if (quantity <= 0) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
+            int available = Items.Where(item => InventoryItemMatching.MatchesDefinition(item, definition)).Sum(item => Math.Max(0, item.quantity));
+            if (available < quantity) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
+            if (!TryRemoveQuantity(definition, quantity, out int removed, out failure) || removed != quantity)
+            { failure = InventoryOperationFailure.InvalidQuantity; return false; }
+            failure = InventoryOperationFailure.None;
+            return true;
+        }
+
+        public bool TryRemoveAll(ItemDetails definition, out int removedQuantity, out InventoryOperationFailure failure)
+        {
+            removedQuantity = 0;
+            if (definition == null) { failure = InventoryOperationFailure.InvalidItem; return false; }
+            int available = Items.Where(item => InventoryItemMatching.MatchesDefinition(item, definition)).Sum(item => Math.Max(0, item.quantity));
+            if (available == 0) { failure = InventoryOperationFailure.ItemNotFound; return false; }
+            return TryRemoveQuantity(definition, available, out removedQuantity, out failure);
         }
 
         public bool TryRemove(SerializableGuid id, out Item removed, out InventoryOperationFailure failure)

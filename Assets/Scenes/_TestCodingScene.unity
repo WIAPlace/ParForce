@@ -1866,12 +1866,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 133798733}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -219.12444, y: 37.6138, z: -30.46546}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -200.64366, y: 37.26255, z: -24.32049}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 376842841}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &140584481 stripped
 Transform:
@@ -2094,6 +2094,7 @@ MonoBehaviour:
   styleSheet: {fileID: 0}
   interactionStyleSheet: {fileID: 7433441132597879392, guid: eccc965172c0aed46b1712cd82df232c, type: 3}
   session: {fileID: 133798734}
+  globalScale: 1
 --- !u!114 &370779873
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2125,11 +2126,52 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 370779871}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 18.48078, y: -0.35125, z: 6.14497}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
+  m_Father: {fileID: 376842841}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &376842840
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 376842841}
+  m_Layer: 0
+  m_Name: TestingInventory
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &376842841
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 376842840}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -18.48078, y: 0.35125, z: -6.14497}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 133798735}
+  - {fileID: 370779874}
+  - {fileID: 522846715}
+  - {fileID: 1558282957}
+  - {fileID: 1272189566}
+  - {fileID: 381069416}
+  - {fileID: 401103395}
+  - {fileID: 2078962667}
+  - {fileID: 842172498}
+  - {fileID: 1023933735}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &381069412
@@ -2163,18 +2205,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.InventoryPanelHost
   view: {fileID: 381069414}
+  defaultAppearance: {fileID: 11400000, guid: b6044efb42d60324fa3cee6e81e454a7, type: 2}
   displayName: Chest
   useEquipmentStorage: 0
   equipmentSlotLayout: {fileID: 0}
   useGridStorage: 1
   gridWidth: 4
   gridHeight: 6
+  gridLayout: {fileID: 0}
   capacity: 20
   startingItems:
-  - {fileID: 11400000, guid: 98fd7ee65328542439788f8254d86482, type: 2}
-  - {fileID: 11400000, guid: 98fd7ee65328542439788f8254d86482, type: 2}
-  - {fileID: 11400000, guid: 3c15bb450da6ae6488d9cf650f49677b, type: 2}
-  - {fileID: 11400000, guid: 82e5e2cde8343234e83e45798df9e868, type: 2}
+  - {fileID: 11400000, guid: 573442dbef50dea4fa040dae64de37e6, type: 2}
+  - {fileID: 11400000, guid: 573442dbef50dea4fa040dae64de37e6, type: 2}
+  - {fileID: 11400000, guid: 573442dbef50dea4fa040dae64de37e6, type: 2}
+  - {fileID: 11400000, guid: 573442dbef50dea4fa040dae64de37e6, type: 2}
+  - {fileID: 11400000, guid: 573442dbef50dea4fa040dae64de37e6, type: 2}
+  - {fileID: 11400000, guid: 573442dbef50dea4fa040dae64de37e6, type: 2}
   inventoryId:
     Part1: 3839670081
     Part2: 1085479131
@@ -2203,12 +2249,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 381069412}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 18.48078, y: -0.35125, z: 6.14497}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 376842841}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &394695093 stripped
 Transform:
@@ -2257,12 +2303,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 401103393}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 156.63655, y: 11.00706, z: 83.04601}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 175.11732, y: 10.65581, z: 89.19098}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 376842841}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &407575954 stripped
 Transform:
@@ -2596,12 +2642,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 522846713}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 156.63657, y: 11.00705, z: 83.04604}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 175.11734, y: 10.6558, z: 89.19101}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 376842841}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &544867659 stripped
 Transform:
@@ -3128,12 +3174,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 842172496}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 156.63655, y: 11.00706, z: 83.04601}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 175.11732, y: 10.65581, z: 89.19098}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 376842841}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &859815890
 GameObject:
@@ -3484,6 +3530,95 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -2697216010776526045, guid: d083a1a0db22d7445ad75aa8edf04306, type: 3}
   m_PrefabInstance: {fileID: 1158725370}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1023933733
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1023933735}
+  - component: {fileID: 1023933734}
+  - component: {fileID: 1023933736}
+  - component: {fileID: 1023933737}
+  m_Layer: 0
+  m_Name: Test
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1023933734
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1023933733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 111abba5d619afa47a370803948b2977, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryTestOpenNewModel
+  input: {fileID: 11400000, guid: 028443aff179f3d449dd3efec43aa392, type: 2}
+  inventoryGrid: {fileID: 11400000, guid: eee42778b6e90184da2ffe0424bb73f3, type: 2}
+  hostPanel: {fileID: 381069413}
+  rewardItem:
+    Id:
+      Part1: 2091865772
+      Part2: 1196741517
+      Part3: 898664112
+      Part4: 632032040
+    detailsId:
+      Part1: 105863207
+      Part2: 1191188086
+      Part3: 358569892
+      Part4: 3422595088
+    details: {fileID: 11400000, guid: 98fd7ee65328542439788f8254d86482, type: 2}
+    quantity: 20
+  session: {fileID: 133798734}
+  canvas: {fileID: 370779872}
+  size: 1
+--- !u!4 &1023933735
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1023933733}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 376842841}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1023933736
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1023933733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e55bb06f7bff4fbc8eb96e832039de0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.InventoryGridLayoutTestRunner
+--- !u!114 &1023933737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1023933733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c6a9b5b4b7a4c5e9f2a1d6b8c3e7f41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.InventoryQuantityRemovalTestRunner
 --- !u!4 &1051520342 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5431822190333619527, guid: d083a1a0db22d7445ad75aa8edf04306, type: 3}
@@ -5723,12 +5858,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.InventoryPanelHost
   view: {fileID: 1272189564}
+  defaultAppearance: {fileID: 0}
   displayName: Player
   useEquipmentStorage: 0
   equipmentSlotLayout: {fileID: 0}
   useGridStorage: 1
   gridWidth: 8
   gridHeight: 6
+  gridLayout: {fileID: 11400000, guid: eee42778b6e90184da2ffe0424bb73f3, type: 2}
   capacity: 20
   startingItems:
   - {fileID: 11400000, guid: 98fd7ee65328542439788f8254d86482, type: 2}
@@ -5736,9 +5873,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 95ac11ae9aaf3004f8bf6572652bb789, type: 2}
   - {fileID: 11400000, guid: 95ac11ae9aaf3004f8bf6572652bb789, type: 2}
   - {fileID: 11400000, guid: 4756ffa9412db44438cec0084aa05e58, type: 2}
-  - {fileID: 11400000, guid: 3c15bb450da6ae6488d9cf650f49677b, type: 2}
-  - {fileID: 11400000, guid: 82e5e2cde8343234e83e45798df9e868, type: 2}
-  - {fileID: 11400000, guid: 3c15bb450da6ae6488d9cf650f49677b, type: 2}
+  - {fileID: 11400000, guid: 98fd7ee65328542439788f8254d86482, type: 2}
+  - {fileID: 11400000, guid: 98fd7ee65328542439788f8254d86482, type: 2}
   inventoryId:
     Part1: 2911815814
     Part2: 1228570620
@@ -5767,12 +5903,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1272189562}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 18.48078, y: -0.35125, z: 6.14497}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 376842841}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1321258270 stripped
 Transform:
@@ -5877,12 +6013,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.InventoryPanelHost
   view: {fileID: 1558282956}
+  defaultAppearance: {fileID: 0}
   displayName: Equipment
   useEquipmentStorage: 1
   equipmentSlotLayout: {fileID: 11400000, guid: d55668faa4b84d740ba733138c61ac73, type: 2}
   useGridStorage: 0
   gridWidth: 8
   gridHeight: 6
+  gridLayout: {fileID: 0}
   capacity: 20
   startingItems: []
   inventoryId:
@@ -5913,12 +6051,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1558282954}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 156.63657, y: 11.00705, z: 83.04604}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 175.11734, y: 10.6558, z: 89.19101}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 376842841}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1571419876 stripped
 Transform:
@@ -6955,12 +7093,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2078962665}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 156.63655, y: 11.00706, z: 83.04601}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 175.11732, y: 10.65581, z: 89.19098}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 376842841}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &2079034423 stripped
 Transform:
@@ -7176,12 +7314,4 @@ SceneRoots:
   - {fileID: 1922210364}
   - {fileID: 945775919}
   - {fileID: 422146974}
-  - {fileID: 133798735}
-  - {fileID: 370779874}
-  - {fileID: 522846715}
-  - {fileID: 1558282957}
-  - {fileID: 1272189566}
-  - {fileID: 381069416}
-  - {fileID: 401103395}
-  - {fileID: 2078962667}
-  - {fileID: 842172498}
+  - {fileID: 376842841}

@@ -12,15 +12,27 @@ namespace Systems.Inventory
     {
         private readonly VisualElement panel;
         private readonly Action onBeginDrag;
+        private readonly Func<float> getVisualScale;
         private bool isDragging;
         private int activePointerId = -1;
         private Vector2 pointerStart;
         private Vector2 translateStart;
 
         public PanelDragManipulator(VisualElement panel, Action onBeginDrag)
+            : this(panel, onBeginDrag, () => 1f)
+        {
+        }
+
+        /// <summary>
+        /// Creates a drag manipulator whose boundary calculations account for the
+        /// panel's visual scale. The two-argument overload remains available for
+        /// existing callers that use unscaled panels.
+        /// </summary>
+        public PanelDragManipulator(VisualElement panel, Action onBeginDrag, Func<float> getVisualScale)
         {
             this.panel = panel ?? throw new ArgumentNullException(nameof(panel));
             this.onBeginDrag = onBeginDrag;
+            this.getVisualScale = getVisualScale ?? (() => 1f);
             activators.Add(new ManipulatorActivationFilter { button = MouseButton.LeftMouse });
         }
 
@@ -71,8 +83,14 @@ namespace Systems.Inventory
             // all panels use the exact same screen/canvas bounds and coordinate space.
             float desiredLeft = panelRect.x + desiredTranslation.x;
             float desiredTop = panelRect.y + desiredTranslation.y;
-            float maxLeft = Mathf.Max(0f, viewport.width - panelRect.width);
-            float maxTop = Mathf.Max(0f, viewport.height - panelRect.height);
+            // UI Toolkit transforms change the panel's visual footprint without changing
+            // panel.layout. Use the current visual scale when calculating the far edges,
+            // otherwise the panel can overrun the viewport (or stop short) as scale changes.
+            float visualScale = Mathf.Max(0.01f, getVisualScale());
+            float visualWidth = panelRect.width * visualScale;
+            float visualHeight = panelRect.height * visualScale;
+            float maxLeft = Mathf.Max(0f, viewport.width - visualWidth);
+            float maxTop = Mathf.Max(0f, viewport.height - visualHeight);
             float clampedLeft = Mathf.Clamp(desiredLeft, 0f, maxLeft);
             float clampedTop = Mathf.Clamp(desiredTop, 0f, maxTop);
             Vector2 clampedTranslation = new Vector2(

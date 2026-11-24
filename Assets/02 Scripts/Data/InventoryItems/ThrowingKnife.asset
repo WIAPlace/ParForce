@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 096b156da869479a9367bd920214e066, type: 3}
+  m_Name: ThrowingKnife
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.ItemDetails
+  Name: Knife
+  category: 3
+  equipmentType: 6
+  EquipmentEffects: []
+  maxStack: 5
+  GridWidth: 1
+  GridHeight: 1
+  UseCustomShape: 0
+  ShapeCells: 01
+  DragPivot: {x: 0.5, y: 0.5}
+  Id:
+    Part1: 4124861026
+    Part2: 1315853060
+    Part3: 114603966
+    Part4: 2244378015
+  Icon: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
+  Description: 

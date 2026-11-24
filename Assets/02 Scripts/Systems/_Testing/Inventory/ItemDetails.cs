@@ -20,6 +20,7 @@ namespace Systems.Inventory {
         public List<EquipmentEffectDefinition> EquipmentEffects = new List<EquipmentEffectDefinition>();
 
         
+        [Tooltip("Maximum quantity in one stack. Applies to equipment too; equipment defaults to 1 unless explicitly increased.")]
         [Min(1)] public int maxStack = 1;
 
         [Min(1)] public int GridWidth = 1;

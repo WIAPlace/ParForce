@@ -6,8 +6,8 @@ using System.Linq;
 namespace Systems.Inventory.Architecture
 {
     /// <summary>
-    /// Rectangular grid storage. Items keep a single runtime identity while
-    /// their rectangular footprint reserves multiple cells.
+    /// Grid storage with rectangular bounds and an optional usable-cell mask.
+    /// Items keep a single runtime identity while their occupied footprint reserves cells.
     /// </summary>
     public sealed class GridInventoryModel : IGridInventoryModel
     {
@@ -15,18 +15,60 @@ namespace Systems.Inventory.Architecture
         private readonly ReadOnlyCollection<Item> readOnlyItems;
         private readonly Dictionary<SerializableGuid, GridItemPlacement> placements =
             new Dictionary<SerializableGuid, GridItemPlacement>();
+        private readonly bool[] usableCells;
 
         public SerializableGuid Id { get; }
         public string DisplayName { get; }
         public int Width { get; }
         public int Height { get; }
-        public int Capacity => Width * Height;
+        /// <summary>Legacy capacity value: the number of cells permitted by this grid's mask.</summary>
+        public int Capacity { get; }
+        /// <summary>Total number of usable cells, excluding cells blocked by the layout mask.</summary>
+        public int TotalUsableCells => Capacity;
+        /// <summary>Number of usable cells currently occupied by item shape cells.</summary>
+        public int OccupiedCells
+        {
+            get
+            {
+                int occupied = 0;
+                foreach (Item item in items)
+                {
+                    if (item == null || !placements.TryGetValue(item.Id, out GridItemPlacement placement))
+                        continue;
+
+                    for (int y = 0; y < placement.Height; y++)
+                    for (int x = 0; x < placement.Width; x++)
+                        if (ItemGridShape.IsOccupied(item.details, x, y, placement.RotationQuarterTurns))
+                            occupied++;
+                }
+                return occupied;
+            }
+        }
+        /// <summary>Number of usable cells not currently occupied by item shape cells.</summary>
+        public int AvailableCells => Math.Max(0, TotalUsableCells - OccupiedCells);
+        /// <summary>Percentage of usable cells occupied, from 0 to 100. Empty grids report 0.</summary>
+        public float FillPercentage => TotalUsableCells <= 0
+            ? 0f
+            : (float)OccupiedCells * 100f / TotalUsableCells;
         public int ItemCount => items.Count;
         public IReadOnlyList<Item> Items => readOnlyItems;
         public event Action<InventoryChangedEvent> Changed;
 
-        public GridInventoryModel(SerializableGuid id, string displayName, int width, int height,
+        /// <summary>
+        /// Creates a grid inventory directly from a designer-authored layout asset.
+        /// Dimensions and usable cells are copied into this model as independent runtime
+        /// configuration. The model does not retain a Unity asset dependency.
+        /// </summary>
+        public GridInventoryModel(SerializableGuid id, string displayName, InventoryGridLayout layout,
             IEnumerable<Item> startingItems = null)
+            : this(id, displayName,
+                layout != null ? layout.Width : throw new ArgumentNullException(nameof(layout)),
+                layout.Height, startingItems, layout.GetUsableCellsCopy())
+        {
+        }
+
+        public GridInventoryModel(SerializableGuid id, string displayName, int width, int height,
+            IEnumerable<Item> startingItems = null, IReadOnlyList<bool> usableCellMask = null)
         {
             if (id == SerializableGuid.Empty)
                 throw new ArgumentException("An inventory must have a non-empty ID.", nameof(id));
@@ -37,6 +79,14 @@ namespace Systems.Inventory.Architecture
             DisplayName = string.IsNullOrWhiteSpace(displayName) ? "Grid Inventory" : displayName;
             Width = width;
             Height = height;
+            usableCells = new bool[Width * Height];
+            int usableCount = 0;
+            for (int i = 0; i < usableCells.Length; i++)
+            {
+                usableCells[i] = usableCellMask == null || i >= usableCellMask.Count || usableCellMask[i];
+                if (usableCells[i]) usableCount++;
+            }
+            Capacity = usableCount;
             readOnlyItems = items.AsReadOnly();
 
             if (startingItems == null) return;
@@ -55,10 +105,12 @@ namespace Systems.Inventory.Architecture
             return item != null;
         }
 
+        public bool IsCellUsable(int x, int y) => IsInside(x, y) && usableCells[y * Width + x];
+
         public bool TryGetItemAtCell(int x, int y, out Item item)
         {
             item = null;
-            if (!IsInside(x, y)) return false;
+            if (!IsCellUsable(x, y)) return false;
             foreach (Item candidate in items)
             {
                 GridItemPlacement p = placements[candidate.Id];
@@ -80,7 +132,7 @@ namespace Systems.Inventory.Architecture
             if (item == null) { failure = InventoryOperationFailure.InvalidItem; return false; }
             if (item.Id == SerializableGuid.Empty) { failure = InventoryOperationFailure.InvalidItemId; return false; }
             if (Contains(item.Id)) { failure = InventoryOperationFailure.DuplicateItem; return false; }
-            int maxStack = item.details != null && item.details.category != ItemCategory.Equipment ? Math.Max(1, item.details.maxStack) : 1;
+            int maxStack = InventoryItemMatching.GetMaxStack(item);
             if (item.quantity < 1 || item.quantity > maxStack) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
             if (!ItemGridShape.HasValidShape(item.details)) { failure = InventoryOperationFailure.InvalidItem; return false; }
             if (!TryFindFirstFit(item, out _, out _))
@@ -102,7 +154,7 @@ namespace Systems.Inventory.Architecture
         public bool TrySetQuantity(SerializableGuid itemInstanceId, int quantity, out InventoryOperationFailure failure)
         {
             if (!TryGetItem(itemInstanceId, out Item item)) { failure = InventoryOperationFailure.ItemNotFound; return false; }
-            int maximum = item.details != null && item.details.category != ItemCategory.Equipment ? Math.Max(1, item.details.maxStack) : 1;
+            int maximum = InventoryItemMatching.GetMaxStack(item);
             if (quantity < 1 || quantity > maximum) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
             item.quantity = quantity;
             RaiseChanged(InventoryChangeKind.StackChanged, itemInstanceId);
@@ -118,7 +170,7 @@ namespace Systems.Inventory.Architecture
             if (item == null) { failure = InventoryOperationFailure.InvalidItem; return false; }
             if (item.Id == SerializableGuid.Empty) { failure = InventoryOperationFailure.InvalidItemId; return false; }
             if (Contains(item.Id)) { failure = InventoryOperationFailure.DuplicateItem; return false; }
-            int maxStack = item.details != null && item.details.category != ItemCategory.Equipment ? Math.Max(1, item.details.maxStack) : 1;
+            int maxStack = InventoryItemMatching.GetMaxStack(item);
             if (item.quantity < 1 || item.quantity > maxStack) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
             if (!ItemGridShape.HasValidShape(item.details)) { failure = InventoryOperationFailure.InvalidItem; return false; }
 
@@ -207,6 +259,84 @@ namespace Systems.Inventory.Architecture
             return true;
         }
 
+        public bool TryRemoveQuantity(SerializableGuid itemInstanceId, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
+        {
+            removedQuantity = 0;
+            if (quantity <= 0) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
+            if (!TryGetItem(itemInstanceId, out Item item)) { failure = InventoryOperationFailure.ItemNotFound; return false; }
+            removedQuantity = Math.Min(quantity, item.quantity);
+            int remaining = item.quantity - removedQuantity;
+            if (remaining == 0)
+            {
+                if (!TryRemove(itemInstanceId, out _, out failure)) { removedQuantity = 0; return false; }
+            }
+            else if (!TrySetQuantity(itemInstanceId, remaining, out failure)) { removedQuantity = 0; return false; }
+            failure = InventoryOperationFailure.None;
+            return true;
+        }
+
+        public bool TryRemoveQuantity(Item item, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
+        {
+            if (item == null) { removedQuantity = 0; failure = InventoryOperationFailure.InvalidItem; return false; }
+            return TryRemoveQuantity(item.Id, quantity, out removedQuantity, out failure);
+        }
+
+        public bool TryRemoveQuantity(ItemDetails definition, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
+        {
+            removedQuantity = 0;
+            if (definition == null) { failure = InventoryOperationFailure.InvalidItem; return false; }
+            if (quantity <= 0) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
+            Item[] matches = Items.Where(item => InventoryItemMatching.MatchesDefinition(item, definition)).ToArray();
+            if (matches.Length == 0) { failure = InventoryOperationFailure.ItemNotFound; return false; }
+            int remaining = quantity;
+            foreach (Item item in matches)
+            {
+                if (remaining <= 0) break;
+                if (!TryRemoveQuantity(item.Id, remaining, out int taken, out failure)) continue;
+                removedQuantity += taken;
+                remaining -= taken;
+            }
+            failure = InventoryOperationFailure.None;
+            return removedQuantity > 0;
+        }
+
+        public bool TryRemoveQuantityAtIndex(int itemIndex, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
+        {
+            removedQuantity = 0;
+            if (itemIndex < 0 || itemIndex >= Items.Count || Items[itemIndex] == null)
+            { failure = InventoryOperationFailure.ItemNotFound; return false; }
+            return TryRemoveQuantity(Items[itemIndex].Id, quantity, out removedQuantity, out failure);
+        }
+
+        public bool TryRemoveQuantityAtCell(int x, int y, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
+        {
+            removedQuantity = 0;
+            if (!TryGetItemAtCell(x, y, out Item item))
+            { failure = InventoryOperationFailure.ItemNotFound; return false; }
+            return TryRemoveQuantity(item.Id, quantity, out removedQuantity, out failure);
+        }
+
+        public bool TryRemoveExact(ItemDetails definition, int quantity, out InventoryOperationFailure failure)
+        {
+            if (definition == null) { failure = InventoryOperationFailure.InvalidItem; return false; }
+            if (quantity <= 0) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
+            int available = Items.Where(item => InventoryItemMatching.MatchesDefinition(item, definition)).Sum(item => Math.Max(0, item.quantity));
+            if (available < quantity) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
+            if (!TryRemoveQuantity(definition, quantity, out int removed, out failure) || removed != quantity)
+            { failure = InventoryOperationFailure.InvalidQuantity; return false; }
+            failure = InventoryOperationFailure.None;
+            return true;
+        }
+
+        public bool TryRemoveAll(ItemDetails definition, out int removedQuantity, out InventoryOperationFailure failure)
+        {
+            removedQuantity = 0;
+            if (definition == null) { failure = InventoryOperationFailure.InvalidItem; return false; }
+            int available = Items.Where(item => InventoryItemMatching.MatchesDefinition(item, definition)).Sum(item => Math.Max(0, item.quantity));
+            if (available == 0) { failure = InventoryOperationFailure.ItemNotFound; return false; }
+            return TryRemoveQuantity(definition, available, out removedQuantity, out failure);
+        }
+
         public bool TryRemove(SerializableGuid id, out Item removedItem,
             out InventoryOperationFailure failure)
         {
@@ -255,7 +385,7 @@ namespace Systems.Inventory.Architecture
                 if (!ItemGridShape.IsOccupied(item.details, localX, localY, rotationQuarterTurns)) continue;
                 int worldX = x + localX;
                 int worldY = y + localY;
-                if (!IsInside(worldX, worldY)) return false;
+                if (!IsCellUsable(worldX, worldY)) return false;
                 foreach (KeyValuePair<SerializableGuid, GridItemPlacement> entry in placements)
                 {
                     if (entry.Key == ignoreId) continue;

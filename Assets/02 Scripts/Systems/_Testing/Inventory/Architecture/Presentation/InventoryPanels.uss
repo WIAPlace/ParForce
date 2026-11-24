@@ -122,6 +122,12 @@
     margin: 0;
 }
 
+.gridCellBlocked {
+    background-color: rgba(12, 14, 18, 0.92);
+    border-width: 1px;
+    border-color: rgb(45, 49, 57);
+}
+
 .gridSlotItem {
     background-color: rgba(90, 125, 165, 0.8);
     border-width: 1px;

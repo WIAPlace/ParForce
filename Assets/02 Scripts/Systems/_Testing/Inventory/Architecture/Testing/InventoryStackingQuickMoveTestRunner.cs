@@ -84,6 +84,20 @@ namespace Systems.Inventory.Architecture
                 Check("Direct stack merge respects the maximum and leaves the remainder in the source", directMerge.MovedQuantity == 3 &&
                     dragTarget.quantity == 10 && mergeSource.TryGetItem(dragSource.Id, out Item remainder) && remainder.quantity == 2);
 
+                var legacyMergeSource = new CollectionInventoryModel(SerializableGuid.NewGuid(), "Legacy Merge Source", 1);
+                var legacyMergeDestination = new CollectionInventoryModel(SerializableGuid.NewGuid(), "Legacy Merge Destination", 1);
+                Item legacyOriginalStack = potionDefinition.Create(4);
+                // Simulate a previously serialized runtime item whose cached definition ID is stale.
+                legacyOriginalStack.detailsId = SerializableGuid.Empty;
+                Item newlyCreatedStack = potionDefinition.Create(3);
+                legacyMergeSource.TryAddAt(newlyCreatedStack, 0, out _);
+                legacyMergeDestination.TryAddAt(legacyOriginalStack, 0, out _);
+                InventoryQuickMoveResult legacyMerge = new InventoryQuickMoveService().TryMergeInto(
+                    legacyMergeSource, legacyMergeDestination, newlyCreatedStack.Id, legacyOriginalStack.Id);
+                Check("Existing stacks still accept matching items when their cached definition ID is stale",
+                    legacyMerge.MovedQuantity == 3 && legacyOriginalStack.quantity == 7 &&
+                    !legacyMergeSource.TryGetItem(newlyCreatedStack.Id, out _));
+
                 var rotationGrid = new GridInventoryModel(SerializableGuid.NewGuid(), "Rotation Grid", 8, 8);
                 Item rotatingItem = longItemDefinition.Create(1);
                 bool rotationAdded = rotationGrid.TryAddAt(rotatingItem, 0, 0, 0, out _);

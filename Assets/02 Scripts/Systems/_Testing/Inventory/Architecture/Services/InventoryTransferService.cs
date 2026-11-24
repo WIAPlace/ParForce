@@ -138,7 +138,13 @@ namespace Systems.Inventory.Architecture
 
             if (destinationGrid != null)
             {
-                if (destinationIndex < 0 || destinationIndex >= destinationGrid.Capacity)
+                // Capacity is the number of usable cells, not the number of
+                // coordinate positions in the rectangular grid. With an irregular
+                // mask, a valid cell in a later row can have a flattened index greater
+                // than Capacity. Bounds must therefore use Width * Height; CanPlaceAt
+                // below performs the separate usable-mask and occupancy validation.
+                int rectangularCellCount = destinationGrid.Width * destinationGrid.Height;
+                if (destinationIndex < 0 || destinationIndex >= rectangularCellCount)
                     return CreateResult(false, false, InventoryTransferFailure.DestinationRejected,
                         InventoryOperationFailure.OutOfBounds, source, destination, itemInstanceId,
                         "The selected grid cell is outside the destination grid.");

@@ -31,6 +31,9 @@ namespace Systems.Inventory.Architecture
             }
 
             var equipment = new EquipmentInventoryModel(SerializableGuid.NewGuid(), "Test Equipment", layout.Slots);
+            Check("Empty equipment reports all slots available", equipment.TotalEquipmentSlots == layout.Slots.Count &&
+                equipment.OccupiedEquipmentSlots == 0 && equipment.AvailableEquipmentSlots == layout.Slots.Count &&
+                equipment.TotalGridEquivalentOccupiedCells == 0);
             var backpack = new CollectionInventoryModel(SerializableGuid.NewGuid(), "Test Backpack", 6);
             var transfers = new InventoryTransferService();
             Item helmet = helmetDefinition.Create(1);
@@ -51,6 +54,16 @@ namespace Systems.Inventory.Architecture
             Check("Two rings occupy independently identified slots", ringLeft.Success && ringRight.Success &&
                 equipment.TryGetItemAt("RingLeft", out Item left) && ReferenceEquals(left, ringA) &&
                 equipment.TryGetItemAt("RingRight", out Item right) && ReferenceEquals(right, ringB));
+            int expectedGridCells = ItemGridShape.OccupiedCellCount(helmet.details) +
+                ItemGridShape.OccupiedCellCount(ringA.details) + ItemGridShape.OccupiedCellCount(ringB.details);
+            Check("Equipment occupancy reports occupied and available named slots", equipment.OccupiedEquipmentSlots == 3 &&
+                equipment.AvailableEquipmentSlots == equipment.TotalEquipmentSlots - 3);
+            Check("Grid-equivalent occupancy sums actual item shape cells", equipment.TotalGridEquivalentOccupiedCells == expectedGridCells);
+            bool ringFootprintFound = equipment.TryGetGridFootprint(ringA.Id, out int ringWidth, out int ringHeight, out int ringCells);
+            ItemGridShape.GetRotatedSize(ringA.details, 0, out int expectedRingWidth, out int expectedRingHeight);
+            Check("An equipped item exposes its grid footprint dimensions and occupied shape cells", ringFootprintFound &&
+                ringWidth == expectedRingWidth && ringHeight == expectedRingHeight &&
+                ringCells == ItemGridShape.OccupiedCellCount(ringA.details));
             Check("An item can move between compatible empty named slots", ringLocalMove && ringMoveBack);
 
             InventoryTransferResult potionPreview = transfers.PreviewToEquipmentSlot(backpack, equipment, potion.Id, "Chest");
@@ -68,6 +81,10 @@ namespace Systems.Inventory.Architecture
             Check("Equipped item can transfer back to a collection inventory", unequip.Success &&
                 backpack.TryGetItem(helmet.Id, out Item returned) && ReferenceEquals(returned, helmet) &&
                 !equipment.TryGetItemAt("Head", out _));
+            Check("Equipment occupancy updates after unequipping", equipment.OccupiedEquipmentSlots == 2 &&
+                equipment.AvailableEquipmentSlots == equipment.TotalEquipmentSlots - 2 &&
+                equipment.TotalGridEquivalentOccupiedCells ==
+                    ItemGridShape.OccupiedCellCount(ringA.details) + ItemGridShape.OccupiedCellCount(ringB.details));
 
             var grid = new GridInventoryModel(SerializableGuid.NewGuid(), "Test Grid", 4, 4, new List<Item>());
             Item gridHelmet = helmetDefinition.Create(1);

@@ -21,13 +21,25 @@ namespace Systems.Inventory.Architecture
         private VisualElement placementPreview;
         private readonly List<VisualElement> slotElements = new List<VisualElement>();
         private readonly List<VisualElement> itemElements = new List<VisualElement>();
+        // Model changes rebuild the visual tree. Keep drag state by item ID so a
+        // held source remains faded when quantity changes trigger a re-render.
+        private readonly HashSet<SerializableGuid> draggingItemIds = new HashSet<SerializableGuid>();
         private IInventoryModel currentModel;
+        private InventoryAppearance currentAppearance;
+        private StyleSheet appliedAppearanceStyleSheet;
         private int capturedPointerId = -1;
         private float gridCellSize = 64f;
         private bool attached;
 
         public IInventoryModel CurrentModel => currentModel;
         public int QuickMovePriority => quickMovePriority;
+
+        internal void ApplyGlobalScale(float scale)
+        {
+            if (panel == null) return;
+            panel.style.transformOrigin = new TransformOrigin(Length.Percent(0f), Length.Percent(0f), 0f);
+            panel.style.scale = new Scale(new Vector2(scale, scale));
+        }
 
         public void Initialize()
         {
@@ -63,6 +75,61 @@ namespace Systems.Inventory.Architecture
             attached = true;
         }
 
+        public void SetAppearance(InventoryAppearance appearance)
+        {
+            if (panel == null)
+            {
+                currentAppearance = appearance;
+                return;
+            }
+
+            if (appliedAppearanceStyleSheet != null)
+                panel.styleSheets.Remove(appliedAppearanceStyleSheet);
+
+            currentAppearance = appearance;
+            appliedAppearanceStyleSheet = currentAppearance != null ? currentAppearance.StyleSheet : null;
+            if (appliedAppearanceStyleSheet != null)
+                panel.styleSheets.Add(appliedAppearanceStyleSheet);
+
+            SetSpriteBackground(panel, currentAppearance != null ? currentAppearance.PanelBackground : null);
+            VisualElement header = panel.Q("inventoryPanelHeader");
+            if (header != null)
+                SetSpriteBackground(header, currentAppearance != null ? currentAppearance.HeaderBackground : null);
+
+            if (currentModel != null)
+                Render(currentModel);
+        }
+
+        public void SetPanelVisible(bool visible)
+        {
+            if (panel == null) return;
+            if (!visible)
+                CancelActiveDrag();
+            panel.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        internal void CancelActiveDrag()
+        {
+            session?.CancelDragFrom(this);
+        }
+
+        private void SetSpriteBackground(VisualElement element, Sprite sprite)
+        {
+            if (element == null) return;
+            if (sprite != null)
+                element.style.backgroundImage = new StyleBackground(sprite);
+            else
+                element.style.backgroundImage = StyleKeyword.Null;
+        }
+
+        private void ApplySlotAppearance(VisualElement slot, bool blocked = false)
+        {
+            Sprite sprite = currentAppearance == null
+                ? null
+                : blocked ? currentAppearance.BlockedCellBackground : currentAppearance.SlotBackground;
+            SetSpriteBackground(slot, sprite);
+        }
+
         public void SetHeader(string displayName)
         {
             if (panel == null) return;
@@ -79,12 +146,15 @@ namespace Systems.Inventory.Architecture
             }
             header.Clear();
             header.Add(new Label(displayName));
+            SetSpriteBackground(header, currentAppearance != null ? currentAppearance.HeaderBackground : null);
         }
 
         public void Render(IInventoryModel model)
         {
             if (!attached) Initialize();
             currentModel = model;
+            panel.style.display = DisplayStyle.Flex;
+            SetSpriteBackground(panel, currentAppearance != null ? currentAppearance.PanelBackground : null);
             slotsContainer.Clear();
             slotsContainer.RemoveFromClassList("gridSlotsContainer");
             slotsContainer.RemoveFromClassList("equipmentSlotsContainer");
@@ -115,6 +185,7 @@ namespace Systems.Inventory.Architecture
             {
                 var slot = new VisualElement();
                 slot.AddToClassList("slot");
+                ApplySlotAppearance(slot);
                 slot.userData = i;
                 slotsContainer.Add(slot);
                 slotElements.Add(slot);
@@ -143,6 +214,7 @@ namespace Systems.Inventory.Architecture
                 var slot = new VisualElement { name = "equipmentSlot_" + definition.SlotId, userData = definition.SlotId };
                 slot.AddToClassList("slot");
                 slot.AddToClassList("equipmentSlot");
+                ApplySlotAppearance(slot);
                 slot.tooltip = definition.DisplayName;
                 slotsContainer.Add(slot);
                 slotElements.Add(slot);
@@ -180,6 +252,18 @@ namespace Systems.Inventory.Architecture
                 var cell = new VisualElement();
                 cell.AddToClassList("slot");
                 cell.AddToClassList("gridCell");
+                if (!grid.IsCellUsable(x, y))
+                {
+                    cell.AddToClassList("gridCellBlocked");
+                    ApplySlotAppearance(cell, true);
+                    cell.tooltip = "Unavailable inventory space";
+                    cell.pickingMode = PickingMode.Ignore;
+                }
+                else
+                {
+                    ApplySlotAppearance(cell);
+                    cell.tooltip = "Usable inventory space";
+                }
                 cell.style.width = gridCellSize;
                 cell.style.height = gridCellSize;
                 cell.userData = y * grid.Width + x;
@@ -202,8 +286,10 @@ namespace Systems.Inventory.Architecture
                     if (!ItemGridShape.IsOccupied(item.details, shapeX, shapeY, placement.RotationQuarterTurns)) continue;
                     var occupiedCell = new VisualElement();
                     occupiedCell.AddToClassList("gridItemOccupiedCell");
+                    SetSpriteBackground(occupiedCell,
+                        currentAppearance != null ? currentAppearance.OccupiedItemCellBackground : null);
                     occupiedCell.pickingMode = PickingMode.Position;
-                    occupiedCell.tooltip = "Drag to move. Shift-click to quick move.";
+                    occupiedCell.tooltip = "Drag to move. Shift-click to quick move. Right-click a stack to split it.";
                     RegisterItemPointerHandler(occupiedCell, item);
                     occupiedCell.style.position = Position.Absolute;
                     occupiedCell.style.left = shapeX * gridCellSize;
@@ -326,12 +412,22 @@ namespace Systems.Inventory.Architecture
 
         internal void SetItemDragging(SerializableGuid itemId, bool dragging)
         {
+            if (dragging) draggingItemIds.Add(itemId);
+            else draggingItemIds.Remove(itemId);
+
+            // Update the current visual immediately. The ID set above also ensures
+            // the state survives a model Changed event that rebuilds these elements.
             foreach (VisualElement element in itemElements)
             {
                 if (!Equals(element.userData, itemId)) continue;
                 if (dragging) element.AddToClassList("inventory-item-dragging");
                 else element.RemoveFromClassList("inventory-item-dragging");
             }
+        }
+
+        internal void HideDragGhost()
+        {
+            canvas?.HideDragGhost();
         }
 
         internal void ShowDragGhost(Item item, Vector2 screenPosition, int rotationQuarterTurns)
@@ -400,7 +496,9 @@ namespace Systems.Inventory.Architecture
             var element = new VisualElement();
             element.AddToClassList("slotItem");
             element.userData = item.Id;
-            element.tooltip = "Drag to move. Shift-click to quick move.";
+            if (draggingItemIds.Contains(item.Id))
+                element.AddToClassList("inventory-item-dragging");
+            element.tooltip = "Drag to move. Shift-click to quick move. Right-click a stack to split it.";
             var icon = new Image();
             icon.AddToClassList("slotIcon");
             if (item.details != null && item.details.Icon != null)
@@ -423,11 +521,23 @@ namespace Systems.Inventory.Architecture
             return element;
         }
 
+        // ITEM PRESS / CLICK ENTRY POINT:
+        // Add item-specific pointer actions here (for example, right-click inspect or
+        // modifier-click actions). Keep the actual inventory operation in the session/service
+        // layer rather than putting model mutation directly in this view callback.
         private void RegisterItemPointerHandler(VisualElement target, Item item)
         {
             target.RegisterCallback<PointerDownEvent>(evt =>
             {
-                if (evt.button != 0 || session == null || currentModel == null) return;
+                if (session == null || currentModel == null) return;
+                if (evt.button == 1)
+                {
+                    if (!session.BeginSplitDrag(this, item.Id, evt.pointerId)) return;
+                    session.UpdateDragTarget(evt.position);
+                    evt.StopPropagation();
+                    return;
+                }
+                if (evt.button != 0) return;
                 if ((evt.modifiers & EventModifiers.Shift) != 0)
                 {
                     session.QuickMove(this, item.Id);
@@ -438,6 +548,13 @@ namespace Systems.Inventory.Architecture
                 session.UpdateDragTarget(evt.position);
                 evt.StopPropagation();
             });
+        }
+
+        private void OnDisable()
+        {
+            // A panel can be hidden by its host or disabled directly; either way an
+            // active drag must be cancelled and its shared-canvas ghost removed.
+            session?.CancelDragFrom(this);
         }
 
         private void OnDestroy()

@@ -22,10 +22,10 @@ namespace Systems.Inventory.Architecture
             foreach (IInventoryModel destination in orderedDestinations)
             {
                 if (!source.TryGetItem(itemId, out sourceItem)) break;
-                if (destination is IEquipmentInventoryModel || !CanStack(sourceItem)) continue;
+                if (!CanStack(sourceItem)) continue;
 
                 Item[] existingStacks = destination.Items.Where(candidate => candidate != null &&
-                    candidate.detailsId == sourceItem.detailsId && CanStack(candidate) &&
+                    GetDefinitionId(candidate) == GetDefinitionId(sourceItem) && CanStack(candidate) &&
                     candidate.quantity < candidate.details.maxStack).ToArray();
                 foreach (Item target in existingStacks)
                 {
@@ -52,7 +52,7 @@ namespace Systems.Inventory.Architecture
             foreach (IInventoryModel destination in orderedDestinations)
             {
                 if (!source.TryGetItem(itemId, out sourceItem)) break;
-                int maxStack = destination is IEquipmentInventoryModel ? 1 : GetMaxStack(sourceItem);
+                int maxStack = GetMaxStack(sourceItem);
                 int stackAmount = Math.Min(sourceItem.quantity, maxStack);
                 if (stackAmount < 1) continue;
 
@@ -106,7 +106,7 @@ namespace Systems.Inventory.Architecture
             if (source == null || destination == null || source.Id == destination.Id && sourceItemId == targetItemId ||
                 !source.TryGetItem(sourceItemId, out Item sourceItem) ||
                 !destination.TryGetItem(targetItemId, out Item targetItem) ||
-                !CanStack(sourceItem) || !CanStack(targetItem) || sourceItem.detailsId != targetItem.detailsId)
+                !CanMerge(sourceItem, targetItem))
                 return new InventoryQuickMoveResult(0, 0, "These items cannot be stacked together.");
 
             int originalTargetQuantity = targetItem.quantity;
@@ -128,11 +128,27 @@ namespace Systems.Inventory.Architecture
             return new InventoryQuickMoveResult(amount, remaining, "Merged " + amount + " item(s) into the target stack.");
         }
 
-        private static bool CanStack(Item item) => item != null && item.details != null &&
-            item.details.category != ItemCategory.Equipment && item.details.maxStack > 1;
+        /// <summary>Returns true when the held item can add at least one unit to the target stack.</summary>
+        public bool CanMerge(Item sourceItem, Item targetItem)
+        {
+            return CanStack(sourceItem) && CanStack(targetItem) &&
+                GetDefinitionId(sourceItem) == GetDefinitionId(targetItem) &&
+                targetItem.quantity < Math.Max(1, targetItem.details.maxStack);
+        }
 
-        private static int GetMaxStack(Item item) => item != null && item.details != null &&
-            item.details.category != ItemCategory.Equipment ? Math.Max(1, item.details.maxStack) : 1;
+        private static SerializableGuid GetDefinitionId(Item item)
+        {
+            if (item == null) return SerializableGuid.Empty;
+            // The ItemDetails reference is authoritative at runtime. Older/serialized
+            // instances can have an empty or stale detailsId, so fall back to the asset ID.
+            if (item.details != null && item.details.Id != SerializableGuid.Empty)
+                return item.details.Id;
+            return item.detailsId;
+        }
+
+        private static bool CanStack(Item item) => item != null && item.details != null && item.details.maxStack > 1;
+
+        private static int GetMaxStack(Item item) => InventoryItemMatching.GetMaxStack(item);
 
         private static bool RestoreSource(IInventoryModel source, Item item, bool hadGridPlacement,
             GridItemPlacement placement, bool hadSlot, int slot, bool hadEquipmentSlot, string equipmentSlot)

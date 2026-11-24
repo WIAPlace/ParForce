@@ -16,7 +16,7 @@ MonoBehaviour:
   category: 0
   equipmentType: 0
   EquipmentEffects: []
-  maxStack: 5
+  maxStack: 20
   GridWidth: 2
   GridHeight: 2
   UseCustomShape: 1

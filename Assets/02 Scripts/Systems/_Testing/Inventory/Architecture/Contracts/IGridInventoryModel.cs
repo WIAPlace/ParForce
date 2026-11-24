@@ -32,7 +32,18 @@ namespace Systems.Inventory.Architecture
     {
         int Width { get; }
         int Height { get; }
+        /// <summary>Total usable cells according to the grid's layout mask.</summary>
+        int TotalUsableCells { get; }
+        /// <summary>Usable cells covered by the actual occupied cells of stored item shapes.</summary>
+        int OccupiedCells { get; }
+        /// <summary>Usable cells not currently occupied by items.</summary>
+        int AvailableCells { get; }
+        /// <summary>Percentage of usable cells occupied, from 0 to 100.</summary>
+        float FillPercentage { get; }
+        bool IsCellUsable(int x, int y);
         bool TryGetItemAtCell(int x, int y, out Item item);
+        /// <summary>Removes quantity from the item occupying the specified grid cell.</summary>
+        bool TryRemoveQuantityAtCell(int x, int y, int quantity, out int removedQuantity, out InventoryOperationFailure failure);
         bool TryGetPlacement(SerializableGuid itemInstanceId, out GridItemPlacement placement);
         bool CanPlaceAt(Item item, int x, int y, bool rotated, out InventoryOperationFailure failure);
         bool CanMoveTo(SerializableGuid itemInstanceId, int x, int y, bool rotated, out InventoryOperationFailure failure);

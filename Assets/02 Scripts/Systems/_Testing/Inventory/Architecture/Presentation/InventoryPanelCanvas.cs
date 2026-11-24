@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -15,6 +16,11 @@ namespace Systems.Inventory.Architecture
         [SerializeField] private StyleSheet styleSheet;
         [SerializeField] private StyleSheet interactionStyleSheet;
         [SerializeField] private InventoryPanelSession session;
+        [Header("Global UI Scale")]
+        [SerializeField, Range(0.5f, 2f), Tooltip("Shared scale applied to every inventory panel and the drag ghost.")]
+        private float globalScale = 1f;
+
+        private readonly List<InventoryPanelView> registeredViews = new List<InventoryPanelView>();
 
         private VisualElement root;
         private VisualElement dragGhost;
@@ -27,6 +33,37 @@ namespace Systems.Inventory.Architecture
 
         public VisualElement Root => root;
         public InventoryPanelSession Session => session;
+        public float GlobalScale => globalScale;
+
+        /// <summary>Raised whenever the shared inventory UI scale changes.</summary>
+        public event Action<float> GlobalScaleChanged;
+
+        /// <summary>Changes the scale of every registered inventory panel and the shared drag ghost.</summary>
+        public void SetGlobalScale(float scale)
+        {
+            float clamped = Mathf.Clamp(scale, 0.5f, 2f);
+            if (Mathf.Approximately(globalScale, clamped)) return;
+            globalScale = clamped;
+            ApplyGlobalScale();
+            GlobalScaleChanged?.Invoke(globalScale);
+        }
+
+        private void ApplyGlobalScale()
+        {
+            for (int i = registeredViews.Count - 1; i >= 0; i--)
+            {
+                if (registeredViews[i] == null) registeredViews.RemoveAt(i);
+                else registeredViews[i].ApplyGlobalScale(globalScale);
+            }
+            ApplyScaleToElement(dragGhost, globalScale);
+        }
+
+        private static void ApplyScaleToElement(VisualElement element, float scale)
+        {
+            if (element == null) return;
+            element.style.transformOrigin = new TransformOrigin(Length.Percent(0f), Length.Percent(0f), 0f);
+            element.style.scale = new Scale(new Vector2(scale, scale));
+        }
 
         public void Initialize()
         {
@@ -35,6 +72,7 @@ namespace Systems.Inventory.Architecture
             if (document == null)
                 throw new System.InvalidOperationException($"{name}: InventoryPanelCanvas requires a UIDocument.");
 
+            globalScale = Mathf.Clamp(globalScale, 0.5f, 2f);
             root = document.rootVisualElement;
             root.Clear();
             if (styleSheet != null) root.styleSheets.Add(styleSheet);
@@ -58,6 +96,7 @@ namespace Systems.Inventory.Architecture
             dragGhostImage.style.height = Length.Percent(100f);
             dragGhost.Add(dragGhostImage);
             root.Add(dragGhost); // Kept last so it is always above every panel.
+            ApplyScaleToElement(dragGhost, globalScale);
 
             root.RegisterCallback<PointerMoveEvent>(OnPointerMove);
             root.RegisterCallback<PointerUpEvent>(OnPointerUp);
@@ -69,7 +108,9 @@ namespace Systems.Inventory.Architecture
         public void Register(InventoryPanelView view)
         {
             Initialize();
+            if (!registeredViews.Contains(view)) registeredViews.Add(view);
             view.AttachToCanvas(this, root);
+            view.ApplyGlobalScale(globalScale);
         }
 
         public void ShowDragGhost(Vector2 screenPosition, Sprite sprite, Vector2 size, Vector2 pivot, int rotationQuarterTurns)
@@ -111,7 +152,7 @@ namespace Systems.Inventory.Architecture
         public void ConfigureTemporaryPanelTestingControls(VisualElement panel, VisualElement header, Action bringPanelToFront)
         {
             if (!EnableTemporaryPanelTestingControls || panel == null || header == null) return;
-            header.AddManipulator(new PanelDragManipulator(panel, bringPanelToFront));
+            header.AddManipulator(new PanelDragManipulator(panel, bringPanelToFront, () => GlobalScale));
             panel.RegisterCallback<PointerDownEvent>(_ => bringPanelToFront?.Invoke());
         }
 
@@ -133,6 +174,14 @@ namespace Systems.Inventory.Architecture
         private void OnPointerUp(PointerUpEvent evt)
         {
             if (session == null || !session.IsDragging) return;
+            if (evt.button == 1)
+            {
+                if (!session.ConsumeSplitInitiationRelease(evt.button))
+                    session.PlaceOneAt(evt.position);
+                evt.StopPropagation();
+                return;
+            }
+            if (evt.button != 0) return;
             session.EndDrag(evt.position, evt.pointerId);
             HideDragGhost();
         }
@@ -144,10 +193,23 @@ namespace Systems.Inventory.Architecture
             HideDragGhost();
         }
 
+        // Central keyboard shortcut handler for inventory interactions.
+        // R rotates clockwise; Shift+R rotates counter-clockwise; Q drops the held item.
         private void OnKeyDown(KeyDownEvent evt)
         {
-            if (evt.keyCode != KeyCode.R || session == null || !session.IsDragging) return;
-            session.RotateDraggedItem();
+            if (session == null || !session.IsDragging) return;
+
+            if (evt.keyCode == KeyCode.Q)
+            {
+                if (session.DropDraggedItem())
+                    HideDragGhost();
+                evt.StopPropagation();
+                return;
+            }
+
+            if (evt.keyCode != KeyCode.R) return;
+            bool shiftHeld = (evt.modifiers & EventModifiers.Shift) != 0;
+            session.RotateDraggedItem(shiftHeld ? -1 : 1);
             evt.StopPropagation();
         }
 

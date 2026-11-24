@@ -4,7 +4,8 @@ namespace Systems.Inventory.Architecture
     {
         ItemAdded,
         ItemRemoved,
-        ContentsReplaced
+        ContentsReplaced,
+        StackChanged
     }
 
     public sealed class InventoryChangedEvent
@@ -31,6 +32,11 @@ namespace Systems.Inventory.Architecture
         InvalidItemId,
         DuplicateItem,
         InventoryFull,
-        ItemNotFound
+        ItemNotFound,
+        OutOfBounds,
+        PlacementOccupied,
+        InvalidFootprint,
+        IncompatibleItemType,
+        InvalidQuantity
     }
 }

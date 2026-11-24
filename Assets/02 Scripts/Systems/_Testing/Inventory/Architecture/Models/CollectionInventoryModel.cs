@@ -72,6 +72,8 @@ namespace Systems.Inventory.Architecture
             if (item == null) { failure = InventoryOperationFailure.InvalidItem; return false; }
             if (item.Id == SerializableGuid.Empty) { failure = InventoryOperationFailure.InvalidItemId; return false; }
             if (Contains(item.Id)) { failure = InventoryOperationFailure.DuplicateItem; return false; }
+            int maxStack = item.details != null && item.details.category != ItemCategory.Equipment ? Math.Max(1, item.details.maxStack) : 1;
+            if (item.quantity < 1 || item.quantity > maxStack) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
             if (!IsValidIndex(index)) { failure = InventoryOperationFailure.InventoryFull; return false; }
             if (slots[index] != null) { failure = InventoryOperationFailure.InventoryFull; return false; }
             failure = InventoryOperationFailure.None;
@@ -82,6 +84,17 @@ namespace Systems.Inventory.Architecture
         {
             int index = slots.FindIndex(existing => existing == null);
             return TryAddAt(item, index, out failure);
+        }
+
+        public bool TrySetQuantity(SerializableGuid itemInstanceId, int quantity, out InventoryOperationFailure failure)
+        {
+            if (!TryGetItem(itemInstanceId, out Item item)) { failure = InventoryOperationFailure.ItemNotFound; return false; }
+            int maximum = item.details != null && item.details.category != ItemCategory.Equipment ? Math.Max(1, item.details.maxStack) : 1;
+            if (quantity < 1 || quantity > maximum) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
+            item.quantity = quantity;
+            RaiseChanged(InventoryChangeKind.StackChanged, itemInstanceId);
+            failure = InventoryOperationFailure.None;
+            return true;
         }
 
         public bool TryAddAt(Item item, int index, out InventoryOperationFailure failure)

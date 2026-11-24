@@ -11,8 +11,12 @@ namespace Systems.Inventory.Architecture
     public sealed class InventoryPanelHost : MonoBehaviour
     {
         [SerializeField] private InventoryPanelView view;
-        [SerializeField] private InventoryPanelSession session;
         [SerializeField] private string displayName = "Inventory";
+        [SerializeField] private bool useEquipmentStorage;
+        [SerializeField] private EquipmentSlotLayout equipmentSlotLayout;
+        [SerializeField] private bool useGridStorage;
+        [SerializeField, Min(1)] private int gridWidth = 8;
+        [SerializeField, Min(1)] private int gridHeight = 6;
         [SerializeField, Min(0)] private int capacity = 20;
         [SerializeField] private List<ItemDetails> startingItems = new List<ItemDetails>();
         [SerializeField] private SerializableGuid inventoryId = SerializableGuid.Empty;
@@ -45,16 +49,33 @@ namespace Systems.Inventory.Architecture
                     runtimeItems.Add(details.Create(1));
             }
 
-            Model = new CollectionInventoryModel(
-                inventoryId,
-                displayName,
-                capacity,
-                runtimeItems);
+            if (useEquipmentStorage)
+            {
+                if (equipmentSlotLayout == null)
+                {
+                    Debug.LogError($"{name}: Equipment storage is enabled, but no EquipmentSlotLayout is assigned.", this);
+                    yield break;
+                }
+
+                var equipmentModel = new EquipmentInventoryModel(inventoryId, displayName, equipmentSlotLayout.Slots);
+                foreach (Item item in runtimeItems)
+                {
+                    if (!equipmentModel.TryAdd(item, out InventoryOperationFailure failure))
+                        Debug.LogWarning($"{name}: Starting item '{item.details?.name}' could not be equipped: {failure}.", this);
+                }
+                Model = equipmentModel;
+            }
+            else if (useGridStorage)
+            {
+                Model = new GridInventoryModel(inventoryId, displayName,
+                    Mathf.Max(1, gridWidth), Mathf.Max(1, gridHeight), runtimeItems);
+            }
+            else
+            {
+                Model = new CollectionInventoryModel(inventoryId, displayName, capacity, runtimeItems);
+            }
 
             view.Initialize();
-
-            if (session != null)
-                session.Register(view);
 
             controller = new InventoryPanelController(view);
             controller.Bind(Model);
@@ -65,8 +86,6 @@ namespace Systems.Inventory.Architecture
         private void OnDestroy()
         {
             controller?.Dispose();
-            if (session != null && view != null)
-                session.Unregister(view);
         }
     }
 }

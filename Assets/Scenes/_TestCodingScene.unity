@@ -1829,6 +1829,50 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: d083a1a0db22d7445ad75aa8edf04306, type: 3}
   m_PrefabInstance: {fileID: 1158725370}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &133798733
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 133798735}
+  - component: {fileID: 133798734}
+  m_Layer: 0
+  m_Name: InventorySession
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &133798734
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 133798733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffe2390bd6918264ca603dd71bbce8ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.InventoryPanelSession
+--- !u!4 &133798735
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 133798733}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -219.12444, y: 37.6138, z: -30.46546}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &140584481 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4015809984803727857, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
@@ -2016,6 +2060,154 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4789415589184228061, guid: d083a1a0db22d7445ad75aa8edf04306, type: 3}
   m_PrefabInstance: {fileID: 1158725370}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &370779871
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 370779874}
+  - component: {fileID: 370779873}
+  - component: {fileID: 370779872}
+  m_Layer: 5
+  m_Name: InventoryUICanvas
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &370779872
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 370779871}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6f6c2e7a6f64c4e9a1d2f3b4c5d6e70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.InventoryPanelCanvas
+  document: {fileID: 370779873}
+  styleSheet: {fileID: 0}
+  interactionStyleSheet: {fileID: 7433441132597879392, guid: eccc965172c0aed46b1712cd82df232c, type: 3}
+  session: {fileID: 133798734}
+--- !u!114 &370779873
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 370779871}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
+  m_PanelSettings: {fileID: 11400000, guid: 45ef466796b18e44da1a50cc39553b23, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 9197481963319205126, guid: dbe26a05c9578e34294886afa8241c04, type: 3}
+  m_SortingOrder: 0
+  m_Position: 0
+  m_WorldSpaceSizeMode: 1
+  m_WorldSpaceWidth: 1920
+  m_WorldSpaceHeight: 1080
+  m_PivotReferenceSize: 0
+  m_Pivot: 0
+  m_WorldSpaceCollider: {fileID: 0}
+--- !u!4 &370779874
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 370779871}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &381069412
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 381069416}
+  - component: {fileID: 381069414}
+  - component: {fileID: 381069413}
+  m_Layer: 5
+  m_Name: ChestInventory
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &381069413
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 381069412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a564f9ca0df95a41a94e4d474293624, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.InventoryPanelHost
+  view: {fileID: 381069414}
+  displayName: Chest
+  useEquipmentStorage: 0
+  equipmentSlotLayout: {fileID: 0}
+  useGridStorage: 1
+  gridWidth: 4
+  gridHeight: 6
+  capacity: 20
+  startingItems:
+  - {fileID: 11400000, guid: 98fd7ee65328542439788f8254d86482, type: 2}
+  - {fileID: 11400000, guid: 98fd7ee65328542439788f8254d86482, type: 2}
+  - {fileID: 11400000, guid: 3c15bb450da6ae6488d9cf650f49677b, type: 2}
+  inventoryId:
+    Part1: 3839670081
+    Part2: 1085479131
+    Part3: 1914559626
+    Part4: 989112769
+--- !u!114 &381069414
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 381069412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14eb11f9d1f30994b9ddaa4edc273f92, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.InventoryPanelView
+  canvas: {fileID: 370779872}
+  panelPositionPercent: {x: 80, y: 4}
+--- !u!4 &381069416
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 381069412}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &394695093 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4015809984803727857, guid: d083a1a0db22d7445ad75aa8edf04306, type: 3}
@@ -2026,6 +2218,50 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3227262973450466191, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
   m_PrefabInstance: {fileID: 89085971}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &401103393
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 401103395}
+  - component: {fileID: 401103394}
+  m_Layer: 0
+  m_Name: EquipmentEffectTestRunner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &401103394
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 401103393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f7253b26f894a8da27b7646f6a842e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.EquipmentEffectsTestRunner
+--- !u!4 &401103395
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 401103393}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 156.63655, y: 11.00706, z: 83.04601}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &407575954 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -6540315194684491014, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
@@ -2317,6 +2553,54 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4966117770360896529, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
   m_PrefabInstance: {fileID: 89085971}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &522846713
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 522846715}
+  - component: {fileID: 522846714}
+  m_Layer: 0
+  m_Name: EquipmentInventoryTestRunner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &522846714
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 522846713}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4d3085dee7b4574bbbc2c535aca0ff3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.EquipmentInventoryTestRunner
+  layout: {fileID: 11400000, guid: d55668faa4b84d740ba733138c61ac73, type: 2}
+  helmetDefinition: {fileID: 11400000, guid: 4756ffa9412db44438cec0084aa05e58, type: 2}
+  ringDefinition: {fileID: 11400000, guid: 3c15bb450da6ae6488d9cf650f49677b, type: 2}
+  potionDefinition: {fileID: 11400000, guid: 82e5e2cde8343234e83e45798df9e868, type: 2}
+--- !u!4 &522846715
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 522846713}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 156.63657, y: 11.00705, z: 83.04604}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &544867659 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2077844926056007791, guid: d083a1a0db22d7445ad75aa8edf04306, type: 3}
@@ -5362,6 +5646,86 @@ Transform:
   - {fileID: 1770050128}
   m_Father: {fileID: 2057770600}
   m_LocalEulerAnglesHint: {x: 0, y: 77.899, z: 0}
+--- !u!1 &1272189562
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1272189566}
+  - component: {fileID: 1272189564}
+  - component: {fileID: 1272189563}
+  m_Layer: 5
+  m_Name: PlayerInventory
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1272189563
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1272189562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a564f9ca0df95a41a94e4d474293624, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.InventoryPanelHost
+  view: {fileID: 1272189564}
+  displayName: Player
+  useEquipmentStorage: 0
+  equipmentSlotLayout: {fileID: 0}
+  useGridStorage: 1
+  gridWidth: 8
+  gridHeight: 6
+  capacity: 20
+  startingItems:
+  - {fileID: 11400000, guid: 98fd7ee65328542439788f8254d86482, type: 2}
+  - {fileID: 11400000, guid: 3619591397b85014fafd09a4e877f491, type: 2}
+  - {fileID: 11400000, guid: 95ac11ae9aaf3004f8bf6572652bb789, type: 2}
+  - {fileID: 11400000, guid: 95ac11ae9aaf3004f8bf6572652bb789, type: 2}
+  - {fileID: 11400000, guid: 4756ffa9412db44438cec0084aa05e58, type: 2}
+  - {fileID: 11400000, guid: 3c15bb450da6ae6488d9cf650f49677b, type: 2}
+  - {fileID: 11400000, guid: 82e5e2cde8343234e83e45798df9e868, type: 2}
+  inventoryId:
+    Part1: 2911815814
+    Part2: 1228570620
+    Part3: 3893460649
+    Part4: 3297144086
+--- !u!114 &1272189564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1272189562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14eb11f9d1f30994b9ddaa4edc273f92, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.InventoryPanelView
+  canvas: {fileID: 370779872}
+  panelPositionPercent: {x: 40, y: 4}
+--- !u!4 &1272189566
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1272189562}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1321258270 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8334635867023883092, guid: d083a1a0db22d7445ad75aa8edf04306, type: 3}
@@ -5434,6 +5798,79 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8483176004794005833, guid: d083a1a0db22d7445ad75aa8edf04306, type: 3}
   m_PrefabInstance: {fileID: 1158725370}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1558282954
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1558282957}
+  - component: {fileID: 1558282956}
+  - component: {fileID: 1558282955}
+  m_Layer: 0
+  m_Name: EquipmentPanelView
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1558282955
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1558282954}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a564f9ca0df95a41a94e4d474293624, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.InventoryPanelHost
+  view: {fileID: 1558282956}
+  displayName: Equipment
+  useEquipmentStorage: 1
+  equipmentSlotLayout: {fileID: 11400000, guid: d55668faa4b84d740ba733138c61ac73, type: 2}
+  useGridStorage: 0
+  gridWidth: 8
+  gridHeight: 6
+  capacity: 20
+  startingItems: []
+  inventoryId:
+    Part1: 2482310088
+    Part2: 1100492248
+    Part3: 2548014984
+    Part4: 2220557821
+--- !u!114 &1558282956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1558282954}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14eb11f9d1f30994b9ddaa4edc273f92, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.InventoryPanelView
+  canvas: {fileID: 370779872}
+  panelPositionPercent: {x: 0, y: 4}
+--- !u!4 &1558282957
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1558282954}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 156.63657, y: 11.00705, z: 83.04604}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1571419876 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 485313609324208250, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
@@ -6432,6 +6869,50 @@ Transform:
   - {fileID: 1105977491}
   m_Father: {fileID: 945775919}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2078962665
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2078962667}
+  - component: {fileID: 2078962666}
+  m_Layer: 0
+  m_Name: Character runtime test runner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2078962666
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2078962665}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6dce4c3c11a842b0a8a3f8cb1f1f67a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.CharacterRuntimeTestRunner
+--- !u!4 &2078962667
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2078962665}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 156.63655, y: 11.00706, z: 83.04601}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &2079034423 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7508717426929118803, guid: d083a1a0db22d7445ad75aa8edf04306, type: 3}
@@ -6646,3 +7127,11 @@ SceneRoots:
   - {fileID: 1922210364}
   - {fileID: 945775919}
   - {fileID: 422146974}
+  - {fileID: 133798735}
+  - {fileID: 370779874}
+  - {fileID: 522846715}
+  - {fileID: 1558282957}
+  - {fileID: 1272189566}
+  - {fileID: 381069416}
+  - {fileID: 401103395}
+  - {fileID: 2078962667}

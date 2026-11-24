@@ -8,7 +8,6 @@
 
 .inventory {
     width: 300px;
-    max-height: 500px;
     padding: 10px;
     flex-direction: column;
     align-items: stretch;
@@ -38,6 +37,7 @@
     flex-grow: 1;
     flex-wrap: wrap;
     flex-direction: row;
+    min-width: 0;
     align-items: flex-start;
     justify-content: flex-start;
 }
@@ -88,12 +88,9 @@
     background-color: rgba(255, 220, 80, 0.35);
     border-width: 2px;
     border-color: rgb(255, 220, 80);
-    visibility: hidden;
-}
-
-.inventoryDragGhost.visible {
     visibility: visible;
 }
+
 
 .inventory-item-dragging {
     opacity: 0.35;
@@ -111,4 +108,108 @@
     top: 0;
     right: 0;
     bottom: 0;
+}
+
+/* Grid inventory: cells are positioned by the view so item footprints can span them. */
+.gridSlotsContainer {
+    position: relative;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+}
+
+.gridCell {
+    margin: 0;
+}
+
+.gridSlotItem {
+    background-color: rgba(90, 125, 165, 0.8);
+    border-width: 1px;
+    border-color: rgb(190, 210, 235);
+    border-radius: 3px;
+}
+
+
+/* Live footprint preview while dragging a grid item. */
+.gridPlacementPreview {
+    position: absolute;
+    border-width: 2px;
+    border-radius: 3px;
+}
+
+.gridPlacementPreview.valid {
+    background-color: rgba(55, 205, 105, 0.32);
+    border-color: rgb(75, 235, 125);
+}
+
+.gridPlacementPreview.invalid {
+    background-color: rgba(225, 55, 55, 0.34);
+    border-color: rgb(255, 90, 90);
+}
+
+/* Shared canvas fills the single UIDocument viewport. */
+.inventory-panel-root {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+/* Grid dimensions are calculated from the available viewport by InventoryPanelView. */
+.gridSlotsContainer {
+    flex-shrink: 0;
+}
+
+
+#dragGhostImage {
+    width: 100%;
+    height: 100%;
+}
+
+
+/* Named equipment slots are rendered from EquipmentSlotLayout in stable layout order. */
+.equipmentSlotsContainer {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: flex-start;
+    max-width: 720px;
+}
+
+.equipmentSlot {
+    width: 76px;
+    height: 76px;
+    margin: 5px;
+    border-radius: 4px;
+    background-color: rgb(49, 57, 69);
+}
+
+.equipmentSlotItem {
+    background-color: rgba(90, 125, 165, 0.38);
+}
+
+.equipmentSlotLabel {
+    position: absolute;
+    left: 1px;
+    right: 1px;
+    bottom: 1px;
+    min-height: 17px;
+    padding-left: 2px;
+    padding-right: 2px;
+    color: rgb(245, 245, 245);
+    background-color: rgba(15, 18, 24, 0.82);
+    font-size: 10px;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.equipmentSlot-valid {
+    border-width: 2px;
+    border-color: rgb(75, 235, 125);
+    background-color: rgba(55, 205, 105, 0.3);
+}
+
+.equipmentSlot-invalid {
+    border-width: 2px;
+    border-color: rgb(255, 90, 90);
+    background-color: rgba(225, 55, 55, 0.3);
 }

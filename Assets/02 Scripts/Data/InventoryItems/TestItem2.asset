@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.ItemDetails
   Name: Test2
   maxStack: 5
+  GridWidth: 2
+  GridHeight: 3
   Id:
     Part1: 2847457031
     Part2: 1083017128

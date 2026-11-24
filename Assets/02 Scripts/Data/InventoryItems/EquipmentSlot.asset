@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b580c0be373b4749aad1d4fc524159b1, type: 3}
+  m_Name: EquipmentSlot
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.EquipmentSlotLayout
+  slots:
+  - slotId: Head
+    displayName: Head
+    acceptedTypes: 01000000
+  - slotId: Chest
+    displayName: Chest
+    acceptedTypes: 02000000
+  - slotId: Legs
+    displayName: Legs
+    acceptedTypes: 03000000
+  - slotId: Feet
+    displayName: Feet
+    acceptedTypes: 04000000
+  - slotId: Hands
+    displayName: Hands
+    acceptedTypes: 05000000
+  - slotId: MainHand
+    displayName: Main Hand
+    acceptedTypes: 06000000
+  - slotId: OffHand
+    displayName: Off Hand
+    acceptedTypes: 07000000
+  - slotId: RingLeft
+    displayName: Left Ring
+    acceptedTypes: 08000000
+  - slotId: RingRight
+    displayName: Right Ring
+    acceptedTypes: 08000000
+  - slotId: Necklace
+    displayName: Necklace
+    acceptedTypes: 09000000
+  - slotId: Accessory1
+    displayName: Accessory 1
+    acceptedTypes: 0a000000
+  - slotId: Accessory2
+    displayName: Accessory 2
+    acceptedTypes: 0a000000

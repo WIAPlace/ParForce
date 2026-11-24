@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 096b156da869479a9367bd920214e066, type: 3}
+  m_Name: TestEquipment2
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.ItemDetails
+  Name: Ring
+  category: 3
+  equipmentType: 8
+  maxStack: 1
+  GridWidth: 2
+  GridHeight: 2
+  DragPivot: {x: 0.5, y: 0.5}
+  Id:
+    Part1: 2599621035
+    Part2: 1336210381
+    Part3: 3192421771
+    Part4: 2717639870
+  Icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  Description: 

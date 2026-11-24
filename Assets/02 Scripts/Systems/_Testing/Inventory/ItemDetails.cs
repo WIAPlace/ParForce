@@ -1,5 +1,7 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
+using Systems.Inventory.Architecture;
     
 namespace Systems.Inventory {
     [CreateAssetMenu(fileName = "New Item", menuName = "Inventory/Item")]
@@ -9,13 +11,35 @@ namespace Systems.Inventory {
         
         public string Name;
 
+        [Header("Classification")]
+        public ItemCategory category = ItemCategory.General;
+        public EquipmentType equipmentType = EquipmentType.None;
+
+        [Header("Equipment Effects")]
+        [Tooltip("Attribute modifiers applied while an instance of this item is equipped.")]
+        public List<EquipmentEffectDefinition> EquipmentEffects = new List<EquipmentEffectDefinition>();
+
         
-        public int maxStack = 1;
+        [Min(1)] public int maxStack = 1;
+
+        [Min(1)] public int GridWidth = 1;
+        [Min(1)] public int GridHeight = 1;
+
+        [Header("Drag Visual")]
+        [Tooltip("Normalized point on the item visual that stays under the pointer while dragging. (0,0) is top-left; (1,1) is bottom-right.")]
+        public Vector2 DragPivot = new Vector2(0.5f, 0.5f);
             
         
         public SerializableGuid Id = SerializableGuid.NewGuid();
 
         
+        private void OnValidate() {
+            maxStack = Mathf.Max(1, maxStack);
+            GridWidth = Mathf.Max(1, GridWidth);
+            GridHeight = Mathf.Max(1, GridHeight);
+            DragPivot = new Vector2(Mathf.Clamp01(DragPivot.x), Mathf.Clamp01(DragPivot.y));
+        }
+
         private void AssignNewGuid() {
             Id = SerializableGuid.NewGuid();
         }

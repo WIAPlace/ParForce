@@ -21,6 +21,7 @@ namespace Systems.Inventory.Architecture
         bool TryGetItem(SerializableGuid itemInstanceId, out Item item);
         bool CanAccept(Item item, out InventoryOperationFailure failure);
         bool TryAdd(Item item, out InventoryOperationFailure failure);
+        bool TrySetQuantity(SerializableGuid itemInstanceId, int quantity, out InventoryOperationFailure failure);
         bool TryRemove(
             SerializableGuid itemInstanceId,
             out Item removedItem,

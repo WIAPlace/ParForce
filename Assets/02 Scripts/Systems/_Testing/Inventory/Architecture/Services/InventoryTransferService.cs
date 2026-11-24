@@ -47,6 +47,10 @@ namespace Systems.Inventory.Architecture
                 return CreateResult(false, false, failure, operationFailure,
                     source, destination, itemInstanceId, message);
 
+            IEquipmentInventoryModel sourceEquipment = source as IEquipmentInventoryModel;
+            string originalEquipmentSlot = null;
+            bool hadEquipmentSlot = sourceEquipment != null && sourceEquipment.TryGetSlotOf(itemInstanceId, out originalEquipmentSlot);
+
             Item removedItem;
             if (!source.TryRemove(itemInstanceId, out removedItem, out operationFailure))
                 return CreateResult(false, false,
@@ -62,7 +66,10 @@ namespace Systems.Inventory.Architecture
             // A custom model may reject an item after CanAccept previously
             // succeeded. Restore the exact same instance to prevent item loss.
             InventoryOperationFailure rollbackFailure;
-            if (source.TryAdd(removedItem, out rollbackFailure))
+            bool restored = hadEquipmentSlot
+                ? sourceEquipment.TryAddAt(removedItem, originalEquipmentSlot, out rollbackFailure)
+                : source.TryAdd(removedItem, out rollbackFailure);
+            if (restored)
                 return CreateResult(false, false,
                     InventoryTransferFailure.DestinationAddFailed, operationFailure,
                     source, destination, itemInstanceId,
@@ -74,12 +81,31 @@ namespace Systems.Inventory.Architecture
                 "The inventories require reconciliation.");
         }
 
-        /// <summary>Transfers an item into an explicitly selected empty slot.</summary>
+        /// <summary>
+        /// Transfers an item into an explicitly selected collection slot or grid
+        /// cell. The source placement is captured so a failed destination add
+        /// can restore the item to its original location.
+        /// </summary>
         public InventoryTransferResult TryTransferAt(
             IInventoryModel source,
             IInventoryModel destination,
             SerializableGuid itemInstanceId,
-            int destinationSlot)
+            int destinationIndex)
+        {
+            return TryTransferAt(source, destination, itemInstanceId, destinationIndex, false);
+        }
+
+        public InventoryTransferResult TryTransferAt(
+            IInventoryModel source, IInventoryModel destination, SerializableGuid itemInstanceId,
+            int destinationIndex, bool rotated) =>
+            TryTransferAt(source, destination, itemInstanceId, destinationIndex, rotated ? 1 : 0);
+
+        public InventoryTransferResult TryTransferAt(
+            IInventoryModel source,
+            IInventoryModel destination,
+            SerializableGuid itemInstanceId,
+            int destinationIndex,
+            int rotationQuarterTurns)
         {
             if (source == null || destination == null)
                 return TryTransfer(source, destination, itemInstanceId);
@@ -89,40 +115,153 @@ namespace Systems.Inventory.Architecture
                     InventoryOperationFailure.None, source, destination, itemInstanceId,
                     "Use the inventory's local move operation for items within the same inventory.");
 
-            if (!(destination is ISlotInventoryModel destinationSlots) ||
-                !(source is ISlotInventoryModel sourceSlots))
-                return CreateResult(false, false, InventoryTransferFailure.DestinationRejected,
-                    InventoryOperationFailure.None, source, destination, itemInstanceId,
-                    "Both inventories must support indexed slots for a targeted transfer.");
-
             if (!source.TryGetItem(itemInstanceId, out Item item) || item == null)
                 return CreateResult(false, false, InventoryTransferFailure.ItemNotFound,
                     InventoryOperationFailure.ItemNotFound, source, destination, itemInstanceId,
                     "The item is no longer present in the source inventory.");
 
-            if (!destinationSlots.CanAcceptAt(item, destinationSlot, out InventoryOperationFailure opFailure))
-                return CreateResult(false, false, InventoryTransferFailure.DestinationRejected,
-                    opFailure, source, destination, itemInstanceId,
-                    "The selected destination slot cannot accept this item: " + opFailure + ".");
+            ISlotInventoryModel sourceSlots = source as ISlotInventoryModel;
+            IGridInventoryModel sourceGrid = source as IGridInventoryModel;
+            IEquipmentInventoryModel sourceEquipment = source as IEquipmentInventoryModel;
+            string originalEquipmentSlot = null;
+            bool hadEquipmentSlot = sourceEquipment != null && sourceEquipment.TryGetSlotOf(itemInstanceId, out originalEquipmentSlot);
+            int originalSlot = -1;
+            GridItemPlacement originalPlacement = default;
+            bool hadSlot = sourceSlots != null && sourceSlots.TryGetSlotOf(itemInstanceId, out originalSlot);
+            bool hadGridPlacement = sourceGrid != null && sourceGrid.TryGetPlacement(itemInstanceId, out originalPlacement);
 
-            sourceSlots.TryGetSlotOf(itemInstanceId, out int originalSlot);
-            if (!source.TryRemove(itemInstanceId, out Item removed, out opFailure))
+            IGridInventoryModel destinationGrid = destination as IGridInventoryModel;
+            ISlotInventoryModel destinationSlots = destination as ISlotInventoryModel;
+            int gridX = -1;
+            int gridY = -1;
+            InventoryOperationFailure operationFailure;
+
+            if (destinationGrid != null)
+            {
+                if (destinationIndex < 0 || destinationIndex >= destinationGrid.Capacity)
+                    return CreateResult(false, false, InventoryTransferFailure.DestinationRejected,
+                        InventoryOperationFailure.OutOfBounds, source, destination, itemInstanceId,
+                        "The selected grid cell is outside the destination grid.");
+                gridX = destinationIndex % destinationGrid.Width;
+                gridY = destinationIndex / destinationGrid.Width;
+                if (!destinationGrid.CanPlaceAt(item, gridX, gridY, rotationQuarterTurns, out operationFailure))
+                    return CreateResult(false, false, InventoryTransferFailure.DestinationRejected,
+                        operationFailure, source, destination, itemInstanceId,
+                        "The selected grid area cannot accept this item: " + operationFailure + ".");
+            }
+            else if (destinationSlots != null)
+            {
+                if (!destinationSlots.CanAcceptAt(item, destinationIndex, out operationFailure))
+                    return CreateResult(false, false, InventoryTransferFailure.DestinationRejected,
+                        operationFailure, source, destination, itemInstanceId,
+                        "The selected destination slot cannot accept this item: " + operationFailure + ".");
+            }
+            else
+            {
+                return CreateResult(false, false, InventoryTransferFailure.DestinationRejected,
+                    InventoryOperationFailure.None, source, destination, itemInstanceId,
+                    "The destination does not support targeted placement.");
+            }
+
+            if (!source.TryRemove(itemInstanceId, out Item removed, out operationFailure))
                 return CreateResult(false, false, InventoryTransferFailure.SourceRemovalFailed,
-                    opFailure, source, destination, itemInstanceId,
+                    operationFailure, source, destination, itemInstanceId,
                     "The source inventory could not remove the item.");
 
-            if (destinationSlots.TryAddAt(removed, destinationSlot, out opFailure))
+            bool added = destinationGrid != null
+                ? destinationGrid.TryAddAt(removed, gridX, gridY, rotationQuarterTurns, out operationFailure)
+                : destinationSlots.TryAddAt(removed, destinationIndex, out operationFailure);
+
+            if (added)
                 return CreateResult(true, false, InventoryTransferFailure.None,
                     InventoryOperationFailure.None, source, destination, itemInstanceId,
-                    "Item transferred to the selected slot.");
+                    destinationGrid != null ? "Item transferred to the selected grid cell." :
+                        "Item transferred to the selected slot.");
 
-            InventoryOperationFailure rollbackFailure;
-            bool restored = sourceSlots.TryAddAt(removed, originalSlot, out rollbackFailure);
+            bool restored = false;
+            InventoryOperationFailure rollbackFailure = InventoryOperationFailure.None;
+            if (hadGridPlacement && sourceGrid != null)
+                restored = sourceGrid.TryAddAt(removed, originalPlacement.X, originalPlacement.Y,
+                    originalPlacement.RotationQuarterTurns, out rollbackFailure);
+            else if (hadEquipmentSlot && sourceEquipment != null)
+                restored = sourceEquipment.TryAddAt(removed, originalEquipmentSlot, out rollbackFailure);
+            else if (hadSlot && sourceSlots != null)
+                restored = sourceSlots.TryAddAt(removed, originalSlot, out rollbackFailure);
+            else
+                restored = source.TryAdd(removed, out rollbackFailure);
+
             return CreateResult(false, false,
                 restored ? InventoryTransferFailure.DestinationAddFailed : InventoryTransferFailure.RollbackFailed,
-                restored ? opFailure : rollbackFailure, source, destination, itemInstanceId,
-                restored ? "Destination rejected the item; it was restored to its original slot." :
-                    "CRITICAL: Transfer failed and the source could not restore the original slot.");
+                restored ? operationFailure : rollbackFailure, source, destination, itemInstanceId,
+                restored ? "Destination rejected the item; it was restored to its original location." :
+                    "CRITICAL: Transfer failed and the source could not restore the original item location.");
+        }
+
+        /// <summary>Validates a transfer into one specifically named equipment slot without mutation.</summary>
+        public InventoryTransferResult PreviewToEquipmentSlot(
+            IInventoryModel source, IEquipmentInventoryModel destination,
+            SerializableGuid itemInstanceId, string destinationSlotId)
+        {
+            if (source == null || destination == null)
+                return CreateResult(false, true, source == null ? InventoryTransferFailure.InvalidSource : InventoryTransferFailure.InvalidDestination,
+                    InventoryOperationFailure.None, source, destination, itemInstanceId, "A source and equipment destination are required.");
+            if (source.Id == destination.Id)
+                return CreateResult(false, true, InventoryTransferFailure.SameInventory, InventoryOperationFailure.None,
+                    source, destination, itemInstanceId, "Source and destination are the same inventory.");
+            if (!source.TryGetItem(itemInstanceId, out Item item) || item == null)
+                return CreateResult(false, true, InventoryTransferFailure.ItemNotFound, InventoryOperationFailure.ItemNotFound,
+                    source, destination, itemInstanceId, "The item is no longer present in the source inventory.");
+            if (!destination.CanAcceptAt(item, destinationSlotId, out InventoryOperationFailure reason))
+                return CreateResult(false, true, InventoryTransferFailure.DestinationRejected, reason,
+                    source, destination, itemInstanceId, "The selected equipment slot cannot accept this item: " + reason + ".");
+            return CreateResult(true, true, InventoryTransferFailure.None, InventoryOperationFailure.None,
+                source, destination, itemInstanceId, "Equipment transfer is valid.");
+        }
+
+        /// <summary>Transfers an item to a named equipment slot and restores its original source placement on failure.</summary>
+        public InventoryTransferResult TryTransferToEquipmentSlot(
+            IInventoryModel source, IEquipmentInventoryModel destination,
+            SerializableGuid itemInstanceId, string destinationSlotId)
+        {
+            InventoryTransferResult preview = PreviewToEquipmentSlot(source, destination, itemInstanceId, destinationSlotId);
+            if (!preview.Success)
+                return CreateResult(false, false, preview.Failure, preview.OperationFailure, source, destination,
+                    itemInstanceId, preview.Message);
+
+            ISlotInventoryModel sourceSlots = source as ISlotInventoryModel;
+            IGridInventoryModel sourceGrid = source as IGridInventoryModel;
+            IEquipmentInventoryModel sourceEquipment = source as IEquipmentInventoryModel;
+            string originalEquipmentSlot = null;
+            bool hadEquipmentSlot = sourceEquipment != null && sourceEquipment.TryGetSlotOf(itemInstanceId, out originalEquipmentSlot);
+            int originalSlot = -1;
+            GridItemPlacement originalPlacement = default;
+            bool hadSlot = sourceSlots != null && sourceSlots.TryGetSlotOf(itemInstanceId, out originalSlot);
+            bool hadGridPlacement = sourceGrid != null && sourceGrid.TryGetPlacement(itemInstanceId, out originalPlacement);
+
+            if (!source.TryRemove(itemInstanceId, out Item removed, out InventoryOperationFailure failure))
+                return CreateResult(false, false, InventoryTransferFailure.SourceRemovalFailed, failure,
+                    source, destination, itemInstanceId, "The source inventory could not remove the item.");
+
+            if (destination.TryAddAt(removed, destinationSlotId, out failure))
+                return CreateResult(true, false, InventoryTransferFailure.None, InventoryOperationFailure.None,
+                    source, destination, itemInstanceId, "Item equipped in slot '" + destinationSlotId + "'.");
+
+            bool restored;
+            InventoryOperationFailure rollbackFailure;
+            if (hadGridPlacement && sourceGrid != null)
+                restored = sourceGrid.TryAddAt(removed, originalPlacement.X, originalPlacement.Y, originalPlacement.RotationQuarterTurns, out rollbackFailure);
+            else if (hadEquipmentSlot && sourceEquipment != null)
+                restored = sourceEquipment.TryAddAt(removed, originalEquipmentSlot, out rollbackFailure);
+            else if (hadSlot && sourceSlots != null)
+                restored = sourceSlots.TryAddAt(removed, originalSlot, out rollbackFailure);
+            else
+                restored = source.TryAdd(removed, out rollbackFailure);
+
+            return CreateResult(false, false,
+                restored ? InventoryTransferFailure.DestinationAddFailed : InventoryTransferFailure.RollbackFailed,
+                restored ? failure : rollbackFailure, source, destination, itemInstanceId,
+                restored ? "Equipment slot rejected the item; it was restored to its original location." :
+                    "CRITICAL: Equipment transfer failed and the source could not restore the original item location.");
         }
 
         private static bool TryValidate(

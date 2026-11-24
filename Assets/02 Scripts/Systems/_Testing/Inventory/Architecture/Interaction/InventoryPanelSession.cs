@@ -310,14 +310,7 @@ namespace Systems.Inventory.Architecture
             int index = destination.GetSlotIndexAt(screenPosition);
             if (index < 0) return;
 
-            int width = item.details != null ? Mathf.Max(1, item.details.GridWidth) : 1;
-            int height = item.details != null ? Mathf.Max(1, item.details.GridHeight) : 1;
-            if (draggedItemRotationQuarterTurns % 2 != 0)
-            {
-                int swap = width;
-                width = height;
-                height = swap;
-            }
+            ItemGridShape.GetRotatedSize(item.details, draggedItemRotationQuarterTurns, out int width, out int height);
             Vector2 pivot = item.details != null ? item.details.DragPivot : new Vector2(0.5f, 0.5f);
             int x = index % grid.Width - Mathf.FloorToInt(pivot.x * width);
             int y = index / grid.Width - Mathf.FloorToInt(pivot.y * height);
@@ -328,15 +321,13 @@ namespace Systems.Inventory.Architecture
             else
                 valid = grid.CanPlaceAt(item, x, y, draggedItemRotationQuarterTurns, out _);
 
-            destination.ShowGridPlacementPreview(x, y, width, height, valid);
+            destination.ShowGridPlacementPreview(x, y, item, draggedItemRotationQuarterTurns, valid);
         }
 
         private int GetPivotAdjustedSlot(int pointerSlot, int gridWidth, int gridHeight, int rotationQuarterTurns, Item item)
         {
             if (item == null || item.details == null) return pointerSlot;
-            int width = Mathf.Max(1, item.details.GridWidth);
-            int height = Mathf.Max(1, item.details.GridHeight);
-            if (rotationQuarterTurns % 2 != 0) { int swap = width; width = height; height = swap; }
+            ItemGridShape.GetRotatedSize(item.details, rotationQuarterTurns, out int width, out int height);
             Vector2 pivot = item.details.DragPivot;
             int x = pointerSlot % gridWidth - Mathf.FloorToInt(pivot.x * width);
             int y = pointerSlot / gridWidth - Mathf.FloorToInt(pivot.y * height);

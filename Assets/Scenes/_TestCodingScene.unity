@@ -2174,6 +2174,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 98fd7ee65328542439788f8254d86482, type: 2}
   - {fileID: 11400000, guid: 98fd7ee65328542439788f8254d86482, type: 2}
   - {fileID: 11400000, guid: 3c15bb450da6ae6488d9cf650f49677b, type: 2}
+  - {fileID: 11400000, guid: 82e5e2cde8343234e83e45798df9e868, type: 2}
   inventoryId:
     Part1: 3839670081
     Part2: 1085479131
@@ -2193,6 +2194,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.InventoryPanelView
   canvas: {fileID: 370779872}
   panelPositionPercent: {x: 80, y: 4}
+  quickMovePriority: 1
 --- !u!4 &381069416
 Transform:
   m_ObjectHideFlags: 0
@@ -3089,6 +3091,50 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -4455277004132717395, guid: 4475c921b2bcbe1429d19775616ba023, type: 3}
   m_PrefabInstance: {fileID: 89085971}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &842172496
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 842172498}
+  - component: {fileID: 842172497}
+  m_Layer: 0
+  m_Name: Run QuickMoveTest
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &842172497
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 842172496}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 935b62b9d632406c83f0d5028f2de80e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.InventoryStackingQuickMoveTestRunner
+--- !u!4 &842172498
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 842172496}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 156.63655, y: 11.00706, z: 83.04601}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &859815890
 GameObject:
   m_ObjectHideFlags: 0
@@ -5692,6 +5738,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4756ffa9412db44438cec0084aa05e58, type: 2}
   - {fileID: 11400000, guid: 3c15bb450da6ae6488d9cf650f49677b, type: 2}
   - {fileID: 11400000, guid: 82e5e2cde8343234e83e45798df9e868, type: 2}
+  - {fileID: 11400000, guid: 3c15bb450da6ae6488d9cf650f49677b, type: 2}
   inventoryId:
     Part1: 2911815814
     Part2: 1228570620
@@ -5711,6 +5758,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.InventoryPanelView
   canvas: {fileID: 370779872}
   panelPositionPercent: {x: 40, y: 4}
+  quickMovePriority: 1
 --- !u!4 &1272189566
 Transform:
   m_ObjectHideFlags: 0
@@ -5856,6 +5904,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.InventoryPanelView
   canvas: {fileID: 370779872}
   panelPositionPercent: {x: 0, y: 4}
+  quickMovePriority: 1
 --- !u!4 &1558282957
 Transform:
   m_ObjectHideFlags: 0
@@ -7135,3 +7184,4 @@ SceneRoots:
   - {fileID: 381069416}
   - {fileID: 401103395}
   - {fileID: 2078962667}
+  - {fileID: 842172498}

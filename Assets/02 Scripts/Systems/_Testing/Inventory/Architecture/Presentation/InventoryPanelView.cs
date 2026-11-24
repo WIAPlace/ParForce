@@ -193,12 +193,28 @@ namespace Systems.Inventory.Architecture
             foreach (Item item in grid.Items)
             {
                 if (item == null || !grid.TryGetPlacement(item.Id, out GridItemPlacement placement)) continue;
-                VisualElement itemElement = CreateItemElement(item);
+                VisualElement itemElement = CreateItemElement(item, false);
+                itemElement.pickingMode = PickingMode.Ignore;
+                ItemGridShape.GetRotatedSize(item.details, placement.RotationQuarterTurns, out int baseWidth, out int baseHeight);
+                for (int shapeY = 0; shapeY < placement.Height; shapeY++)
+                for (int shapeX = 0; shapeX < placement.Width; shapeX++)
+                {
+                    if (!ItemGridShape.IsOccupied(item.details, shapeX, shapeY, placement.RotationQuarterTurns)) continue;
+                    var occupiedCell = new VisualElement();
+                    occupiedCell.AddToClassList("gridItemOccupiedCell");
+                    occupiedCell.pickingMode = PickingMode.Position;
+                    occupiedCell.tooltip = "Drag to move. Shift-click to quick move.";
+                    RegisterItemPointerHandler(occupiedCell, item);
+                    occupiedCell.style.position = Position.Absolute;
+                    occupiedCell.style.left = shapeX * gridCellSize;
+                    occupiedCell.style.top = shapeY * gridCellSize;
+                    occupiedCell.style.width = gridCellSize - 4f;
+                    occupiedCell.style.height = gridCellSize - 4f;
+                    itemElement.Insert(0, occupiedCell);
+                }
                 Image itemIcon = itemElement.Q<Image>(className: "slotIcon");
                 if (itemIcon != null)
                 {
-                    int baseWidth = item.details != null ? Mathf.Max(1, item.details.GridWidth) : 1;
-                    int baseHeight = item.details != null ? Mathf.Max(1, item.details.GridHeight) : 1;
                     float iconWidth = baseWidth * gridCellSize - 4f;
                     float iconHeight = baseHeight * gridCellSize - 4f;
                     itemIcon.style.position = Position.Absolute;
@@ -252,16 +268,33 @@ namespace Systems.Inventory.Architecture
             canvas?.BringPanelToFront(panel);
         }
 
-        public void ShowGridPlacementPreview(int x, int y, int width, int height, bool valid)
+        public void ShowGridPlacementPreview(int x, int y, Item item, int rotationQuarterTurns, bool valid)
         {
             if (placementPreview == null) return;
+            placementPreview.Clear();
             placementPreview.RemoveFromClassList("valid");
             placementPreview.RemoveFromClassList("invalid");
             placementPreview.AddToClassList(valid ? "valid" : "invalid");
+            ItemGridShape.GetRotatedSize(item != null ? item.details : null, rotationQuarterTurns,
+                out int width, out int height);
             placementPreview.style.left = x * gridCellSize + 2f;
             placementPreview.style.top = y * gridCellSize + 2f;
             placementPreview.style.width = width * gridCellSize - 4f;
             placementPreview.style.height = height * gridCellSize - 4f;
+            for (int cellY = 0; cellY < height; cellY++)
+            for (int cellX = 0; cellX < width; cellX++)
+            {
+                if (!ItemGridShape.IsOccupied(item != null ? item.details : null, cellX, cellY, rotationQuarterTurns)) continue;
+                var cell = new VisualElement();
+                cell.AddToClassList("gridPlacementPreviewCell");
+                cell.pickingMode = PickingMode.Ignore;
+                cell.style.position = Position.Absolute;
+                cell.style.left = cellX * gridCellSize;
+                cell.style.top = cellY * gridCellSize;
+                cell.style.width = gridCellSize - 4f;
+                cell.style.height = gridCellSize - 4f;
+                placementPreview.Add(cell);
+            }
             placementPreview.style.display = DisplayStyle.Flex;
         }
 
@@ -362,7 +395,7 @@ namespace Systems.Inventory.Architecture
             capturedPointerId = -1;
         }
 
-        private VisualElement CreateItemElement(Item item)
+        private VisualElement CreateItemElement(Item item, bool registerPointerHandler = true)
         {
             var element = new VisualElement();
             element.AddToClassList("slotItem");
@@ -376,10 +409,23 @@ namespace Systems.Inventory.Architecture
                 icon.scaleMode = ScaleMode.ScaleToFit;
             }
             else icon.AddToClassList("slotIconMissing");
+            icon.pickingMode = PickingMode.Ignore;
             element.Add(icon);
-            if (item.quantity > 1) element.Add(new Label(item.quantity.ToString()) { name = "stackCount" });
+            if (item.quantity > 1)
+            {
+                var countLabel = new Label(item.quantity.ToString()) { name = "stackCount" };
+                countLabel.pickingMode = PickingMode.Ignore;
+                element.Add(countLabel);
+            }
 
-            element.RegisterCallback<PointerDownEvent>(evt =>
+            if (registerPointerHandler)
+                RegisterItemPointerHandler(element, item);
+            return element;
+        }
+
+        private void RegisterItemPointerHandler(VisualElement target, Item item)
+        {
+            target.RegisterCallback<PointerDownEvent>(evt =>
             {
                 if (evt.button != 0 || session == null || currentModel == null) return;
                 if ((evt.modifiers & EventModifiers.Shift) != 0)
@@ -392,7 +438,6 @@ namespace Systems.Inventory.Architecture
                 session.UpdateDragTarget(evt.position);
                 evt.StopPropagation();
             });
-            return element;
         }
 
         private void OnDestroy()

@@ -15,9 +15,12 @@ MonoBehaviour:
   Name: Potion
   category: 1
   equipmentType: 0
-  maxStack: 1
+  EquipmentEffects: []
+  maxStack: 2
   GridWidth: 2
   GridHeight: 2
+  UseCustomShape: 0
+  ShapeCells: 01010101
   DragPivot: {x: 0.5, y: 0.5}
   Id:
     Part1: 2903391651

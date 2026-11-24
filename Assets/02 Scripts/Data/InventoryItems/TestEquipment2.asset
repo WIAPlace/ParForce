@@ -15,9 +15,12 @@ MonoBehaviour:
   Name: Ring
   category: 3
   equipmentType: 8
-  maxStack: 1
-  GridWidth: 2
-  GridHeight: 2
+  EquipmentEffects: []
+  maxStack: 3
+  GridWidth: 3
+  GridHeight: 3
+  UseCustomShape: 1
+  ShapeCells: 010000010000010101
   DragPivot: {x: 0.5, y: 0.5}
   Id:
     Part1: 2599621035

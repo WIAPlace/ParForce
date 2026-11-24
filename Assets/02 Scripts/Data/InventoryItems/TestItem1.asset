@@ -13,9 +13,14 @@ MonoBehaviour:
   m_Name: TestItem1
   m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.ItemDetails
   Name: Test1
-  maxStack: 1
+  category: 0
+  equipmentType: 0
+  EquipmentEffects: []
+  maxStack: 5
   GridWidth: 2
   GridHeight: 2
+  UseCustomShape: 1
+  ShapeCells: 01000101
   DragPivot: {x: 0, y: 0}
   Id:
     Part1: 1868209415

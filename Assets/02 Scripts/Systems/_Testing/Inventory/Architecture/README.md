@@ -89,3 +89,30 @@ See `EQUIPMENT_EFFECTS_MILESTONE_1.md` at the project root for setup, the runtim
 ### Verification
 
 Add `InventoryStackingQuickMoveTestRunner` to a scene GameObject and use its component context menu. It checks partial-stack filling across destinations, no cross-definition merges, safe failure when destinations are full, compatible equipment quick move, and partial direct stack merge. Also manually verify shift-click ordering and all four clockwise icon orientations in the UI after Unity recompiles. The runner includes a model-level check for 0°, 90°, 180°, and 270° footprint/orientation persistence.
+
+
+## Irregular Item Shapes – Milestone 1
+
+Grid items can now use a designer-authored cell mask instead of occupying their full rectangular footprint. The rectangular width and height remain the shape's bounds; only painted cells reserve space. This supports L, T, hook, and other polyomino-like silhouettes while allowing another item to occupy an empty cell inside the same bounding rectangle.
+
+### Designer workflow
+
+1. Select an `ItemDetails` asset.
+2. Set **Grid Footprint** Width and Height (1–16 cells).
+3. Enable **Use Custom Shape**.
+4. Click cells in the inspector's shape painter to toggle occupied cells. Green cells are occupied; dark cells are empty.
+5. Use **Fill All** or **Clear All** as a starting point. A custom shape must contain at least one occupied cell.
+
+When **Use Custom Shape** is disabled, the item retains the previous rectangular behavior. The shape mask is stored on the item definition, while each runtime placement stores its own rotation. Pressing R rotates the actual occupied-cell pattern clockwise through 0°, 90°, 180°, and 270°.
+
+### Runtime behavior
+
+- Placement and movement test only occupied cells, not every cell in the bounding rectangle.
+- Empty cells inside an item's bounds can be occupied by other items.
+- Cell lookup, auto-placement, cross-inventory placement validation, and local moves use the same mask.
+- Placement previews highlight only occupied cells.
+- The visible item backing is drawn per occupied cell; the item sprite remains a transparent overlay and should ideally have transparent pixels where the shape has gaps.
+
+### Test
+
+Add `IrregularItemShapeTestRunner` to a scene object and run **Run Irregular Item Shape Tests** from its component context menu. It checks L-shape occupancy, placing another item in the notch, and clockwise-rotated masks. Also rerun the existing stacking/quick-move and equipment-effect test runners to guard against regressions.

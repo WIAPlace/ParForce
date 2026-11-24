@@ -19,9 +19,11 @@ MonoBehaviour:
   - attributeId: 
     value: 0
     operation: 0
-  maxStack: 1
-  GridWidth: 2
-  GridHeight: 2
+  maxStack: 5
+  GridWidth: 1
+  GridHeight: 1
+  UseCustomShape: 0
+  ShapeCells: 01
   DragPivot: {x: 0.5, y: 0.5}
   Id:
     Part1: 1150020257

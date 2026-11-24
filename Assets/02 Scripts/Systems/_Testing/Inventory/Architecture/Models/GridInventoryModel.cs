@@ -42,7 +42,8 @@ namespace Systems.Inventory.Architecture
             if (startingItems == null) return;
             foreach (Item item in startingItems)
             {
-                if (item == null || item.Id == SerializableGuid.Empty || Contains(item.Id)) continue;
+                if (item == null || item.Id == SerializableGuid.Empty || Contains(item.Id) ||
+                    !ItemGridShape.HasValidShape(item.details)) continue;
                 if (TryFindFirstFit(item, out int x, out int y))
                     AddWithoutNotification(item, x, y, false);
             }
@@ -61,7 +62,8 @@ namespace Systems.Inventory.Architecture
             foreach (Item candidate in items)
             {
                 GridItemPlacement p = placements[candidate.Id];
-                if (x >= p.X && x < p.X + p.Width && y >= p.Y && y < p.Y + p.Height)
+                if (x >= p.X && x < p.X + p.Width && y >= p.Y && y < p.Y + p.Height &&
+                    ItemGridShape.IsOccupied(candidate.details, x - p.X, y - p.Y, p.RotationQuarterTurns))
                 {
                     item = candidate;
                     return true;
@@ -80,6 +82,7 @@ namespace Systems.Inventory.Architecture
             if (Contains(item.Id)) { failure = InventoryOperationFailure.DuplicateItem; return false; }
             int maxStack = item.details != null && item.details.category != ItemCategory.Equipment ? Math.Max(1, item.details.maxStack) : 1;
             if (item.quantity < 1 || item.quantity > maxStack) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
+            if (!ItemGridShape.HasValidShape(item.details)) { failure = InventoryOperationFailure.InvalidItem; return false; }
             if (!TryFindFirstFit(item, out _, out _))
             {
                 failure = InventoryOperationFailure.InventoryFull;
@@ -117,6 +120,7 @@ namespace Systems.Inventory.Architecture
             if (Contains(item.Id)) { failure = InventoryOperationFailure.DuplicateItem; return false; }
             int maxStack = item.details != null && item.details.category != ItemCategory.Equipment ? Math.Max(1, item.details.maxStack) : 1;
             if (item.quantity < 1 || item.quantity > maxStack) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
+            if (!ItemGridShape.HasValidShape(item.details)) { failure = InventoryOperationFailure.InvalidItem; return false; }
 
             GetFootprint(item, rotationQuarterTurns, out int itemWidth, out int itemHeight);
             if (itemWidth < 1 || itemHeight < 1 || x < 0 || y < 0 ||
@@ -126,7 +130,7 @@ namespace Systems.Inventory.Architecture
                 return false;
             }
 
-            if (!IsAreaClear(x, y, itemWidth, itemHeight, SerializableGuid.Empty))
+            if (!IsShapeAreaClear(item, x, y, rotationQuarterTurns, SerializableGuid.Empty))
             {
                 failure = InventoryOperationFailure.PlacementOccupied;
                 return false;
@@ -163,6 +167,11 @@ namespace Systems.Inventory.Architecture
             }
 
             Item item = items.First(candidate => candidate.Id == id);
+            if (!ItemGridShape.HasValidShape(item.details))
+            {
+                failure = InventoryOperationFailure.InvalidItem;
+                return false;
+            }
             GetFootprint(item, rotationQuarterTurns, out int itemWidth, out int itemHeight);
             if (itemWidth < 1 || itemHeight < 1 || x < 0 || y < 0 ||
                 x + itemWidth > Width || y + itemHeight > Height)
@@ -170,7 +179,7 @@ namespace Systems.Inventory.Architecture
                 failure = InventoryOperationFailure.OutOfBounds;
                 return false;
             }
-            if (!IsAreaClear(x, y, itemWidth, itemHeight, id))
+            if (!IsShapeAreaClear(item, x, y, rotationQuarterTurns, id))
             {
                 failure = InventoryOperationFailure.PlacementOccupied;
                 return false;
@@ -221,6 +230,7 @@ namespace Systems.Inventory.Architecture
         {
             foundX = -1;
             foundY = -1;
+            if (item == null || !ItemGridShape.HasValidShape(item.details)) return false;
             GetFootprint(item, 0, out int itemWidth, out int itemHeight);
             if (itemWidth < 1 || itemHeight < 1 || itemWidth > Width || itemHeight > Height)
                 return false;
@@ -228,7 +238,7 @@ namespace Systems.Inventory.Architecture
             for (int y = 0; y <= Height - itemHeight; y++)
             for (int x = 0; x <= Width - itemWidth; x++)
             {
-                if (!IsAreaClear(x, y, itemWidth, itemHeight, SerializableGuid.Empty)) continue;
+                if (!IsShapeAreaClear(item, x, y, 0, SerializableGuid.Empty)) continue;
                 foundX = x;
                 foundY = y;
                 return true;
@@ -236,15 +246,28 @@ namespace Systems.Inventory.Architecture
             return false;
         }
 
-        private bool IsAreaClear(int x, int y, int width, int height, SerializableGuid ignoreId)
+        private bool IsShapeAreaClear(Item item, int x, int y, int rotationQuarterTurns, SerializableGuid ignoreId)
         {
-            foreach (KeyValuePair<SerializableGuid, GridItemPlacement> entry in placements)
+            GetFootprint(item, rotationQuarterTurns, out int width, out int height);
+            for (int localY = 0; localY < height; localY++)
+            for (int localX = 0; localX < width; localX++)
             {
-                if (entry.Key == ignoreId) continue;
-                GridItemPlacement p = entry.Value;
-                bool overlaps = x < p.X + p.Width && x + width > p.X &&
-                                y < p.Y + p.Height && y + height > p.Y;
-                if (overlaps) return false;
+                if (!ItemGridShape.IsOccupied(item.details, localX, localY, rotationQuarterTurns)) continue;
+                int worldX = x + localX;
+                int worldY = y + localY;
+                if (!IsInside(worldX, worldY)) return false;
+                foreach (KeyValuePair<SerializableGuid, GridItemPlacement> entry in placements)
+                {
+                    if (entry.Key == ignoreId) continue;
+                    GridItemPlacement existing = entry.Value;
+                    int existingX = worldX - existing.X;
+                    int existingY = worldY - existing.Y;
+                    if (existingX < 0 || existingY < 0 || existingX >= existing.Width || existingY >= existing.Height)
+                        continue;
+                    Item existingItem = items.FirstOrDefault(candidate => candidate.Id == entry.Key);
+                    if (existingItem != null && ItemGridShape.IsOccupied(existingItem.details, existingX, existingY,
+                        existing.RotationQuarterTurns)) return false;
+                }
             }
             return true;
         }
@@ -256,14 +279,10 @@ namespace Systems.Inventory.Architecture
             items.Add(item);
         }
 
-        private static void GetFootprint(Item item, int rotationQuarterTurns, out int width, out int height)
-        {
-            width = item != null && item.details != null ? Math.Max(1, item.details.GridWidth) : 1;
-            height = item != null && item.details != null ? Math.Max(1, item.details.GridHeight) : 1;
-            if (NormalizeRotation(rotationQuarterTurns) % 2 != 0) { int swap = width; width = height; height = swap; }
-        }
+        private static void GetFootprint(Item item, int rotationQuarterTurns, out int width, out int height) =>
+            ItemGridShape.GetRotatedSize(item != null ? item.details : null, rotationQuarterTurns, out width, out height);
 
-        private static int NormalizeRotation(int rotationQuarterTurns) => ((rotationQuarterTurns % 4) + 4) % 4;
+        private static int NormalizeRotation(int rotationQuarterTurns) => ItemGridShape.NormalizeRotation(rotationQuarterTurns);
 
         private bool Contains(SerializableGuid id) => placements.ContainsKey(id);
         private bool IsInside(int x, int y) => x >= 0 && x < Width && y >= 0 && y < Height;

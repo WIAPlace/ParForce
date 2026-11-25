@@ -19,6 +19,11 @@ namespace Systems.Inventory.Architecture
         [Header("Global UI Scale")]
         [SerializeField, Range(0.5f, 2f), Tooltip("Shared scale applied to every inventory panel and the drag ghost.")]
         private float globalScale = 1f;
+        [Header("Global Object Styling")]
+        [SerializeField, Tooltip("Default border color used by inventory slots and item visuals across every panel on this canvas.")]
+        private Color defaultObjectBorderColor = new Color(0.41f, 0.45f, 0.51f, 1f);
+        [SerializeField, Tooltip("Default hover-outline color used when an item has no InventoryItemOutlineStyle assigned.")]
+        private Color defaultItemHoverOutlineColor = new Color(0.92f, 0.82f, 0.42f, 1f);
 
         private readonly List<InventoryPanelView> registeredViews = new List<InventoryPanelView>();
 
@@ -34,6 +39,8 @@ namespace Systems.Inventory.Architecture
         public VisualElement Root => root;
         public InventoryPanelSession Session => session;
         public float GlobalScale => globalScale;
+        public Color DefaultObjectBorderColor => defaultObjectBorderColor;
+        public Color DefaultItemHoverOutlineColor => defaultItemHoverOutlineColor;
 
         /// <summary>Raised whenever the shared inventory UI scale changes.</summary>
         public event Action<float> GlobalScaleChanged;

@@ -57,6 +57,7 @@ namespace Systems.Inventory.Architecture
         public int ItemCount => items.Count;
         public IReadOnlyList<Item> Items => readOnlyItems;
         public event Action<InventoryChangedEvent> Changed;
+        public event Action<InventoryGameplayEvent> GameplayEventRaised;
 
         /// <summary>
         /// Creates a grid inventory directly from a designer-authored layout asset.
@@ -148,14 +149,14 @@ namespace Systems.Inventory.Architecture
             return true;
         }
 
-        public bool TryAdd(Item item, out InventoryOperationFailure failure)
+        private bool AddCore(Item item, out InventoryOperationFailure failure)
         {
             if (!CanAccept(item, out failure)) return false;
             TryFindFirstFit(item, out int x, out int y);
-            return TryAddAt(item, x, y, false, out failure);
+            return AddAtCore(item, x, y, false, out failure);
         }
 
-        public bool TrySetQuantity(SerializableGuid itemInstanceId, int quantity, out InventoryOperationFailure failure)
+        private bool SetQuantityCore(SerializableGuid itemInstanceId, int quantity, out InventoryOperationFailure failure)
         {
             if (!TryGetItem(itemInstanceId, out Item item)) { failure = InventoryOperationFailure.ItemNotFound; return false; }
             int maximum = InventoryItemMatching.GetMaxStack(item);
@@ -196,10 +197,10 @@ namespace Systems.Inventory.Architecture
             return true;
         }
 
-        public bool TryAddAt(Item item, int x, int y, bool rotated, out InventoryOperationFailure failure) =>
-            TryAddAt(item, x, y, rotated ? 1 : 0, out failure);
+        private bool AddAtCore(Item item, int x, int y, bool rotated, out InventoryOperationFailure failure) =>
+            AddAtCore(item, x, y, rotated ? 1 : 0, out failure);
 
-        public bool TryAddAt(Item item, int x, int y, int rotationQuarterTurns, out InventoryOperationFailure failure)
+        private bool AddAtCore(Item item, int x, int y, int rotationQuarterTurns, out InventoryOperationFailure failure)
         {
             rotationQuarterTurns = NormalizeRotation(rotationQuarterTurns);
             if (!CanPlaceAt(item, x, y, rotationQuarterTurns, out failure)) return false;
@@ -245,10 +246,10 @@ namespace Systems.Inventory.Architecture
             return true;
         }
 
-        public bool TryMoveTo(SerializableGuid id, int x, int y, bool rotated,
-            out InventoryOperationFailure failure) => TryMoveTo(id, x, y, rotated ? 1 : 0, out failure);
+        private bool MoveToCore(SerializableGuid id, int x, int y, bool rotated,
+            out InventoryOperationFailure failure) => MoveToCore(id, x, y, rotated ? 1 : 0, out failure);
 
-        public bool TryMoveTo(SerializableGuid id, int x, int y, int rotationQuarterTurns,
+        private bool MoveToCore(SerializableGuid id, int x, int y, int rotationQuarterTurns,
             out InventoryOperationFailure failure)
         {
             rotationQuarterTurns = NormalizeRotation(rotationQuarterTurns);
@@ -263,7 +264,7 @@ namespace Systems.Inventory.Architecture
             return true;
         }
 
-        public bool TryRemoveQuantity(SerializableGuid itemInstanceId, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
+        private bool RemoveQuantityCore(SerializableGuid itemInstanceId, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
         {
             removedQuantity = 0;
             if (quantity <= 0) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
@@ -272,20 +273,20 @@ namespace Systems.Inventory.Architecture
             int remaining = item.quantity - removedQuantity;
             if (remaining == 0)
             {
-                if (!TryRemove(itemInstanceId, out _, out failure)) { removedQuantity = 0; return false; }
+                if (!RemoveCore(itemInstanceId, out _, out failure)) { removedQuantity = 0; return false; }
             }
-            else if (!TrySetQuantity(itemInstanceId, remaining, out failure)) { removedQuantity = 0; return false; }
+            else if (!SetQuantityCore(itemInstanceId, remaining, out failure)) { removedQuantity = 0; return false; }
             failure = InventoryOperationFailure.None;
             return true;
         }
 
-        public bool TryRemoveQuantity(Item item, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
+        private bool RemoveQuantityCore(Item item, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
         {
             if (item == null) { removedQuantity = 0; failure = InventoryOperationFailure.InvalidItem; return false; }
-            return TryRemoveQuantity(item.Id, quantity, out removedQuantity, out failure);
+            return RemoveQuantityCore(item.Id, quantity, out removedQuantity, out failure);
         }
 
-        public bool TryRemoveQuantity(ItemDetails definition, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
+        private bool RemoveQuantityCore(ItemDetails definition, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
         {
             removedQuantity = 0;
             if (definition == null) { failure = InventoryOperationFailure.InvalidItem; return false; }
@@ -296,7 +297,7 @@ namespace Systems.Inventory.Architecture
             foreach (Item item in matches)
             {
                 if (remaining <= 0) break;
-                if (!TryRemoveQuantity(item.Id, remaining, out int taken, out failure)) continue;
+                if (!RemoveQuantityCore(item.Id, remaining, out int taken, out failure)) continue;
                 removedQuantity += taken;
                 remaining -= taken;
             }
@@ -304,44 +305,47 @@ namespace Systems.Inventory.Architecture
             return removedQuantity > 0;
         }
 
-        public bool TryRemoveQuantityAtIndex(int itemIndex, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
+        private bool RemoveQuantityAtIndexCore(int itemIndex, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
         {
             removedQuantity = 0;
             if (itemIndex < 0 || itemIndex >= Items.Count || Items[itemIndex] == null)
             { failure = InventoryOperationFailure.ItemNotFound; return false; }
-            return TryRemoveQuantity(Items[itemIndex].Id, quantity, out removedQuantity, out failure);
+            return RemoveQuantityCore(Items[itemIndex].Id, quantity, out removedQuantity, out failure);
         }
 
-        public bool TryRemoveQuantityAtCell(int x, int y, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
+        private bool RemoveQuantityAtCellCore(int x, int y, int quantity, out int removedQuantity, out InventoryOperationFailure failure)
         {
             removedQuantity = 0;
             if (!TryGetItemAtCell(x, y, out Item item))
             { failure = InventoryOperationFailure.ItemNotFound; return false; }
-            return TryRemoveQuantity(item.Id, quantity, out removedQuantity, out failure);
+            return RemoveQuantityCore(item.Id, quantity, out removedQuantity, out failure);
         }
 
-        public bool TryRemoveExact(ItemDetails definition, int quantity, out InventoryOperationFailure failure)
+        private bool RemoveQuantityExactCore(ItemDetails definition, int quantity, out InventoryOperationFailure failure)
         {
             if (definition == null) { failure = InventoryOperationFailure.InvalidItem; return false; }
             if (quantity <= 0) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
-            int available = Items.Where(item => InventoryItemMatching.MatchesDefinition(item, definition)).Sum(item => Math.Max(0, item.quantity));
-            if (available < quantity) { failure = InventoryOperationFailure.InvalidQuantity; return false; }
-            if (!TryRemoveQuantity(definition, quantity, out int removed, out failure) || removed != quantity)
+            Item[] matches = Items.Where(item => InventoryItemMatching.MatchesDefinition(item, definition)).ToArray();
+            if (matches.Any(item => item.quantity < 1 || item.quantity > InventoryItemMatching.GetMaxStack(item)))
             { failure = InventoryOperationFailure.InvalidQuantity; return false; }
+            int available = matches.Sum(item => item.quantity);
+            if (available < quantity) { failure = InventoryOperationFailure.InsufficientQuantity; return false; }
+            if (!RemoveQuantityCore(definition, quantity, out int removed, out failure)) return false;
+            if (removed != quantity) { failure = InventoryOperationFailure.InsufficientQuantity; return false; }
             failure = InventoryOperationFailure.None;
             return true;
         }
 
-        public bool TryRemoveAll(ItemDetails definition, out int removedQuantity, out InventoryOperationFailure failure)
+        private bool RemoveAllCore(ItemDetails definition, out int removedQuantity, out InventoryOperationFailure failure)
         {
             removedQuantity = 0;
             if (definition == null) { failure = InventoryOperationFailure.InvalidItem; return false; }
             int available = Items.Where(item => InventoryItemMatching.MatchesDefinition(item, definition)).Sum(item => Math.Max(0, item.quantity));
             if (available == 0) { failure = InventoryOperationFailure.ItemNotFound; return false; }
-            return TryRemoveQuantity(definition, available, out removedQuantity, out failure);
+            return RemoveQuantityCore(definition, available, out removedQuantity, out failure);
         }
 
-        public bool TryRemove(SerializableGuid id, out Item removedItem,
+        private bool RemoveCore(SerializableGuid id, out Item removedItem,
             out InventoryOperationFailure failure)
         {
             int index = items.FindIndex(candidate => candidate.Id == id);
@@ -358,6 +362,143 @@ namespace Systems.Inventory.Architecture
             failure = InventoryOperationFailure.None;
             RaiseChanged(InventoryChangeKind.ItemRemoved, id);
             return true;
+        }
+
+
+        public InventoryOperationResult Add(Item item)
+        {
+            InventoryOperationSnapshot before = InventoryOperationResult.Capture(this);
+            bool success = AddCore(item, out InventoryOperationFailure failure);
+            return PublishGameplayEvents(InventoryOperationResult.Complete(this, InventoryOperationKind.Add,
+                item != null ? item.quantity : 0, success, failure, before,
+                focusItemId: item != null ? item.Id : SerializableGuid.Empty, addedItem: success ? item : null));
+        }
+
+        public InventoryOperationResult SetQuantity(SerializableGuid itemInstanceId, int quantity)
+        {
+            InventoryOperationSnapshot before = InventoryOperationResult.Capture(this);
+            bool success = SetQuantityCore(itemInstanceId, quantity, out InventoryOperationFailure failure);
+            return PublishGameplayEvents(InventoryOperationResult.Complete(this, InventoryOperationKind.SetQuantity,
+                quantity, success, failure, before, focusItemId: itemInstanceId));
+        }
+
+        public InventoryOperationResult Remove(SerializableGuid itemInstanceId)
+        {
+            InventoryOperationSnapshot before = InventoryOperationResult.Capture(this);
+            bool success = RemoveCore(itemInstanceId, out Item removedItem, out InventoryOperationFailure failure);
+            return PublishGameplayEvents(InventoryOperationResult.Complete(this, InventoryOperationKind.Remove,
+                removedItem != null ? removedItem.quantity : 0, success, failure, before,
+                removedItem, itemInstanceId));
+        }
+
+        public InventoryOperationResult RemoveQuantityUpTo(SerializableGuid itemInstanceId, int quantity)
+        {
+            InventoryOperationSnapshot before = InventoryOperationResult.Capture(this);
+            bool success = RemoveQuantityCore(itemInstanceId, quantity, out _, out InventoryOperationFailure failure);
+            return PublishGameplayEvents(InventoryOperationResult.Complete(this, InventoryOperationKind.RemoveQuantityUpTo,
+                quantity, success, failure, before, focusItemId: itemInstanceId));
+        }
+
+        public InventoryOperationResult RemoveQuantityUpTo(Item item, int quantity)
+        {
+            if (item == null)
+                return InventoryOperationResult.Failed(this, InventoryOperationKind.RemoveQuantityUpTo,
+                    quantity, InventoryOperationFailure.InvalidItem);
+            InventoryOperationSnapshot before = InventoryOperationResult.Capture(this);
+            bool success = RemoveQuantityCore(item, quantity, out _, out InventoryOperationFailure failure);
+            return PublishGameplayEvents(InventoryOperationResult.Complete(this, InventoryOperationKind.RemoveQuantityUpTo,
+                quantity, success, failure, before, focusItemId: item.Id));
+        }
+
+        public InventoryOperationResult RemoveQuantityAtIndex(int itemIndex, int quantity)
+        {
+            InventoryOperationSnapshot before = InventoryOperationResult.Capture(this);
+            SerializableGuid focusId = itemIndex >= 0 && itemIndex < Items.Count && Items[itemIndex] != null
+                ? Items[itemIndex].Id : SerializableGuid.Empty;
+            bool success = RemoveQuantityAtIndexCore(itemIndex, quantity, out _, out InventoryOperationFailure failure);
+            return PublishGameplayEvents(InventoryOperationResult.Complete(this, InventoryOperationKind.RemoveQuantityUpTo,
+                quantity, success, failure, before, focusItemId: focusId));
+        }
+
+        public InventoryOperationResult RemoveQuantityExact(SerializableGuid itemInstanceId, int quantity)
+        {
+            if (quantity <= 0)
+                return InventoryOperationResult.Failed(this, InventoryOperationKind.RemoveQuantityExact,
+                    quantity, InventoryOperationFailure.InvalidQuantity);
+            if (!TryGetItem(itemInstanceId, out Item item))
+                return InventoryOperationResult.Failed(this, InventoryOperationKind.RemoveQuantityExact,
+                    quantity, InventoryOperationFailure.ItemNotFound);
+            if (item.quantity < quantity)
+                return InventoryOperationResult.Failed(this, InventoryOperationKind.RemoveQuantityExact,
+                    quantity, InventoryOperationFailure.InsufficientQuantity);
+
+            InventoryOperationSnapshot before = InventoryOperationResult.Capture(this);
+            bool success = RemoveQuantityCore(itemInstanceId, quantity, out _, out InventoryOperationFailure failure);
+            return PublishGameplayEvents(InventoryOperationResult.Complete(this, InventoryOperationKind.RemoveQuantityExact,
+                quantity, success, failure, before, focusItemId: itemInstanceId));
+        }
+
+        public InventoryOperationResult RemoveQuantityUpTo(ItemDetails definition, int quantity)
+        {
+            InventoryOperationSnapshot before = InventoryOperationResult.Capture(this);
+            bool success = RemoveQuantityCore(definition, quantity, out _, out InventoryOperationFailure failure);
+            return PublishGameplayEvents(InventoryOperationResult.Complete(this, InventoryOperationKind.RemoveQuantityUpTo,
+                quantity, success, failure, before));
+        }
+
+        public InventoryOperationResult RemoveQuantityExact(ItemDetails definition, int quantity)
+        {
+            InventoryOperationSnapshot before = InventoryOperationResult.Capture(this);
+            bool success = RemoveQuantityExactCore(definition, quantity, out InventoryOperationFailure failure);
+            return PublishGameplayEvents(InventoryOperationResult.Complete(this, InventoryOperationKind.RemoveQuantityExact,
+                quantity, success, failure, before));
+        }
+
+        public InventoryOperationResult RemoveAll(ItemDetails definition)
+        {
+            int requested = definition == null ? 0 : Items
+                .Where(item => InventoryItemMatching.MatchesDefinition(item, definition))
+                .Sum(item => Math.Max(0, item.quantity));
+            InventoryOperationSnapshot before = InventoryOperationResult.Capture(this);
+            bool success = RemoveAllCore(definition, out _, out InventoryOperationFailure failure);
+            return PublishGameplayEvents(InventoryOperationResult.Complete(this, InventoryOperationKind.RemoveAll,
+                requested, success, failure, before));
+        }
+
+        public InventoryOperationResult AddAt(Item item, int x, int y, bool rotated) =>
+            AddAt(item, x, y, rotated ? 1 : 0);
+
+        public InventoryOperationResult AddAt(Item item, int x, int y, int rotationQuarterTurns)
+        {
+            InventoryOperationSnapshot before = InventoryOperationResult.Capture(this);
+            bool success = AddAtCore(item, x, y, rotationQuarterTurns, out InventoryOperationFailure failure);
+            return PublishGameplayEvents(InventoryOperationResult.Complete(this, InventoryOperationKind.AddAt,
+                item != null ? item.quantity : 0, success, failure, before,
+                focusItemId: item != null ? item.Id : SerializableGuid.Empty, addedItem: success ? item : null));
+        }
+
+        public InventoryOperationResult MoveTo(SerializableGuid itemInstanceId, int x, int y, bool rotated) =>
+            MoveTo(itemInstanceId, x, y, rotated ? 1 : 0);
+
+        public InventoryOperationResult MoveTo(SerializableGuid itemInstanceId, int x, int y, int rotationQuarterTurns)
+        {
+            InventoryOperationSnapshot before = InventoryOperationResult.Capture(this);
+            int normalizedRotation = ((rotationQuarterTurns % 4) + 4) % 4;
+            bool changesPosition = TryGetPlacement(itemInstanceId, out GridItemPlacement currentPlacement) &&
+                (currentPlacement.X != x || currentPlacement.Y != y ||
+                 currentPlacement.RotationQuarterTurns != normalizedRotation);
+            bool success = MoveToCore(itemInstanceId, x, y, rotationQuarterTurns, out InventoryOperationFailure failure);
+            return PublishGameplayEvents(InventoryOperationResult.Complete(this, InventoryOperationKind.MoveTo,
+                0, success, failure, before, focusItemId: changesPosition ? itemInstanceId : SerializableGuid.Empty));
+        }
+
+        public InventoryOperationResult RemoveQuantityAtCell(int x, int y, int quantity)
+        {
+            InventoryOperationSnapshot before = InventoryOperationResult.Capture(this);
+            SerializableGuid focusId = TryGetItemAtCell(x, y, out Item item) ? item.Id : SerializableGuid.Empty;
+            bool success = RemoveQuantityAtCellCore(x, y, quantity, out _, out InventoryOperationFailure failure);
+            return PublishGameplayEvents(InventoryOperationResult.Complete(this, InventoryOperationKind.RemoveQuantityUpTo,
+                quantity, success, failure, before, focusItemId: focusId));
         }
 
         private bool TryFindFirstFit(Item item, out int foundX, out int foundY)
@@ -422,5 +563,11 @@ namespace Systems.Inventory.Architecture
         private bool IsInside(int x, int y) => x >= 0 && x < Width && y >= 0 && y < Height;
         private void RaiseChanged(InventoryChangeKind kind, SerializableGuid id) =>
             Changed?.Invoke(new InventoryChangedEvent(Id, kind, id));
+        private InventoryOperationResult PublishGameplayEvents(InventoryOperationResult result)
+        {
+            InventoryGameplayEventPublisher.Publish(result, gameplayEvent => GameplayEventRaised?.Invoke(gameplayEvent));
+            return result;
+        }
+
     }
 }

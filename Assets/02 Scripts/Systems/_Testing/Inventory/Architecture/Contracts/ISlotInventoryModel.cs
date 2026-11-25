@@ -6,9 +6,8 @@ namespace Systems.Inventory.Architecture
         bool TryGetItemAt(int slotIndex, out Item item);
         bool TryGetSlotOf(SerializableGuid itemInstanceId, out int slotIndex);
         bool CanAcceptAt(Item item, int slotIndex, out InventoryOperationFailure failure);
-        bool TryAddAt(Item item, int slotIndex, out InventoryOperationFailure failure);
-        /// <summary>Removes quantity from the item occupying this fixed slot index.</summary>
-        bool TryRemoveQuantityAt(int slotIndex, int quantity, out int removedQuantity, out InventoryOperationFailure failure);
-        bool TryMove(SerializableGuid itemInstanceId, int destinationSlot, out InventoryOperationFailure failure);
+        InventoryOperationResult AddAt(Item item, int slotIndex);
+        InventoryOperationResult RemoveQuantityAt(int slotIndex, int quantity);
+        InventoryOperationResult Move(SerializableGuid itemInstanceId, int destinationSlot);
     }
 }

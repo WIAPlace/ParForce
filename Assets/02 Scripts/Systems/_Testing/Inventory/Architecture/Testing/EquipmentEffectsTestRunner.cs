@@ -47,28 +47,28 @@ namespace Systems.Inventory.Architecture
                     Item ringB = secondRingDefinition.Create(1);
                     Item ringC = replacementRingDefinition.Create(1);
 
-                    bool helmetEquipped = equipment.TryAddAt(helmet, "Head", out _);
+                    bool helmetEquipped = equipment.AddAt(helmet, "Head").Success;
                     Check("Equipping an item applies its modifier", helmetEquipped && Mathf.Approximately(attributes.GetValue("Defense"), 15f));
 
-                    bool ringAEquipped = equipment.TryAddAt(ringA, "RingLeft", out _);
-                    bool ringBEquipped = equipment.TryAddAt(ringB, "RingRight", out _);
+                    bool ringAEquipped = equipment.AddAt(ringA, "RingLeft").Success;
+                    bool ringBEquipped = equipment.AddAt(ringB, "RingRight").Success;
                     Check("Modifiers from multiple items stack", ringAEquipped && ringBEquipped &&
                         Mathf.Approximately(attributes.GetValue("Defense"), 20f));
 
-                    bool moved = equipment.TryMove(ringA.Id, "RingSpare", out _);
+                    bool moved = equipment.Move(ringA.Id, "RingSpare").Success;
                     Check("Moving an equipped item between slots does not duplicate or remove its effect", moved &&
                         Mathf.Approximately(attributes.GetValue("Defense"), 20f) && attributes.GetModifierCount(ringA.Id) == 1);
 
-                    bool removedRing = equipment.TryRemove(ringA.Id, out _, out _);
+                    bool removedRing = equipment.Remove(ringA.Id).Success;
                     Check("Removing one item removes only that item's modifiers", removedRing &&
                         Mathf.Approximately(attributes.GetValue("Defense"), 18f) && attributes.GetModifierCount(ringB.Id) == 1);
 
-                    bool replaced = equipment.TryRemove(ringB.Id, out _, out _) && equipment.TryAddAt(ringC, "RingLeft", out _);
+                    bool replaced = equipment.Remove(ringB.Id).Success && equipment.AddAt(ringC, "RingLeft").Success;
                     Check("Replacing an item removes the old source and applies the new source", replaced &&
                         Mathf.Approximately(attributes.GetValue("Defense"), 19f) && attributes.GetModifierCount(ringB.Id) == 0 &&
                         attributes.GetModifierCount(ringC.Id) == 1);
 
-                    bool removedHelmet = equipment.TryRemove(helmet.Id, out _, out _);
+                    bool removedHelmet = equipment.Remove(helmet.Id).Success;
                     Check("Unequipping the helmet leaves the remaining ring modifier intact", removedHelmet &&
                         Mathf.Approximately(attributes.GetValue("Defense"), 14f));
                 }

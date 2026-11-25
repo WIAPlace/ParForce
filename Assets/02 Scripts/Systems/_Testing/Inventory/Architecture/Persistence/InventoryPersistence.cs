@@ -191,38 +191,68 @@ namespace Systems.Inventory.Architecture.Persistence
 
                     if (firstStack && model is IGridInventoryModel grid)
                     {
-                        added = grid.TryAddAt(item, saved.X, saved.Y, saved.RotationQuarterTurns, out failure);
+                        InventoryOperationResult placement = grid.AddAt(item, saved.X, saved.Y, saved.RotationQuarterTurns);
+                        added = placement.Success;
+                        failure = placement.Failure;
                         if (!added)
                         {
                             Debug.LogWarning($"Inventory {model.DisplayName}: couldn't restore '{details.Name}' at ({saved.X},{saved.Y}) rotation {saved.RotationQuarterTurns}; trying another valid position. Reason: {failure}.");
-                            added = grid.TryAdd(item, out failure);
+                            placement = grid.Add(item);
+                            added = placement.Success;
+                            failure = placement.Failure;
                         }
                     }
                     else if (model is IGridInventoryModel gridFallback)
                     {
-                        added = gridFallback.TryAdd(item, out failure);
+                        InventoryOperationResult placement = gridFallback.Add(item);
+                        added = placement.Success;
+                        failure = placement.Failure;
                     }
                     else if (firstStack && model is IEquipmentInventoryModel equipment)
                     {
-                        added = !string.IsNullOrWhiteSpace(saved.SlotId) && equipment.TryAddAt(item, saved.SlotId, out failure);
-                        if (!added) added = equipment.TryAdd(item, out failure);
+                        InventoryOperationResult placement = !string.IsNullOrWhiteSpace(saved.SlotId)
+                            ? equipment.AddAt(item, saved.SlotId)
+                            : InventoryOperationResult.Failed(equipment.Id, InventoryOperationKind.AddAt, stackQuantity, InventoryOperationFailure.OutOfBounds);
+                        added = placement.Success;
+                        failure = placement.Failure;
+                        if (!added)
+                        {
+                            placement = equipment.Add(item);
+                            added = placement.Success;
+                            failure = placement.Failure;
+                        }
                     }
                     else if (model is IEquipmentInventoryModel equipmentFallback)
                     {
-                        added = equipmentFallback.TryAdd(item, out failure);
+                        InventoryOperationResult placement = equipmentFallback.Add(item);
+                        added = placement.Success;
+                        failure = placement.Failure;
                     }
                     else if (firstStack && model is ISlotInventoryModel slots)
                     {
-                        added = saved.SlotIndex >= 0 && slots.TryAddAt(item, saved.SlotIndex, out failure);
-                        if (!added) added = slots.TryAdd(item, out failure);
+                        InventoryOperationResult placement = saved.SlotIndex >= 0
+                            ? slots.AddAt(item, saved.SlotIndex)
+                            : InventoryOperationResult.Failed(slots.Id, InventoryOperationKind.AddAt, stackQuantity, InventoryOperationFailure.OutOfBounds);
+                        added = placement.Success;
+                        failure = placement.Failure;
+                        if (!added)
+                        {
+                            placement = slots.Add(item);
+                            added = placement.Success;
+                            failure = placement.Failure;
+                        }
                     }
                     else if (model is ISlotInventoryModel slotFallback)
                     {
-                        added = slotFallback.TryAdd(item, out failure);
+                        InventoryOperationResult placement = slotFallback.Add(item);
+                        added = placement.Success;
+                        failure = placement.Failure;
                     }
                     else
                     {
-                        added = model.TryAdd(item, out failure);
+                        InventoryOperationResult placement = model.Add(item);
+                        added = placement.Success;
+                        failure = placement.Failure;
                     }
 
                     if (!added)
@@ -264,9 +294,17 @@ namespace Systems.Inventory.Architecture.Persistence
                     bool added = false;
                     InventoryOperationFailure failure = InventoryOperationFailure.None;
                     if (firstStack && model is ISlotInventoryModel slots)
-                        added = slots.TryAddAt(migrated, i, out failure);
+                    {
+                        InventoryOperationResult placement = slots.AddAt(migrated, i);
+                        added = placement.Success;
+                        failure = placement.Failure;
+                    }
                     if (!added)
-                        added = model.TryAdd(migrated, out failure);
+                    {
+                        InventoryOperationResult placement = model.Add(migrated);
+                        added = placement.Success;
+                        failure = placement.Failure;
+                    }
 
                     if (!added)
                     {
@@ -285,7 +323,7 @@ namespace Systems.Inventory.Architecture.Persistence
         {
             foreach (Item item in model.Items.ToArray())
                 if (item != null)
-                    model.TryRemove(item.Id, out _, out _);
+                    model.Remove(item.Id);
         }
     }
 }

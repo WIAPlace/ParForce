@@ -15,6 +15,12 @@ MonoBehaviour:
   Name: Helmet
   category: 3
   equipmentType: 1
+  Actions:
+  - {fileID: 11400000, guid: ec6443b24b1fe6949a03c82a446f9647, type: 2}
+  - {fileID: 11400000, guid: bc9f82ad5aa5e0140919ad663a251ef1, type: 2}
+  TooltipSections:
+  - {fileID: 0}
+  LabelStyle: {fileID: 0}
   EquipmentEffects:
   - attributeId: 
     value: 0
@@ -25,10 +31,11 @@ MonoBehaviour:
   UseCustomShape: 0
   ShapeCells: 01
   DragPivot: {x: 0.5, y: 0.5}
+  OutlineStyle: {fileID: 11400000, guid: cb54633a3567352438b8b5b3293d45a7, type: 2}
   Id:
     Part1: 1150020257
     Part2: 1293169067
     Part3: 345006731
     Part4: 3913076639
   Icon: {fileID: 10915, guid: 0000000000000000f000000000000000, type: 0}
-  Description: 
+  Description: Helmet

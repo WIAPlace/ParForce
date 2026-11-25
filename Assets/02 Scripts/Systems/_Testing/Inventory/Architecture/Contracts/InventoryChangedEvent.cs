@@ -37,6 +37,8 @@ namespace Systems.Inventory.Architecture
         PlacementOccupied,
         InvalidFootprint,
         IncompatibleItemType,
-        InvalidQuantity
+        InvalidQuantity,
+        InsufficientQuantity,
+        InventoryUnavailable
     }
 }

@@ -26,54 +26,68 @@ namespace Systems.Inventory.Architecture
                 var grid = new GridInventoryModel(SerializableGuid.NewGuid(), "Closed Grid", 6, 4);
                 Item first = arrow.Create(8);
                 Item second = arrow.Create(7);
-                grid.TryAddAt(first, 0, 0, false, out _);
-                grid.TryAddAt(second, 2, 0, false, out _);
+                grid.AddAt(first, 0, 0, false);
+                grid.AddAt(second, 2, 0, false);
 
-                bool byInstance = grid.TryRemoveQuantity(first, 3, out int instanceRemoved, out _) &&
-                    instanceRemoved == 3 && first.quantity == 5;
+                InventoryOperationResult instanceRemoval = grid.RemoveQuantityUpTo(first.Id, 3);
+                bool byInstance = instanceRemoval.Success && instanceRemoval.AffectedQuantity == 3 && first.quantity == 5;
                 Check("Remove a requested quantity from a specific item instance", byInstance);
 
-                bool byDefinition = grid.TryRemoveQuantity(arrow, 6, out int definitionRemoved, out _) &&
-                    definitionRemoved == 6 && !grid.TryGetItem(first.Id, out _) && second.quantity == 6;
+                InventoryOperationResult itemRemoval = grid.RemoveQuantityUpTo(first, 1);
+                Check("Remove quantity through a runtime Item reference",
+                    itemRemoval.Success && itemRemoval.AffectedQuantity == 1 && first.quantity == 4);
+
+                InventoryOperationResult definitionRemoval = grid.RemoveQuantityUpTo(arrow, 6);
+                bool byDefinition = definitionRemoval.Success && definitionRemoval.AffectedQuantity == 6 &&
+                    definitionRemoval.ItemChanges.Count == 2 && !grid.TryGetItem(first.Id, out _) && second.quantity == 5;
                 Check("Remove a quantity across matching stacks by item definition", byDefinition);
 
-                bool byIndex = grid.TryRemoveQuantityAtCell(2, 0, 2, out int indexRemoved, out _) &&
-                    indexRemoved == 2 && second.quantity == 4;
-                Check("Remove quantity by grid cell, including irregular footprint lookup", byIndex);
+                InventoryOperationResult indexRemoval = grid.RemoveQuantityAtIndex(0, 1);
+                Check("Remove quantity by item-list index", indexRemoval.Success &&
+                    indexRemoval.AffectedQuantity == 1 && second.quantity == 4);
 
-                bool exactRejected = !grid.TryRemoveExact(arrow, 99, out _) && second.quantity == 4;
+                InventoryOperationResult cellRemoval = grid.RemoveQuantityAtCell(2, 0, 1);
+                bool byCell = cellRemoval.Success && cellRemoval.AffectedQuantity == 1 && second.quantity == 3;
+                Check("Remove quantity by grid cell, including irregular footprint lookup", byCell);
+
+                InventoryOperationResult insufficient = grid.RemoveQuantityExact(arrow, 99);
+                bool exactRejected = !insufficient.Success && insufficient.Failure == InventoryOperationFailure.InsufficientQuantity && second.quantity == 3;
                 Check("Exact removal is all-or-nothing when quantity is insufficient", exactRejected);
 
-                bool exactAccepted = grid.TryRemoveExact(arrow, 4, out _) && grid.ItemCount == 0;
+                InventoryOperationResult exactRemoval = grid.RemoveQuantityExact(arrow, 3);
+                bool exactAccepted = exactRemoval.Success && exactRemoval.AffectedQuantity == 3 && grid.ItemCount == 0;
                 Check("Exact removal succeeds when the full quantity is available", exactAccepted);
 
-                grid.TryAddAt(arrow.Create(2), 0, 0, false, out _);
-                grid.TryAddAt(arrow.Create(3), 2, 0, false, out _);
-                bool removeAll = grid.TryRemoveAll(arrow, out int allRemoved, out _) && allRemoved == 5 && grid.ItemCount == 0;
+                grid.AddAt(arrow.Create(2), 0, 0, false);
+                grid.AddAt(arrow.Create(3), 2, 0, false);
+                InventoryOperationResult allRemoval = grid.RemoveAll(arrow);
+                bool removeAll = allRemoval.Success && allRemoval.AffectedQuantity == 5 && grid.ItemCount == 0;
                 Check("Remove all remaining stacks matching a definition", removeAll);
 
                 var equipment = new EquipmentInventoryModel(SerializableGuid.NewGuid(), "Equipment",
                     new[] { new EquipmentSlotDefinition("MainHand", "Main Hand", new[] { EquipmentType.MainHand }) });
                 Item knifeStack = knife.Create(4);
-                bool equippedStack = equipment.TryAddAt(knifeStack, "MainHand", out _) &&
+                bool equippedStack = equipment.AddAt(knifeStack, "MainHand").Success &&
                     equipment.TryGetItemAt("MainHand", out Item equipped) && equipped.quantity == 4;
                 Check("Equipment slot accepts a stack when its definition maxStack is greater than one", equippedStack);
 
-                bool consumeOne = equipment.TryRemoveQuantityAt("MainHand", 1, out int knifeRemoved, out _) &&
-                    knifeRemoved == 1 && knifeStack.quantity == 3 && equipment.OccupiedEquipmentSlots == 1;
+                InventoryOperationResult oneKnife = equipment.RemoveQuantityAt("MainHand", 1);
+                bool consumeOne = oneKnife.Success && oneKnife.AffectedQuantity == 1 &&
+                    knifeStack.quantity == 3 && equipment.OccupiedEquipmentSlots == 1;
                 Check("Consuming one equipped throwing knife leaves the equipment slot occupied", consumeOne);
 
-                bool consumeRemaining = equipment.TryRemoveQuantity(knife, 10, out int remainingRemoved, out _) &&
-                    remainingRemoved == 3 && equipment.OccupiedEquipmentSlots == 0;
+                InventoryOperationResult remainingKnives = equipment.RemoveQuantityUpTo(knife, 10);
+                bool consumeRemaining = remainingKnives.Success && remainingKnives.AffectedQuantity == 3 &&
+                    equipment.OccupiedEquipmentSlots == 0;
                 Check("Removing more than the equipped stack contains removes the remainder and unequips it", consumeRemaining);
 
                 var mergeEquipment = new EquipmentInventoryModel(SerializableGuid.NewGuid(), "Merge Equipment",
                     new[] { new EquipmentSlotDefinition("MainHand", "Main Hand", new[] { EquipmentType.MainHand }) });
                 Item equippedKnives = knife.Create(3);
-                mergeEquipment.TryAddAt(equippedKnives, "MainHand", out _);
+                mergeEquipment.AddAt(equippedKnives, "MainHand");
                 var knifeSource = new CollectionInventoryModel(SerializableGuid.NewGuid(), "Knife Source", 1);
                 Item incomingKnives = knife.Create(4);
-                knifeSource.TryAddAt(incomingKnives, 0, out _);
+                knifeSource.AddAt(incomingKnives, 0);
                 InventoryQuickMoveResult equipmentMerge = new InventoryQuickMoveService().QuickMove(
                     knifeSource, incomingKnives.Id, new IInventoryModel[] { mergeEquipment });
                 Check("Quick move merges stackable equipment into an occupied compatible equipment slot",

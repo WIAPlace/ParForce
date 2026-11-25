@@ -24,34 +24,26 @@ namespace Systems.Inventory.Architecture
         }
     }
 
-    /// <summary>
-    /// Optional capability for inventories whose items occupy rectangular
-    /// footprints across multiple cells.
-    /// </summary>
+    /// <summary>Optional capability for inventories whose items occupy shaped grid footprints.</summary>
     public interface IGridInventoryModel : IInventoryModel
     {
         int Width { get; }
         int Height { get; }
-        /// <summary>Total usable cells according to the grid's layout mask.</summary>
         int TotalUsableCells { get; }
-        /// <summary>Usable cells covered by the actual occupied cells of stored item shapes.</summary>
         int OccupiedCells { get; }
-        /// <summary>Usable cells not currently occupied by items.</summary>
         int AvailableCells { get; }
-        /// <summary>Percentage of usable cells occupied, from 0 to 100.</summary>
         float FillPercentage { get; }
         bool IsCellUsable(int x, int y);
         bool TryGetItemAtCell(int x, int y, out Item item);
-        /// <summary>Removes quantity from the item occupying the specified grid cell.</summary>
-        bool TryRemoveQuantityAtCell(int x, int y, int quantity, out int removedQuantity, out InventoryOperationFailure failure);
+        InventoryOperationResult RemoveQuantityAtCell(int x, int y, int quantity);
         bool TryGetPlacement(SerializableGuid itemInstanceId, out GridItemPlacement placement);
         bool CanPlaceAt(Item item, int x, int y, bool rotated, out InventoryOperationFailure failure);
         bool CanMoveTo(SerializableGuid itemInstanceId, int x, int y, bool rotated, out InventoryOperationFailure failure);
-        bool TryAddAt(Item item, int x, int y, bool rotated, out InventoryOperationFailure failure);
-        bool TryMoveTo(SerializableGuid itemInstanceId, int x, int y, bool rotated, out InventoryOperationFailure failure);
+        InventoryOperationResult AddAt(Item item, int x, int y, bool rotated);
+        InventoryOperationResult MoveTo(SerializableGuid itemInstanceId, int x, int y, bool rotated);
         bool CanPlaceAt(Item item, int x, int y, int rotationQuarterTurns, out InventoryOperationFailure failure);
         bool CanMoveTo(SerializableGuid itemInstanceId, int x, int y, int rotationQuarterTurns, out InventoryOperationFailure failure);
-        bool TryAddAt(Item item, int x, int y, int rotationQuarterTurns, out InventoryOperationFailure failure);
-        bool TryMoveTo(SerializableGuid itemInstanceId, int x, int y, int rotationQuarterTurns, out InventoryOperationFailure failure);
+        InventoryOperationResult AddAt(Item item, int x, int y, int rotationQuarterTurns);
+        InventoryOperationResult MoveTo(SerializableGuid itemInstanceId, int x, int y, int rotationQuarterTurns);
     }
 }

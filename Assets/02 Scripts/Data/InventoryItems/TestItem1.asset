@@ -15,13 +15,18 @@ MonoBehaviour:
   Name: Test1
   category: 0
   equipmentType: 0
+  Actions:
+  - {fileID: 11400000, guid: ec6443b24b1fe6949a03c82a446f9647, type: 2}
+  TooltipSections: []
+  LabelStyle: {fileID: 0}
   EquipmentEffects: []
   maxStack: 20
   GridWidth: 2
   GridHeight: 2
   UseCustomShape: 1
   ShapeCells: 01000101
-  DragPivot: {x: 0, y: 0}
+  DragPivot: {x: 0.25, y: 0.75}
+  OutlineStyle: {fileID: 0}
   Id:
     Part1: 1868209415
     Part2: 1233900100

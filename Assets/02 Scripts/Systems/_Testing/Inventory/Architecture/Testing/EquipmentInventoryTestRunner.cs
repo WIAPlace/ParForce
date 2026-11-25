@@ -40,17 +40,17 @@ namespace Systems.Inventory.Architecture
             Item ringA = ringDefinition.Create(1);
             Item ringB = ringDefinition.Create(1);
             Item potion = potionDefinition.Create(1);
-            backpack.TryAddAt(helmet, 0, out _);
-            backpack.TryAddAt(ringA, 1, out _);
-            backpack.TryAddAt(ringB, 2, out _);
-            backpack.TryAddAt(potion, 3, out _);
+            backpack.AddAt(helmet, 0);
+            backpack.AddAt(ringA, 1);
+            backpack.AddAt(ringB, 2);
+            backpack.AddAt(potion, 3);
 
-            InventoryTransferResult helmetTransfer = transfers.TryTransferToEquipmentSlot(backpack, equipment, helmet.Id, "Head");
+            InventoryTransferResult helmetTransfer = transfers.TransferToEquipmentSlot(backpack, equipment, helmet.Id, "Head");
             Check("Helmet equips into the Head slot", helmetTransfer.Success && equipment.TryGetItemAt("Head", out Item head) && ReferenceEquals(head, helmet));
-            InventoryTransferResult ringLeft = transfers.TryTransferToEquipmentSlot(backpack, equipment, ringA.Id, "RingLeft");
-            bool ringLocalMove = equipment.TryMove(ringA.Id, "RingRight", out _);
-            bool ringMoveBack = equipment.TryMove(ringA.Id, "RingLeft", out _);
-            InventoryTransferResult ringRight = transfers.TryTransferToEquipmentSlot(backpack, equipment, ringB.Id, "RingRight");
+            InventoryTransferResult ringLeft = transfers.TransferToEquipmentSlot(backpack, equipment, ringA.Id, "RingLeft");
+            bool ringLocalMove = equipment.Move(ringA.Id, "RingRight").Success;
+            bool ringMoveBack = equipment.Move(ringA.Id, "RingLeft").Success;
+            InventoryTransferResult ringRight = transfers.TransferToEquipmentSlot(backpack, equipment, ringB.Id, "RingRight");
             Check("Two rings occupy independently identified slots", ringLeft.Success && ringRight.Success &&
                 equipment.TryGetItemAt("RingLeft", out Item left) && ReferenceEquals(left, ringA) &&
                 equipment.TryGetItemAt("RingRight", out Item right) && ReferenceEquals(right, ringB));
@@ -70,14 +70,14 @@ namespace Systems.Inventory.Architecture
             Check("Non-equipment item is rejected by equipment slots", !potionPreview.Success &&
                 potionPreview.OperationFailure == InventoryOperationFailure.IncompatibleItemType &&
                 backpack.TryGetItem(potion.Id, out _));
-            InventoryTransferResult occupied = transfers.TryTransferToEquipmentSlot(backpack, equipment, potion.Id, "Head");
+            InventoryTransferResult occupied = transfers.TransferToEquipmentSlot(backpack, equipment, potion.Id, "Head");
             Check("Occupied equipment slot rejects transfer without losing source item", !occupied.Success && backpack.TryGetItem(potion.Id, out _));
 
-            bool localMove = equipment.TryMove(ringA.Id, "RingRight", out _);
+            bool localMove = equipment.Move(ringA.Id, "RingRight").Success;
             Check("Equipment local move rejects occupied target", !localMove &&
                 equipment.TryGetItemAt("RingLeft", out Item stillLeft) && ReferenceEquals(stillLeft, ringA));
 
-            InventoryTransferResult unequip = transfers.TryTransfer(equipment, backpack, helmet.Id);
+            InventoryTransferResult unequip = transfers.Transfer(equipment, backpack, helmet.Id);
             Check("Equipped item can transfer back to a collection inventory", unequip.Success &&
                 backpack.TryGetItem(helmet.Id, out Item returned) && ReferenceEquals(returned, helmet) &&
                 !equipment.TryGetItemAt("Head", out _));
@@ -88,13 +88,13 @@ namespace Systems.Inventory.Architecture
 
             var grid = new GridInventoryModel(SerializableGuid.NewGuid(), "Test Grid", 4, 4, new List<Item>());
             Item gridHelmet = helmetDefinition.Create(1);
-            bool gridSeeded = grid.TryAddAt(gridHelmet, 0, 0, false, out _);
+            bool gridSeeded = grid.AddAt(gridHelmet, 0, 0, false).Success;
             InventoryTransferResult gridPreview = transfers.PreviewToEquipmentSlot(grid, equipment, gridHelmet.Id, "Head");
-            InventoryTransferResult gridEquip = transfers.TryTransferToEquipmentSlot(grid, equipment, gridHelmet.Id, "Head");
+            InventoryTransferResult gridEquip = transfers.TransferToEquipmentSlot(grid, equipment, gridHelmet.Id, "Head");
             Check("Grid item previews and equips into the specifically targeted named slot", gridSeeded && gridPreview.Success &&
                 gridEquip.Success && equipment.TryGetItemAt("Head", out Item gridEquipped) && ReferenceEquals(gridEquipped, gridHelmet));
 
-            InventoryTransferResult gridUnequip = transfers.TryTransferAt(equipment, grid, gridHelmet.Id, 1, false);
+            InventoryTransferResult gridUnequip = transfers.TransferAt(equipment, grid, gridHelmet.Id, 1, false);
             Check("Equipped item transfers back into a targeted grid cell", gridUnequip.Success &&
                 grid.TryGetItem(gridHelmet.Id, out Item gridReturned) && ReferenceEquals(gridReturned, gridHelmet) &&
                 !equipment.TryGetItemAt("Head", out _));

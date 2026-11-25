@@ -16,8 +16,10 @@ namespace Systems.Inventory.Architecture
         public InventoryDragCoordinator DragCoordinator { get; } = new InventoryDragCoordinator();
         public InventoryTransferService TransferService { get; } = new InventoryTransferService();
         public InventoryQuickMoveService QuickMoveService { get; } = new InventoryQuickMoveService();
+        public InventoryItemActionService ItemActionService { get; } = new InventoryItemActionService();
         public event Action<InventoryTransferResult> TransferCompleted;
         public event Action<InventoryQuickMoveResult> QuickMoveCompleted;
+        public event Action<InventoryItemActionExecution> ItemActionExecuted;
 
         /// <summary>Raised after Q removes the held item from its source inventory.
         /// Subscribe a world-item handler to spawn/throw the item. If nobody is subscribed,
@@ -91,6 +93,35 @@ namespace Systems.Inventory.Architecture
             return result;
         }
 
+        public IReadOnlyList<InventoryItemAction> GetItemActions(InventoryPanelView source, SerializableGuid itemId)
+        {
+            return source != null
+                ? ItemActionService.GetConfiguredActions(source.CurrentModel, itemId)
+                : Array.Empty<InventoryItemAction>();
+        }
+
+        public bool CanExecuteItemAction(InventoryPanelView source, SerializableGuid itemId,
+            InventoryItemAction action, out string reason)
+        {
+            if (source == null)
+            {
+                reason = "The inventory panel is unavailable.";
+                return false;
+            }
+            return ItemActionService.CanExecute(source.CurrentModel, itemId, action, out reason);
+        }
+
+        public InventoryItemActionExecution ExecuteItemAction(InventoryPanelView source,
+            SerializableGuid itemId, InventoryItemAction action)
+        {
+            InventoryItemActionExecution execution = ItemActionService.Execute(
+                source != null ? source.CurrentModel : null, itemId, action);
+            ItemActionExecuted?.Invoke(execution);
+            if (execution.Result != null && !execution.Result.Success && !string.IsNullOrEmpty(execution.Result.Message))
+                Debug.LogWarning(execution.Result.Message, this);
+            return execution;
+        }
+
         private int GetPanelPriority(IInventoryModel model)
         {
             foreach (InventoryPanelView panel in panels)
@@ -138,7 +169,7 @@ namespace Systems.Inventory.Architecture
             int originalQuantity = original.quantity;
             int heldQuantity = (originalQuantity + 1) / 2;
             int remainingQuantity = originalQuantity - heldQuantity;
-            if (!source.CurrentModel.TrySetQuantity(original.Id, remainingQuantity, out _))
+            if (!source.CurrentModel.SetQuantity(original.Id, remainingQuantity).Success)
                 return false;
 
             Item splitItem = new Item(original.details, heldQuantity);
@@ -146,7 +177,7 @@ namespace Systems.Inventory.Architecture
                 SerializableGuid.NewGuid(), "Held Stack", 1, new[] { splitItem });
             if (!DragCoordinator.TryBeginDrag(temporarySource.Id, splitItem.Id))
             {
-                source.CurrentModel.TrySetQuantity(original.Id, originalQuantity, out _);
+                source.CurrentModel.SetQuantity(original.Id, originalQuantity);
                 return false;
             }
 
@@ -180,7 +211,7 @@ namespace Systems.Inventory.Architecture
         /// <summary>Places one unit from the held stack into the slot/cell under a right-click release.</summary>
         public bool PlaceOneAt(Vector2 screenPosition)
         {
-            if (!IsDragging || dragSourceModel == null || draggedItem == null || draggedItem.quantity <= 1 ||
+            if (!IsDragging || dragSourceModel == null || draggedItem == null || draggedItem.quantity < 1 ||
                 draggedItem.details == null)
                 return false;
 
@@ -188,66 +219,134 @@ namespace Systems.Inventory.Architecture
             if (destination == null || destination.CurrentModel == null ||
                 destination.CurrentModel is IEquipmentInventoryModel) return false;
 
-            int slot = destination.GetSlotIndexAt(screenPosition);
-            if (slot < 0) return false;
+            int pointerSlot = destination.GetSlotIndexAt(screenPosition);
+            if (pointerSlot < 0) return false;
 
             Item target = null;
             IGridInventoryModel grid = destination.CurrentModel as IGridInventoryModel;
             if (grid != null)
             {
-                int x = slot % grid.Width;
-                int y = slot / grid.Width;
-                grid.TryGetItemAtCell(x, y, out target);
+                int pointerX = pointerSlot % grid.Width;
+                int pointerY = pointerSlot / grid.Width;
+                grid.TryGetItemAtCell(pointerX, pointerY, out target);
             }
             else if (destination.CurrentModel is ISlotInventoryModel slots)
             {
-                slots.TryGetItemAt(slot, out target);
+                slots.TryGetItemAt(pointerSlot, out target);
             }
             else return false;
 
+            // Occupied cells are stack targets. Keep the pointer cell for this check;
+            // pivot adjustment is only relevant when placing into empty grid space.
             if (target != null)
             {
                 if (target.Id == draggedItem.Id || !QuickMoveService.CanMerge(draggedItem, target)) return false;
+
                 int oldSourceQuantity = draggedItem.quantity;
-                if (!dragSourceModel.TrySetQuantity(draggedItem.Id, oldSourceQuantity - 1, out _)) return false;
-                if (!destination.CurrentModel.TrySetQuantity(target.Id, target.quantity + 1, out _))
+                int oldTargetQuantity = target.quantity;
+                if (!destination.CurrentModel.SetQuantity(target.Id, oldTargetQuantity + 1).Success)
+                    return false;
+
+                bool sourceEmptied;
+                if (!ConsumeOneHeldUnit(oldSourceQuantity, out sourceEmptied))
                 {
-                    dragSourceModel.TrySetQuantity(draggedItem.Id, oldSourceQuantity, out _);
+                    destination.CurrentModel.SetQuantity(target.Id, oldTargetQuantity);
                     return false;
                 }
-                draggedItem.quantity = oldSourceQuantity - 1;
-                UpdateDragTarget(screenPosition);
+
+                if (sourceEmptied) CompleteConsumedSplitDrag();
+                else UpdateDragTarget(screenPosition);
                 return true;
             }
 
             Item oneItem = new Item(draggedItem.details, 1);
-            InventoryOperationFailure failure;
-            bool canAdd;
+            int destinationSlot = pointerSlot;
             if (grid != null)
             {
-                int x = slot % grid.Width;
-                int y = slot / grid.Width;
-                canAdd = grid.CanPlaceAt(oneItem, x, y, draggedItemRotationQuarterTurns, out failure);
-            }
-            else
-            {
-                canAdd = ((ISlotInventoryModel)destination.CurrentModel).CanAcceptAt(oneItem, slot, out failure);
-            }
-            if (!canAdd) return false;
+                // Match normal drag placement: the cell under the pointer corresponds
+                // to the item's DragPivot, not necessarily its top-left cell.
+                destinationSlot = GetPivotAdjustedSlot(pointerSlot, grid.Width, grid.Height,
+                    draggedItemRotationQuarterTurns, oneItem);
+                if (destinationSlot < 0) return false;
 
-            int previousQuantity = draggedItem.quantity;
-            if (!dragSourceModel.TrySetQuantity(draggedItem.Id, previousQuantity - 1, out _)) return false;
-            bool added = grid != null
-                ? grid.TryAddAt(oneItem, slot % grid.Width, slot / grid.Width, draggedItemRotationQuarterTurns, out failure)
-                : ((ISlotInventoryModel)destination.CurrentModel).TryAddAt(oneItem, slot, out failure);
-            if (!added)
+                int x = destinationSlot % grid.Width;
+                int y = destinationSlot / grid.Width;
+                if (!grid.CanPlaceAt(oneItem, x, y, draggedItemRotationQuarterTurns, out _))
+                    return false;
+            }
+            else if (!((ISlotInventoryModel)destination.CurrentModel).CanAcceptAt(oneItem, destinationSlot, out _))
             {
-                dragSourceModel.TrySetQuantity(draggedItem.Id, previousQuantity, out _);
                 return false;
             }
-            draggedItem.quantity = previousQuantity - 1;
-            UpdateDragTarget(screenPosition);
+
+            int previousQuantity = draggedItem.quantity;
+            bool emptied = false;
+            if (!ConsumeOneHeldUnit(previousQuantity, out emptied)) return false;
+
+            InventoryOperationResult addResult = grid != null
+                ? grid.AddAt(oneItem, destinationSlot % grid.Width, destinationSlot / grid.Width,
+                    draggedItemRotationQuarterTurns)
+                : ((ISlotInventoryModel)destination.CurrentModel).AddAt(oneItem, destinationSlot);
+
+            if (!addResult.Success)
+            {
+                RestoreHeldStackAfterFailedPlacement(previousQuantity, emptied);
+                return false;
+            }
+
+            if (emptied) CompleteConsumedSplitDrag();
+            else UpdateDragTarget(screenPosition);
             return true;
+        }
+
+        /// <summary>Consumes one unit from the temporary stack, removing it when the last unit is used.</summary>
+        private bool ConsumeOneHeldUnit(int previousQuantity, out bool emptied)
+        {
+            emptied = previousQuantity == 1;
+            InventoryOperationResult result = emptied
+                ? dragSourceModel.Remove(draggedItem.Id)
+                : dragSourceModel.SetQuantity(draggedItem.Id, previousQuantity - 1);
+            return result != null && result.Success;
+        }
+
+        /// <summary>Restores the held stack if adding the unit to its destination fails.</summary>
+        private bool RestoreHeldStackAfterFailedPlacement(int previousQuantity, bool wasEmptied)
+        {
+            InventoryOperationResult result = wasEmptied
+                ? dragSourceModel.Add(draggedItem)
+                : dragSourceModel.SetQuantity(draggedItem.Id, previousQuantity);
+            if (result == null || !result.Success)
+            {
+                Debug.LogError("Could not restore the held stack after a failed right-click placement: " +
+                    (result != null ? result.Failure.ToString() : "InvalidOperation") + ".", this);
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>Ends a split drag after its final held unit has been successfully placed.</summary>
+        private void CompleteConsumedSplitDrag()
+        {
+            InventoryPanelView source = sourceView;
+            if (source != null)
+            {
+                source.SetItemDragging(visualSourceItemId, false);
+                source.ReleasePointer();
+                source.HideDragGhost();
+            }
+
+            sourceView = null;
+            draggedItem = null;
+            dragSourceModel = null;
+            visualSourceItemId = SerializableGuid.Empty;
+            splitOriginalItemId = SerializableGuid.Empty;
+            splitOriginalModel = null;
+            isSplitDrag = false;
+            ignoreNextRightRelease = false;
+            draggedItemRotationQuarterTurns = 0;
+            hoveredPanelDuringDrag = null;
+            DragCoordinator.CancelDrag();
+            ClearAllPreviews();
         }
 
         public bool IsDraggingFrom(InventoryPanelView view) =>
@@ -348,7 +447,7 @@ namespace Systems.Inventory.Architecture
                 if (destinationEquipment.TryGetItemAt(destinationEquipmentSlot, out Item equipmentStackTarget) &&
                     equipmentStackTarget != null && equipmentStackTarget.Id != itemId)
                 {
-                    InventoryQuickMoveResult equipmentMerge = QuickMoveService.TryMergeInto(activeSourceModel,
+                    InventoryQuickMoveResult equipmentMerge = QuickMoveService.MergeInto(activeSourceModel,
                         destination.CurrentModel, itemId, equipmentStackTarget.Id);
                     if (equipmentMerge.Success)
                     {
@@ -362,7 +461,9 @@ namespace Systems.Inventory.Architecture
 
                 if (activeSourceModel.Id == destination.CurrentModel.Id && activeSourceModel is IEquipmentInventoryModel localEquipment)
                 {
-                    bool moved = localEquipment.TryMove(itemId, destinationEquipmentSlot, out InventoryOperationFailure localFailure);
+                    InventoryOperationResult moveResult = localEquipment.Move(itemId, destinationEquipmentSlot);
+                    bool moved = moveResult.Success;
+                    InventoryOperationFailure localFailure = moveResult.Failure;
                     result = moved
                         ? new InventoryTransferResult(true, false, InventoryTransferFailure.None, InventoryOperationFailure.None,
                             activeSourceModel.Id, destination.CurrentModel.Id, itemId,
@@ -373,7 +474,7 @@ namespace Systems.Inventory.Architecture
                 }
                 else
                 {
-                    result = TransferService.TryTransferToEquipmentSlot(activeSourceModel, destinationEquipment,
+                    result = TransferService.TransferToEquipmentSlot(activeSourceModel, destinationEquipment,
                         itemId, destinationEquipmentSlot);
                 }
             }
@@ -407,7 +508,7 @@ namespace Systems.Inventory.Architecture
 
                 if (stackTarget != null && stackTarget.Id != itemId)
                 {
-                    InventoryQuickMoveResult merge = QuickMoveService.TryMergeInto(activeSourceModel,
+                    InventoryQuickMoveResult merge = QuickMoveService.MergeInto(activeSourceModel,
                         destination.CurrentModel, itemId, stackTarget.Id);
                     if (merge.Success)
                     {
@@ -427,11 +528,15 @@ namespace Systems.Inventory.Architecture
                     {
                         int x = destinationSlot % localGrid.Width;
                         int y = destinationSlot / localGrid.Width;
-                        moved = localGrid.TryMoveTo(itemId, x, y, finalRotation, out localFailure);
+                        InventoryOperationResult moveResult = localGrid.MoveTo(itemId, x, y, finalRotation);
+                        moved = moveResult.Success;
+                        localFailure = moveResult.Failure;
                     }
                     else if (activeSourceModel is ISlotInventoryModel localSlots)
                     {
-                        moved = localSlots.TryMove(itemId, destinationSlot, out localFailure);
+                        InventoryOperationResult moveResult = localSlots.Move(itemId, destinationSlot);
+                        moved = moveResult.Success;
+                        localFailure = moveResult.Failure;
                     }
 
                     result = moved
@@ -444,7 +549,7 @@ namespace Systems.Inventory.Architecture
                 }
                 else
                 {
-                    result = TransferService.TryTransferAt(activeSourceModel,
+                    result = TransferService.TransferAt(activeSourceModel,
                         destination.CurrentModel, itemId, destinationSlot, finalRotation);
                 }
             }
@@ -471,11 +576,16 @@ namespace Systems.Inventory.Architecture
             SerializableGuid itemId = DragCoordinator.CurrentDrag.ItemInstanceId;
             IInventoryModel activeSourceModel = dragSourceModel ?? source.CurrentModel;
             InventoryOperationFailure failure = InventoryOperationFailure.None;
-            if (activeSourceModel == null || !activeSourceModel.TryRemove(itemId, out Item removedItem, out failure))
+            InventoryOperationResult removal = activeSourceModel != null
+                ? activeSourceModel.Remove(itemId)
+                : null;
+            if (removal == null || !removal.Success || removal.RemovedItem == null)
             {
+                failure = removal != null ? removal.Failure : InventoryOperationFailure.InvalidItem;
                 Debug.LogWarning("Could not drop held item: " + failure + ".", this);
                 return false;
             }
+            Item removedItem = removal.RemovedItem;
 
             source.SetItemDragging(visualSourceItemId, false);
             source.ReleasePointer();
@@ -533,16 +643,18 @@ namespace Systems.Inventory.Architecture
                 !temporaryModel.TryGetItem(temporaryItemId, out Item remainder) || remainder == null) return;
 
             if (originalModel.TryGetItem(originalItemId, out Item original) && original != null &&
-                originalModel.TrySetQuantity(originalItemId, original.quantity + remainder.quantity, out _))
+                originalModel.SetQuantity(originalItemId, original.quantity + remainder.quantity).Success)
             {
-                temporaryModel.TryRemove(temporaryItemId, out _, out _);
+                temporaryModel.Remove(temporaryItemId);
                 return;
             }
 
-            if (temporaryModel.TryRemove(temporaryItemId, out Item detached, out _))
+            InventoryOperationResult detachResult = temporaryModel.Remove(temporaryItemId);
+            if (detachResult.Success && detachResult.RemovedItem != null)
             {
-                if (!originalModel.TryAdd(detached, out InventoryOperationFailure restoreFailure))
-                    Debug.LogError("Could not restore a split stack to its original inventory: " + restoreFailure + ".", this);
+                InventoryOperationResult restoreResult = originalModel.Add(detachResult.RemovedItem);
+                if (!restoreResult.Success)
+                    Debug.LogError("Could not restore a split stack to its original inventory: " + restoreResult.Failure + ".", this);
             }
         }
 
@@ -597,7 +709,7 @@ namespace Systems.Inventory.Architecture
             if (index < 0) return;
 
             ItemGridShape.GetRotatedSize(item.details, draggedItemRotationQuarterTurns, out int width, out int height);
-            Vector2 pivot = item.details != null ? item.details.DragPivot : new Vector2(0.5f, 0.5f);
+            Vector2 pivot = item.details != null ? item.details.GetRotatedDragPivot(draggedItemRotationQuarterTurns) : new Vector2(0.5f, 0.5f);
             int x = index % grid.Width - Mathf.FloorToInt(pivot.x * width);
             int y = index / grid.Width - Mathf.FloorToInt(pivot.y * height);
 
@@ -627,7 +739,7 @@ namespace Systems.Inventory.Architecture
         {
             if (item == null || item.details == null) return pointerSlot;
             ItemGridShape.GetRotatedSize(item.details, rotationQuarterTurns, out int width, out int height);
-            Vector2 pivot = item.details.DragPivot;
+            Vector2 pivot = item.details.GetRotatedDragPivot(rotationQuarterTurns);
             int x = pointerSlot % gridWidth - Mathf.FloorToInt(pivot.x * width);
             int y = pointerSlot / gridWidth - Mathf.FloorToInt(pivot.y * height);
             if (x < 0 || y < 0 || x + width > gridWidth || y + height > gridHeight)

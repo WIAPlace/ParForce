@@ -15,6 +15,9 @@ MonoBehaviour:
   Name: Ring
   category: 3
   equipmentType: 8
+  Actions: []
+  TooltipSections: []
+  LabelStyle: {fileID: 0}
   EquipmentEffects: []
   maxStack: 3
   GridWidth: 3
@@ -22,6 +25,7 @@ MonoBehaviour:
   UseCustomShape: 1
   ShapeCells: 010000010000010101
   DragPivot: {x: 0.5, y: 0.5}
+  OutlineStyle: {fileID: 11400000, guid: cb54633a3567352438b8b5b3293d45a7, type: 2}
   Id:
     Part1: 2599621035
     Part2: 1336210381

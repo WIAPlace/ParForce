@@ -49,11 +49,11 @@ namespace Systems.Inventory.Architecture
                     grid.AvailableCells == 8 && Mathf.Approximately(grid.FillPercentage, 0f));
 
                 Item lShape = lShapeDefinition.Create(1);
-                bool lShapeFits = grid.TryAddAt(lShape, 0, 0, 0, out _);
+                bool lShapeFits = grid.AddAt(lShape, 0, 0, 0).Success;
                 Check("An irregular item can occupy usable cells around its empty notch", lShapeFits);
 
                 Item notchItem = singleDefinition.Create(1);
-                bool notchFits = grid.TryAddAt(notchItem, 1, 0, 0, out _);
+                bool notchFits = grid.AddAt(notchItem, 1, 0, 0).Success;
                 Check("An item can still occupy an unblocked empty notch in another item's bounds", notchFits);
                 Check("Occupancy counts actual irregular shape cells, not bounding rectangles",
                     grid.OccupiedCells == 4 && grid.AvailableCells == 4 &&
@@ -64,17 +64,17 @@ namespace Systems.Inventory.Architecture
                 Check("Items are rejected when an occupied footprint cell overlaps blocked space", blockedRejected);
 
                 Item autoPlaced = singleDefinition.Create(1);
-                bool autoAdd = grid.TryAdd(autoPlaced, out _);
+                bool autoAdd = grid.Add(autoPlaced).Success;
                 bool autoAvoidedBlocked = autoAdd && grid.TryGetPlacement(autoPlaced.Id, out GridItemPlacement autoPlacement) &&
                     grid.IsCellUsable(autoPlacement.X, autoPlacement.Y);
                 Check("Automatic placement only selects usable cells", autoAvoidedBlocked);
                 Check("Occupancy updates after adding an item",
                     grid.OccupiedCells == 5 && grid.AvailableCells == 3 &&
                     Mathf.Approximately(grid.FillPercentage, 62.5f));
-                bool quantityChanged = grid.TrySetQuantity(autoPlaced.Id, 2, out _);
+                bool quantityChanged = grid.SetQuantity(autoPlaced.Id, 2).Success;
                 Check("Changing stack quantity does not change occupied grid cells",
                     quantityChanged && autoPlaced.quantity == 2 && grid.OccupiedCells == 5);
-                bool removedAutoPlaced = grid.TryRemove(autoPlaced.Id, out _, out _);
+                bool removedAutoPlaced = grid.Remove(autoPlaced.Id).Success;
                 Check("Occupancy updates after removing an item", removedAutoPlaced &&
                     grid.OccupiedCells == 4 && grid.AvailableCells == 4 &&
                     Mathf.Approximately(grid.FillPercentage, 50f));
@@ -85,8 +85,9 @@ namespace Systems.Inventory.Architecture
                 bool[] allBlocked = new bool[4];
                 var emptyGrid = new GridInventoryModel(SerializableGuid.NewGuid(), "No Usable Cells", 2, 2, null, allBlocked);
                 Item cannotFit = singleDefinition.Create(1);
-                bool rejectsAll = !emptyGrid.TryAdd(cannotFit, out InventoryOperationFailure failure) &&
-                    failure == InventoryOperationFailure.InventoryFull;
+                InventoryOperationResult rejectedAdd = emptyGrid.Add(cannotFit);
+                bool rejectsAll = !rejectedAdd.Success &&
+                    rejectedAdd.Failure == InventoryOperationFailure.InventoryFull;
                 Check("A layout with no usable cells safely rejects storage", rejectsAll && emptyGrid.Capacity == 0);
                 Check("A grid with no usable cells reports zero fill without division errors",
                     emptyGrid.TotalUsableCells == 0 && emptyGrid.OccupiedCells == 0 &&

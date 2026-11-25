@@ -39,10 +39,10 @@ namespace Systems.Inventory.Architecture
             Item travellingItem = testItemDefinition.Create(1);
             Item blocker = secondTestItemDefinition.Create(1);
 
-            source.TryAddAt(travellingItem, 0, out _);
-            destination.TryAddAt(blocker, 1, out _);
+            source.AddAt(travellingItem, 0);
+            destination.AddAt(blocker, 1);
 
-            InventoryTransferResult transfer = service.TryTransferAt(
+            InventoryTransferResult transfer = service.TransferAt(
                 source, destination, travellingItem.Id, 0);
             bool identityPreserved = destination.TryGetItemAt(0, out Item received) &&
                                      ReferenceEquals(received, travellingItem) && received.Id == travellingItem.Id;
@@ -52,8 +52,8 @@ namespace Systems.Inventory.Architecture
             Check("Destination gains exactly one item", destination.ItemCount == 2);
 
             Item rejectedItem = secondTestItemDefinition.Create(1);
-            source.TryAddAt(rejectedItem, 2, out _);
-            InventoryTransferResult occupied = service.TryTransferAt(
+            source.AddAt(rejectedItem, 2);
+            InventoryTransferResult occupied = service.TransferAt(
                 source, destination, rejectedItem.Id, 1);
             Check("Occupied destination slot rejects transfer", !occupied.Success);
             Check("Rejected transfer leaves source unchanged", source.ItemCount == 1 &&
@@ -61,14 +61,14 @@ namespace Systems.Inventory.Architecture
             Check("Rejected transfer leaves destination unchanged", destination.ItemCount == 2 &&
                   destination.TryGetItemAt(1, out Item stillBlocking) && ReferenceEquals(stillBlocking, blocker));
 
-            bool localMove = source.TryMove(rejectedItem.Id, 3, out _);
+            bool localMove = source.Move(rejectedItem.Id, 3).Success;
             Check("Same-collection move succeeds", localMove && source.TryGetItemAt(3, out Item moved) &&
                   ReferenceEquals(moved, rejectedItem));
             int countBeforeNoOp = source.ItemCount;
-            bool sameSlotMove = source.TryMove(rejectedItem.Id, 3, out _);
+            bool sameSlotMove = source.Move(rejectedItem.Id, 3).Success;
             Check("Moving to the same slot is a safe no-op", sameSlotMove && source.ItemCount == countBeforeNoOp);
 
-            InventoryTransferResult sameInventory = service.TryTransfer(source, source, rejectedItem.Id);
+            InventoryTransferResult sameInventory = service.Transfer(source, source, rejectedItem.Id);
             Check("Cross-transfer service rejects same-inventory transfer", !sameInventory.Success &&
                   sameInventory.Failure == InventoryTransferFailure.SameInventory);
 
@@ -86,8 +86,8 @@ namespace Systems.Inventory.Architecture
             var maskedSource = new CollectionInventoryModel(SerializableGuid.NewGuid(),
                 "Masked Grid Source", 2);
             Item maskedTransferItem = testItemDefinition.Create(1);
-            maskedSource.TryAddAt(maskedTransferItem, 0, out _);
-            InventoryTransferResult maskedTransfer = service.TryTransferAt(
+            maskedSource.AddAt(maskedTransferItem, 0);
+            InventoryTransferResult maskedTransfer = service.TransferAt(
                 maskedSource, maskedGrid, maskedTransferItem.Id, 8);
             Check("Transfer to a valid later-row cell succeeds when its index exceeds usable-cell capacity",
                 maskedTransfer.Success && maskedGrid.TryGetItemAtCell(0, 2, out Item maskedReceived) &&
@@ -95,7 +95,7 @@ namespace Systems.Inventory.Architecture
 
             var fullDestination = new CollectionInventoryModel(SerializableGuid.NewGuid(), "Full Destination", 1,
                 new[] { secondTestItemDefinition.Create(1) });
-            InventoryTransferResult full = service.TryTransfer(source, fullDestination, rejectedItem.Id);
+            InventoryTransferResult full = service.Transfer(source, fullDestination, rejectedItem.Id);
             Check("Full destination rejects transfer", !full.Success);
             Check("Full-destination rejection does not lose the item", source.TryGetItem(rejectedItem.Id, out _));
 

@@ -26,7 +26,7 @@ namespace Systems.Inventory.Architecture
             {
                 var grid = new GridInventoryModel(SerializableGuid.NewGuid(), "Shape Test Grid", 6, 5);
                 Item lShape = lShapeDefinition.Create(1);
-                bool added = grid.TryAddAt(lShape, 1, 1, 0, out _);
+                bool added = grid.AddAt(lShape, 1, 1, 0).Success;
                 bool occupiedCellsFound = grid.TryGetItemAtCell(1, 1, out Item topLeft) && topLeft.Id == lShape.Id &&
                     grid.TryGetItemAtCell(1, 2, out Item bottomLeft) && bottomLeft.Id == lShape.Id &&
                     grid.TryGetItemAtCell(2, 2, out Item bottomRight) && bottomRight.Id == lShape.Id;
@@ -34,7 +34,7 @@ namespace Systems.Inventory.Architecture
                 Check("L-shaped item reserves only its painted cells", added && occupiedCellsFound && emptyCellAvailable);
 
                 Item single = singleDefinition.Create(1);
-                bool fitsInNotch = grid.TryAddAt(single, 2, 1, 0, out _);
+                bool fitsInNotch = grid.AddAt(single, 2, 1, 0).Success;
                 Item overlapProbe = singleDefinition.Create(1);
                 bool occupiedCellBlocked = !grid.CanPlaceAt(overlapProbe, 1, 1, 0, out _);
                 Check("Another item can occupy an empty cell inside the shape's bounding rectangle", fitsInNotch);
@@ -42,7 +42,7 @@ namespace Systems.Inventory.Architecture
 
                 var rotatedGrid = new GridInventoryModel(SerializableGuid.NewGuid(), "Rotated Shape Grid", 5, 5);
                 Item rotated = lShapeDefinition.Create(1);
-                bool rotatedAdded = rotatedGrid.TryAddAt(rotated, 1, 1, 1, out _);
+                bool rotatedAdded = rotatedGrid.AddAt(rotated, 1, 1, 1).Success;
                 bool clockwiseMask = rotatedAdded &&
                     rotatedGrid.TryGetItemAtCell(1, 1, out _) &&
                     rotatedGrid.TryGetItemAtCell(2, 1, out _) &&
@@ -51,12 +51,12 @@ namespace Systems.Inventory.Architecture
                 Check("Clockwise rotation rotates occupied cells, not just the bounding box", clockwiseMask);
 
                 Item notchOccupant = singleDefinition.Create(1);
-                bool rotatedNotchAvailable = rotatedGrid.TryAddAt(notchOccupant, 2, 2, 0, out _);
+                bool rotatedNotchAvailable = rotatedGrid.AddAt(notchOccupant, 2, 2, 0).Success;
                 Check("90-degree shape leaves its rotated empty cell available", rotatedNotchAvailable);
 
                 var halfTurnGrid = new GridInventoryModel(SerializableGuid.NewGuid(), "Half Turn Grid", 5, 5);
                 Item halfTurn = lShapeDefinition.Create(1);
-                bool halfTurnAdded = halfTurnGrid.TryAddAt(halfTurn, 1, 1, 2, out _);
+                bool halfTurnAdded = halfTurnGrid.AddAt(halfTurn, 1, 1, 2).Success;
                 bool halfTurnMask = halfTurnAdded && halfTurnGrid.TryGetItemAtCell(1, 1, out _) &&
                     halfTurnGrid.TryGetItemAtCell(2, 1, out _) && halfTurnGrid.TryGetItemAtCell(2, 2, out _) &&
                     !halfTurnGrid.TryGetItemAtCell(1, 2, out _);
@@ -64,7 +64,7 @@ namespace Systems.Inventory.Architecture
 
                 var threeQuarterGrid = new GridInventoryModel(SerializableGuid.NewGuid(), "Three Quarter Grid", 5, 5);
                 Item threeQuarter = lShapeDefinition.Create(1);
-                bool threeQuarterAdded = threeQuarterGrid.TryAddAt(threeQuarter, 1, 1, 3, out _);
+                bool threeQuarterAdded = threeQuarterGrid.AddAt(threeQuarter, 1, 1, 3).Success;
                 bool threeQuarterMask = threeQuarterAdded && threeQuarterGrid.TryGetItemAtCell(1, 2, out _) &&
                     threeQuarterGrid.TryGetItemAtCell(2, 2, out _) && threeQuarterGrid.TryGetItemAtCell(2, 1, out _) &&
                     !threeQuarterGrid.TryGetItemAtCell(1, 1, out _);

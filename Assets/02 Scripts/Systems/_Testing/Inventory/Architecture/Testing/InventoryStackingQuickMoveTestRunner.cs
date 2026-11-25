@@ -32,8 +32,8 @@ namespace Systems.Inventory.Architecture
                 var secondDestination = new CollectionInventoryModel(SerializableGuid.NewGuid(), "Fallback Destination", 2);
                 Item sourceStack = potionDefinition.Create(10);
                 Item partialStack = potionDefinition.Create(8);
-                firstDestination.TryAddAt(partialStack, 0, out _);
-                source.TryAddAt(sourceStack, 0, out _);
+                firstDestination.AddAt(partialStack, 0);
+                source.AddAt(sourceStack, 0);
 
                 InventoryQuickMoveResult partialMove = new InventoryQuickMoveService().QuickMove(source,
                     sourceStack.Id, new IInventoryModel[] { firstDestination, secondDestination });
@@ -46,8 +46,8 @@ namespace Systems.Inventory.Architecture
                 var mismatchDestination = new CollectionInventoryModel(SerializableGuid.NewGuid(), "Mismatch Destination", 2);
                 Item mismatchItem = potionDefinition.Create(4);
                 Item otherStack = otherDefinition.Create(6);
-                mismatchSource.TryAddAt(mismatchItem, 0, out _);
-                mismatchDestination.TryAddAt(otherStack, 0, out _);
+                mismatchSource.AddAt(mismatchItem, 0);
+                mismatchDestination.AddAt(otherStack, 0);
                 InventoryQuickMoveResult mismatchMove = new InventoryQuickMoveService().QuickMove(mismatchSource,
                     mismatchItem.Id, new IInventoryModel[] { mismatchDestination });
                 Check("Different item definitions never merge", mismatchMove.Success && mismatchDestination.ItemCount == 2 && otherStack.quantity == 6);
@@ -55,8 +55,8 @@ namespace Systems.Inventory.Architecture
                 var fullSource = new CollectionInventoryModel(SerializableGuid.NewGuid(), "Full Source", 2);
                 var fullDestination = new CollectionInventoryModel(SerializableGuid.NewGuid(), "Full Destination", 1);
                 Item retained = potionDefinition.Create(3);
-                fullSource.TryAddAt(retained, 0, out _);
-                fullDestination.TryAddAt(otherDefinition.Create(10), 0, out _);
+                fullSource.AddAt(retained, 0);
+                fullDestination.AddAt(otherDefinition.Create(10), 0);
                 InventoryQuickMoveResult blockedMove = new InventoryQuickMoveService().QuickMove(fullSource,
                     retained.Id, new IInventoryModel[] { fullDestination });
                 Check("A full incompatible destination leaves the source untouched", !blockedMove.Success &&
@@ -67,7 +67,7 @@ namespace Systems.Inventory.Architecture
                 var helmetSource = new CollectionInventoryModel(SerializableGuid.NewGuid(), "Helmet Source", 2);
                 Item helmet = helmetDefinition.Create(1);
                 helmet.details.equipmentType = EquipmentType.Head;
-                helmetSource.TryAddAt(helmet, 0, out _);
+                helmetSource.AddAt(helmet, 0);
                 InventoryQuickMoveResult equipmentMove = new InventoryQuickMoveService().QuickMove(helmetSource,
                     helmet.Id, new IInventoryModel[] { equipment });
                 Check("Compatible equipment can be quick-moved into its equipment slot", equipmentMove.Success &&
@@ -77,39 +77,39 @@ namespace Systems.Inventory.Architecture
                 var mergeDestination = new CollectionInventoryModel(SerializableGuid.NewGuid(), "Merge Destination", 2);
                 Item dragSource = potionDefinition.Create(5);
                 Item dragTarget = potionDefinition.Create(7);
-                mergeSource.TryAddAt(dragSource, 0, out _);
-                mergeDestination.TryAddAt(dragTarget, 0, out _);
-                InventoryQuickMoveResult directMerge = new InventoryQuickMoveService().TryMergeInto(
+                mergeSource.AddAt(dragSource, 0);
+                mergeDestination.AddAt(dragTarget, 0);
+                InventoryQuickMoveResult directMerge = new InventoryQuickMoveService().MergeInto(
                     mergeSource, mergeDestination, dragSource.Id, dragTarget.Id);
                 Check("Direct stack merge respects the maximum and leaves the remainder in the source", directMerge.MovedQuantity == 3 &&
                     dragTarget.quantity == 10 && mergeSource.TryGetItem(dragSource.Id, out Item remainder) && remainder.quantity == 2);
 
-                var legacyMergeSource = new CollectionInventoryModel(SerializableGuid.NewGuid(), "Legacy Merge Source", 1);
-                var legacyMergeDestination = new CollectionInventoryModel(SerializableGuid.NewGuid(), "Legacy Merge Destination", 1);
+                var partialMergeSource = new CollectionInventoryModel(SerializableGuid.NewGuid(), "Legacy Merge Source", 1);
+                var partialMergeDestination = new CollectionInventoryModel(SerializableGuid.NewGuid(), "Legacy Merge Destination", 1);
                 Item legacyOriginalStack = potionDefinition.Create(4);
                 // Simulate a previously serialized runtime item whose cached definition ID is stale.
                 legacyOriginalStack.detailsId = SerializableGuid.Empty;
                 Item newlyCreatedStack = potionDefinition.Create(3);
-                legacyMergeSource.TryAddAt(newlyCreatedStack, 0, out _);
-                legacyMergeDestination.TryAddAt(legacyOriginalStack, 0, out _);
-                InventoryQuickMoveResult legacyMerge = new InventoryQuickMoveService().TryMergeInto(
-                    legacyMergeSource, legacyMergeDestination, newlyCreatedStack.Id, legacyOriginalStack.Id);
+                partialMergeSource.AddAt(newlyCreatedStack, 0);
+                partialMergeDestination.AddAt(legacyOriginalStack, 0);
+                InventoryQuickMoveResult partialMerge = new InventoryQuickMoveService().MergeInto(
+                    partialMergeSource, partialMergeDestination, newlyCreatedStack.Id, legacyOriginalStack.Id);
                 Check("Existing stacks still accept matching items when their cached definition ID is stale",
-                    legacyMerge.MovedQuantity == 3 && legacyOriginalStack.quantity == 7 &&
-                    !legacyMergeSource.TryGetItem(newlyCreatedStack.Id, out _));
+                    partialMerge.MovedQuantity == 3 && legacyOriginalStack.quantity == 7 &&
+                    !partialMergeSource.TryGetItem(newlyCreatedStack.Id, out _));
 
                 var rotationGrid = new GridInventoryModel(SerializableGuid.NewGuid(), "Rotation Grid", 8, 8);
                 Item rotatingItem = longItemDefinition.Create(1);
-                bool rotationAdded = rotationGrid.TryAddAt(rotatingItem, 0, 0, 0, out _);
+                bool rotationAdded = rotationGrid.AddAt(rotatingItem, 0, 0, 0).Success;
                 bool rotation0 = rotationAdded && rotationGrid.TryGetPlacement(rotatingItem.Id, out GridItemPlacement at0) &&
                     at0.RotationQuarterTurns == 0 && at0.RotationDegrees == 0 && at0.Width == 2 && at0.Height == 3;
-                bool rotation1 = rotationGrid.TryMoveTo(rotatingItem.Id, 4, 0, 1, out _) &&
+                bool rotation1 = rotationGrid.MoveTo(rotatingItem.Id, 4, 0, 1).Success &&
                     rotationGrid.TryGetPlacement(rotatingItem.Id, out GridItemPlacement at1) &&
                     at1.RotationQuarterTurns == 1 && at1.RotationDegrees == 90 && at1.Width == 3 && at1.Height == 2;
-                bool rotation2 = rotationGrid.TryMoveTo(rotatingItem.Id, 0, 4, 2, out _) &&
+                bool rotation2 = rotationGrid.MoveTo(rotatingItem.Id, 0, 4, 2).Success &&
                     rotationGrid.TryGetPlacement(rotatingItem.Id, out GridItemPlacement at2) &&
                     at2.RotationQuarterTurns == 2 && at2.RotationDegrees == 180 && at2.Width == 2 && at2.Height == 3;
-                bool rotation3 = rotationGrid.TryMoveTo(rotatingItem.Id, 4, 4, 3, out _) &&
+                bool rotation3 = rotationGrid.MoveTo(rotatingItem.Id, 4, 4, 3).Success &&
                     rotationGrid.TryGetPlacement(rotatingItem.Id, out GridItemPlacement at3) &&
                     at3.RotationQuarterTurns == 3 && at3.RotationDegrees == 270 && at3.Width == 3 && at3.Height == 2;
                 Check("Grid model stores all four rotation states and swaps footprint only at 90/270 degrees",

@@ -13,9 +13,19 @@ MonoBehaviour:
   m_Name: TestItem2
   m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.ItemDetails
   Name: Test2
+  category: 0
+  equipmentType: 0
+  Actions: []
+  TooltipSections: []
+  LabelStyle: {fileID: 0}
+  EquipmentEffects: []
   maxStack: 5
   GridWidth: 2
   GridHeight: 3
+  UseCustomShape: 0
+  ShapeCells: 010101010101
+  DragPivot: {x: 0.5, y: 0.5}
+  OutlineStyle: {fileID: 0}
   Id:
     Part1: 2847457031
     Part2: 1083017128

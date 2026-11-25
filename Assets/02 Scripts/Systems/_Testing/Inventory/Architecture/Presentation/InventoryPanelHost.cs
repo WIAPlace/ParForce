@@ -91,36 +91,28 @@ namespace Systems.Inventory.Architecture
         /// Adds an existing runtime item to the retained model, whether or not its panel is open.
         /// No UI elements are accessed; reopening the panel renders the latest model contents.
         /// </summary>
-        public bool TryAddItem(Item item, out InventoryOperationFailure failure)
+        public InventoryOperationResult AddItem(Item item)
         {
             if (Model == null)
-            {
-                failure = InventoryOperationFailure.InvalidItem;
-                return false;
-            }
-            return Model.TryAdd(item, out failure);
+                return InventoryOperationResult.Failed(SerializableGuid.Empty,
+                    InventoryOperationKind.Add, item != null ? item.quantity : 0,
+                    InventoryOperationFailure.InventoryUnavailable);
+            return Model.Add(item);
         }
 
         /// <summary>
         /// Creates an item instance from a definition and adds it to the retained model,
-        /// whether or not its panel is currently displayed.
+        /// whether or not its panel is currently displayed. The result exposes AddedItem
+        /// when the operation succeeds.
         /// </summary>
-        public bool TryAddItem(ItemDetails details, int quantity, out Item createdItem,
-            out InventoryOperationFailure failure)
+        public InventoryOperationResult AddItem(ItemDetails details, int quantity)
         {
-            createdItem = null;
             if (details == null || quantity < 1)
-            {
-                failure = details == null ? InventoryOperationFailure.InvalidItem : InventoryOperationFailure.InvalidQuantity;
-                return false;
-            }
+                return InventoryOperationResult.Failed(Model != null ? Model.Id : SerializableGuid.Empty,
+                    InventoryOperationKind.Add, quantity,
+                    details == null ? InventoryOperationFailure.InvalidItem : InventoryOperationFailure.InvalidQuantity);
 
-            Item item = details.Create(quantity);
-            if (!TryAddItem(item, out failure))
-                return false;
-
-            createdItem = item;
-            return true;
+            return AddItem(details.Create(quantity));
         }
 
         /// <summary>Changes the visual theme/references without changing the bound model.</summary>
@@ -157,8 +149,9 @@ namespace Systems.Inventory.Architecture
                 var equipmentModel = new EquipmentInventoryModel(inventoryId, displayName, equipmentSlotLayout.Slots);
                 foreach (Item item in runtimeItems)
                 {
-                    if (!equipmentModel.TryAdd(item, out InventoryOperationFailure failure))
-                        Debug.LogWarning($"{name}: Starting item '{item.details?.name}' could not be equipped: {failure}.", this);
+                    InventoryOperationResult addResult = equipmentModel.Add(item);
+                    if (!addResult.Success)
+                        Debug.LogWarning($"{name}: Starting item '{item.details?.name}' could not be equipped: {addResult.Failure}.", this);
                 }
                 return equipmentModel;
             }

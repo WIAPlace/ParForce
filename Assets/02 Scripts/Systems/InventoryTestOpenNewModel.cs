@@ -56,11 +56,12 @@ public class InventoryTestOpenNewModel : MonoBehaviour
     }
     private void JumpTest()
     {
+        /*
         hostPanel.TryAddItem(
             rewardItem,
             out InventoryOperationFailure failure
         );
-        //Debug.Log(failure);
+        *///Debug.Log(failure);
     }
     private void HandleItemDropped(Item item, InventoryPanelView view)
     {

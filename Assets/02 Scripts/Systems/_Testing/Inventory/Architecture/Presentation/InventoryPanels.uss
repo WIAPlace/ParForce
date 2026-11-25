@@ -252,3 +252,18 @@
     background-color: rgba(225, 55, 55, 0.34);
     border-color: rgb(255, 90, 90);
 }
+
+
+/* Tooltip text defaults to white; per-item label styles may override the title. */
+.inventoryItemTooltip {
+    color: rgb(255, 255, 255);
+}
+
+.inventoryItemTooltip Label {
+    color: rgb(255, 255, 255);
+}
+
+/* Grid item cells touch edge-to-edge; the view draws only exposed silhouette edges on hover. */
+.gridItemOccupiedCell {
+    border-width: 1px;
+}

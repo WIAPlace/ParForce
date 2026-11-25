@@ -34,14 +34,14 @@ namespace Systems.Inventory.Architecture
                     int amount = Math.Min(room, sourceItem.quantity);
                     if (amount <= 0) continue;
                     int oldTargetQuantity = target.quantity;
-                    if (!destination.TrySetQuantity(target.Id, oldTargetQuantity + amount, out _)) continue;
+                    if (!destination.SetQuantity(target.Id, oldTargetQuantity + amount).Success) continue;
                     int remaining = sourceItem.quantity - amount;
                     bool sourceUpdated = remaining == 0
-                        ? source.TryRemove(itemId, out _, out _)
-                        : source.TrySetQuantity(itemId, remaining, out _);
+                        ? source.Remove(itemId).Success
+                        : source.SetQuantity(itemId, remaining).Success;
                     if (!sourceUpdated)
                     {
-                        destination.TrySetQuantity(target.Id, oldTargetQuantity, out _);
+                        destination.SetQuantity(target.Id, oldTargetQuantity);
                         continue;
                     }
                     moved += amount;
@@ -70,8 +70,10 @@ namespace Systems.Inventory.Architecture
                 if (movingOriginal)
                 {
                     if (!destination.CanAccept(sourceItem, out _)) continue;
-                    if (!source.TryRemove(itemId, out addition, out _)) continue;
-                    if (!destination.TryAdd(addition, out _))
+                    InventoryOperationResult removeResult = source.Remove(itemId);
+                    if (!removeResult.Success) continue;
+                    addition = removeResult.RemovedItem;
+                    if (addition == null || !destination.Add(addition).Success)
                     {
                         if (!RestoreSource(source, addition, hadGridPlacement, originalPlacement,
                             hadSlot, originalSlot, hadEquipmentSlot, originalEquipmentSlot))
@@ -83,11 +85,11 @@ namespace Systems.Inventory.Architecture
                 else
                 {
                     addition = new Item(sourceItem.details, stackAmount);
-                    if (!destination.CanAccept(addition, out _) || !destination.TryAdd(addition, out _))
+                    if (!destination.CanAccept(addition, out _) || !destination.Add(addition).Success)
                         continue;
-                    if (!source.TrySetQuantity(itemId, sourceItem.quantity - stackAmount, out _))
+                    if (!source.SetQuantity(itemId, sourceItem.quantity - stackAmount).Success)
                     {
-                        destination.TryRemove(addition.Id, out _, out _);
+                        destination.Remove(addition.Id);
                         continue;
                     }
                 }
@@ -100,7 +102,7 @@ namespace Systems.Inventory.Architecture
         }
 
         /// <summary>Merges a dragged stack into the stack directly under the pointer; never creates another slot.</summary>
-        public InventoryQuickMoveResult TryMergeInto(IInventoryModel source, IInventoryModel destination,
+        public InventoryQuickMoveResult MergeInto(IInventoryModel source, IInventoryModel destination,
             SerializableGuid sourceItemId, SerializableGuid targetItemId)
         {
             if (source == null || destination == null || source.Id == destination.Id && sourceItemId == targetItemId ||
@@ -113,16 +115,16 @@ namespace Systems.Inventory.Architecture
             int room = targetItem.details.maxStack - originalTargetQuantity;
             int amount = Math.Min(Math.Max(0, room), sourceItem.quantity);
             if (amount <= 0) return new InventoryQuickMoveResult(0, sourceItem.quantity, "The target stack is already full.");
-            if (!destination.TrySetQuantity(targetItemId, originalTargetQuantity + amount, out _))
+            if (!destination.SetQuantity(targetItemId, originalTargetQuantity + amount).Success)
                 return new InventoryQuickMoveResult(0, sourceItem.quantity, "The target stack rejected the quantity change.");
 
             int remaining = sourceItem.quantity - amount;
             bool sourceUpdated = remaining == 0
-                ? source.TryRemove(sourceItemId, out _, out _)
-                : source.TrySetQuantity(sourceItemId, remaining, out _);
+                ? source.Remove(sourceItemId).Success
+                : source.SetQuantity(sourceItemId, remaining).Success;
             if (!sourceUpdated)
             {
-                destination.TrySetQuantity(targetItemId, originalTargetQuantity, out _);
+                destination.SetQuantity(targetItemId, originalTargetQuantity);
                 return new InventoryQuickMoveResult(0, sourceItem.quantity, "The source stack could not be updated; the merge was rolled back.");
             }
             return new InventoryQuickMoveResult(amount, remaining, "Merged " + amount + " item(s) into the target stack.");
@@ -154,12 +156,12 @@ namespace Systems.Inventory.Architecture
             GridItemPlacement placement, bool hadSlot, int slot, bool hadEquipmentSlot, string equipmentSlot)
         {
             if (hadGridPlacement && source is IGridInventoryModel grid)
-                return grid.TryAddAt(item, placement.X, placement.Y, placement.RotationQuarterTurns, out _);
+                return grid.AddAt(item, placement.X, placement.Y, placement.RotationQuarterTurns).Success;
             if (hadEquipmentSlot && source is IEquipmentInventoryModel equipment)
-                return equipment.TryAddAt(item, equipmentSlot, out _);
+                return equipment.AddAt(item, equipmentSlot).Success;
             if (hadSlot && source is ISlotInventoryModel slots)
-                return slots.TryAddAt(item, slot, out _);
-            return source.TryAdd(item, out _);
+                return slots.AddAt(item, slot).Success;
+            return source.Add(item).Success;
         }
     }
 

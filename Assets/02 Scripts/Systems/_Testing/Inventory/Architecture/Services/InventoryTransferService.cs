@@ -32,7 +32,7 @@ namespace Systems.Inventory.Architecture
         /// before the source is changed. If adding unexpectedly fails after
         /// removal, the service attempts to restore the item to the source.
         /// </summary>
-        public InventoryTransferResult TryTransfer(
+        public InventoryTransferResult Transfer(
             IInventoryModel source,
             IInventoryModel destination,
             SerializableGuid itemInstanceId)
@@ -51,24 +51,28 @@ namespace Systems.Inventory.Architecture
             string originalEquipmentSlot = null;
             bool hadEquipmentSlot = sourceEquipment != null && sourceEquipment.TryGetSlotOf(itemInstanceId, out originalEquipmentSlot);
 
-            Item removedItem;
-            if (!source.TryRemove(itemInstanceId, out removedItem, out operationFailure))
+            InventoryOperationResult removal = source.Remove(itemInstanceId);
+            if (!removal.Success || removal.RemovedItem == null)
                 return CreateResult(false, false,
-                    InventoryTransferFailure.SourceRemovalFailed, operationFailure,
+                    InventoryTransferFailure.SourceRemovalFailed, removal.Failure,
                     source, destination, itemInstanceId,
                     "The source inventory could not remove the item.");
+            Item removedItem = removal.RemovedItem;
 
-            if (destination.TryAdd(removedItem, out operationFailure))
+            InventoryOperationResult addition = destination.Add(removedItem);
+            if (addition.Success)
                 return CreateResult(true, false, InventoryTransferFailure.None,
                     InventoryOperationFailure.None, source, destination,
                     itemInstanceId, "Item transferred successfully.");
+            operationFailure = addition.Failure;
 
             // A custom model may reject an item after CanAccept previously
             // succeeded. Restore the exact same instance to prevent item loss.
-            InventoryOperationFailure rollbackFailure;
-            bool restored = hadEquipmentSlot
-                ? sourceEquipment.TryAddAt(removedItem, originalEquipmentSlot, out rollbackFailure)
-                : source.TryAdd(removedItem, out rollbackFailure);
+            InventoryOperationResult rollback = hadEquipmentSlot
+                ? sourceEquipment.AddAt(removedItem, originalEquipmentSlot)
+                : source.Add(removedItem);
+            InventoryOperationFailure rollbackFailure = rollback.Failure;
+            bool restored = rollback.Success;
             if (restored)
                 return CreateResult(false, false,
                     InventoryTransferFailure.DestinationAddFailed, operationFailure,
@@ -86,21 +90,21 @@ namespace Systems.Inventory.Architecture
         /// cell. The source placement is captured so a failed destination add
         /// can restore the item to its original location.
         /// </summary>
-        public InventoryTransferResult TryTransferAt(
+        public InventoryTransferResult TransferAt(
             IInventoryModel source,
             IInventoryModel destination,
             SerializableGuid itemInstanceId,
             int destinationIndex)
         {
-            return TryTransferAt(source, destination, itemInstanceId, destinationIndex, false);
+            return TransferAt(source, destination, itemInstanceId, destinationIndex, false);
         }
 
-        public InventoryTransferResult TryTransferAt(
+        public InventoryTransferResult TransferAt(
             IInventoryModel source, IInventoryModel destination, SerializableGuid itemInstanceId,
             int destinationIndex, bool rotated) =>
-            TryTransferAt(source, destination, itemInstanceId, destinationIndex, rotated ? 1 : 0);
+            TransferAt(source, destination, itemInstanceId, destinationIndex, rotated ? 1 : 0);
 
-        public InventoryTransferResult TryTransferAt(
+        public InventoryTransferResult TransferAt(
             IInventoryModel source,
             IInventoryModel destination,
             SerializableGuid itemInstanceId,
@@ -108,7 +112,7 @@ namespace Systems.Inventory.Architecture
             int rotationQuarterTurns)
         {
             if (source == null || destination == null)
-                return TryTransfer(source, destination, itemInstanceId);
+                return Transfer(source, destination, itemInstanceId);
 
             if (source.Id == destination.Id)
                 return CreateResult(false, false, InventoryTransferFailure.SameInventory,
@@ -169,14 +173,18 @@ namespace Systems.Inventory.Architecture
                     "The destination does not support targeted placement.");
             }
 
-            if (!source.TryRemove(itemInstanceId, out Item removed, out operationFailure))
+            InventoryOperationResult removal = source.Remove(itemInstanceId);
+            if (!removal.Success || removal.RemovedItem == null)
                 return CreateResult(false, false, InventoryTransferFailure.SourceRemovalFailed,
-                    operationFailure, source, destination, itemInstanceId,
+                    removal.Failure, source, destination, itemInstanceId,
                     "The source inventory could not remove the item.");
+            Item removed = removal.RemovedItem;
 
-            bool added = destinationGrid != null
-                ? destinationGrid.TryAddAt(removed, gridX, gridY, rotationQuarterTurns, out operationFailure)
-                : destinationSlots.TryAddAt(removed, destinationIndex, out operationFailure);
+            InventoryOperationResult addition = destinationGrid != null
+                ? destinationGrid.AddAt(removed, gridX, gridY, rotationQuarterTurns)
+                : destinationSlots.AddAt(removed, destinationIndex);
+            bool added = addition.Success;
+            operationFailure = addition.Failure;
 
             if (added)
                 return CreateResult(true, false, InventoryTransferFailure.None,
@@ -186,15 +194,18 @@ namespace Systems.Inventory.Architecture
 
             bool restored = false;
             InventoryOperationFailure rollbackFailure = InventoryOperationFailure.None;
+            InventoryOperationResult rollback;
             if (hadGridPlacement && sourceGrid != null)
-                restored = sourceGrid.TryAddAt(removed, originalPlacement.X, originalPlacement.Y,
-                    originalPlacement.RotationQuarterTurns, out rollbackFailure);
+                rollback = sourceGrid.AddAt(removed, originalPlacement.X, originalPlacement.Y,
+                    originalPlacement.RotationQuarterTurns);
             else if (hadEquipmentSlot && sourceEquipment != null)
-                restored = sourceEquipment.TryAddAt(removed, originalEquipmentSlot, out rollbackFailure);
+                rollback = sourceEquipment.AddAt(removed, originalEquipmentSlot);
             else if (hadSlot && sourceSlots != null)
-                restored = sourceSlots.TryAddAt(removed, originalSlot, out rollbackFailure);
+                rollback = sourceSlots.AddAt(removed, originalSlot);
             else
-                restored = source.TryAdd(removed, out rollbackFailure);
+                rollback = source.Add(removed);
+            restored = rollback.Success;
+            rollbackFailure = rollback.Failure;
 
             return CreateResult(false, false,
                 restored ? InventoryTransferFailure.DestinationAddFailed : InventoryTransferFailure.RollbackFailed,
@@ -225,7 +236,7 @@ namespace Systems.Inventory.Architecture
         }
 
         /// <summary>Transfers an item to a named equipment slot and restores its original source placement on failure.</summary>
-        public InventoryTransferResult TryTransferToEquipmentSlot(
+        public InventoryTransferResult TransferToEquipmentSlot(
             IInventoryModel source, IEquipmentInventoryModel destination,
             SerializableGuid itemInstanceId, string destinationSlotId)
         {
@@ -244,24 +255,29 @@ namespace Systems.Inventory.Architecture
             bool hadSlot = sourceSlots != null && sourceSlots.TryGetSlotOf(itemInstanceId, out originalSlot);
             bool hadGridPlacement = sourceGrid != null && sourceGrid.TryGetPlacement(itemInstanceId, out originalPlacement);
 
-            if (!source.TryRemove(itemInstanceId, out Item removed, out InventoryOperationFailure failure))
-                return CreateResult(false, false, InventoryTransferFailure.SourceRemovalFailed, failure,
+            InventoryOperationResult removal = source.Remove(itemInstanceId);
+            if (!removal.Success || removal.RemovedItem == null)
+                return CreateResult(false, false, InventoryTransferFailure.SourceRemovalFailed, removal.Failure,
                     source, destination, itemInstanceId, "The source inventory could not remove the item.");
+            Item removed = removal.RemovedItem;
 
-            if (destination.TryAddAt(removed, destinationSlotId, out failure))
+            InventoryOperationResult addition = destination.AddAt(removed, destinationSlotId);
+            if (addition.Success)
                 return CreateResult(true, false, InventoryTransferFailure.None, InventoryOperationFailure.None,
                     source, destination, itemInstanceId, "Item equipped in slot '" + destinationSlotId + "'.");
+            InventoryOperationFailure failure = addition.Failure;
 
-            bool restored;
-            InventoryOperationFailure rollbackFailure;
+            InventoryOperationResult rollback;
             if (hadGridPlacement && sourceGrid != null)
-                restored = sourceGrid.TryAddAt(removed, originalPlacement.X, originalPlacement.Y, originalPlacement.RotationQuarterTurns, out rollbackFailure);
+                rollback = sourceGrid.AddAt(removed, originalPlacement.X, originalPlacement.Y, originalPlacement.RotationQuarterTurns);
             else if (hadEquipmentSlot && sourceEquipment != null)
-                restored = sourceEquipment.TryAddAt(removed, originalEquipmentSlot, out rollbackFailure);
+                rollback = sourceEquipment.AddAt(removed, originalEquipmentSlot);
             else if (hadSlot && sourceSlots != null)
-                restored = sourceSlots.TryAddAt(removed, originalSlot, out rollbackFailure);
+                rollback = sourceSlots.AddAt(removed, originalSlot);
             else
-                restored = source.TryAdd(removed, out rollbackFailure);
+                rollback = source.Add(removed);
+            bool restored = rollback.Success;
+            InventoryOperationFailure rollbackFailure = rollback.Failure;
 
             return CreateResult(false, false,
                 restored ? InventoryTransferFailure.DestinationAddFailed : InventoryTransferFailure.RollbackFailed,

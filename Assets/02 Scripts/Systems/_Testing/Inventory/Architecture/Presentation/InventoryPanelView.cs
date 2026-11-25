@@ -13,12 +13,27 @@ namespace Systems.Inventory.Architecture
         [SerializeField, Tooltip("Panel position as percentages of the shared canvas: X is left-to-right, Y is top-to-bottom.")] private Vector2 panelPositionPercent = new Vector2(4f, 4f);
         [Header("Quick Move")]
         [SerializeField, Min(0), Tooltip("Higher-priority destination panels are checked first when shift-clicking an item.")] private int quickMovePriority = 1;
+        [Header("Item Tooltips")]
+        [SerializeField, Min(0f), Tooltip("How long the pointer must remain over an item before its tooltip appears.")] private float tooltipDelay = 0.55f;
+        [SerializeField, Min(0f)] private float tooltipOffset = 18f;
+        [SerializeField, Min(120f)] private float tooltipMaxWidth = 280f;
+        [SerializeField] private StyleSheet tooltipStyleSheet;
+        [Header("Item Hover Outline")]
+        [SerializeField] private Color hoverOutlineColor = new Color(0.92f, 0.82f, 0.42f, 1f);
+        [SerializeField, Min(1f)] private float hoverOutlineWidth = 2f;
 
         private InventoryPanelSession session;
         private VisualElement root;
         private VisualElement panel;
         private VisualElement slotsContainer;
         private VisualElement placementPreview;
+        private VisualElement activeContextMenu;
+        private VisualElement activeTooltip;
+        private IVisualElementScheduledItem tooltipShowSchedule;
+        private Item hoveredTooltipItem;
+        private int hoveredTooltipRotation;
+        private Vector2 lastTooltipPointerPosition;
+        private readonly List<VisualElement> hoveredOutlineCells = new List<VisualElement>();
         private readonly List<VisualElement> slotElements = new List<VisualElement>();
         private readonly List<VisualElement> itemElements = new List<VisualElement>();
         // Model changes rebuild the visual tree. Keep drag state by item ID so a
@@ -72,6 +87,7 @@ namespace Systems.Inventory.Architecture
             panel.Add(slotsContainer);
 
             root.RegisterCallback<GeometryChangedEvent>(OnRootGeometryChanged);
+            root.RegisterCallback<PointerDownEvent>(OnRootPointerDownForContextMenu, TrickleDown.TrickleDown);
             attached = true;
         }
 
@@ -104,7 +120,10 @@ namespace Systems.Inventory.Architecture
         {
             if (panel == null) return;
             if (!visible)
+            {
+                HideItemTooltip();
                 CancelActiveDrag();
+            }
             panel.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
@@ -128,6 +147,21 @@ namespace Systems.Inventory.Architecture
                 ? null
                 : blocked ? currentAppearance.BlockedCellBackground : currentAppearance.SlotBackground;
             SetSpriteBackground(slot, sprite);
+            ApplyDefaultObjectBorder(slot, 1f);
+        }
+
+        private void ApplyDefaultObjectBorder(VisualElement element, float width)
+        {
+            if (element == null) return;
+            Color color = canvas != null ? canvas.DefaultObjectBorderColor : new Color(0.74f, 0.82f, 0.92f, 0.35f);
+            element.style.borderTopWidth = width;
+            element.style.borderBottomWidth = width;
+            element.style.borderLeftWidth = width;
+            element.style.borderRightWidth = width;
+            element.style.borderTopColor = color;
+            element.style.borderBottomColor = color;
+            element.style.borderLeftColor = color;
+            element.style.borderRightColor = color;
         }
 
         public void SetHeader(string displayName)
@@ -152,9 +186,11 @@ namespace Systems.Inventory.Architecture
         public void Render(IInventoryModel model)
         {
             if (!attached) Initialize();
+            HideItemTooltip();
             currentModel = model;
             panel.style.display = DisplayStyle.Flex;
             SetSpriteBackground(panel, currentAppearance != null ? currentAppearance.PanelBackground : null);
+            CloseItemActionMenu();
             slotsContainer.Clear();
             slotsContainer.RemoveFromClassList("gridSlotsContainer");
             slotsContainer.RemoveFromClassList("equipmentSlotsContainer");
@@ -286,16 +322,18 @@ namespace Systems.Inventory.Architecture
                     if (!ItemGridShape.IsOccupied(item.details, shapeX, shapeY, placement.RotationQuarterTurns)) continue;
                     var occupiedCell = new VisualElement();
                     occupiedCell.AddToClassList("gridItemOccupiedCell");
+                    occupiedCell.userData = new Vector2Int(shapeX, shapeY);
+                    ApplyDefaultObjectBorder(occupiedCell, 1f);
                     SetSpriteBackground(occupiedCell,
                         currentAppearance != null ? currentAppearance.OccupiedItemCellBackground : null);
                     occupiedCell.pickingMode = PickingMode.Position;
-                    occupiedCell.tooltip = "Drag to move. Shift-click to quick move. Right-click a stack to split it.";
                     RegisterItemPointerHandler(occupiedCell, item);
+                    RegisterItemHoverHandlers(occupiedCell, item, placement.RotationQuarterTurns);
                     occupiedCell.style.position = Position.Absolute;
                     occupiedCell.style.left = shapeX * gridCellSize;
                     occupiedCell.style.top = shapeY * gridCellSize;
-                    occupiedCell.style.width = gridCellSize - 4f;
-                    occupiedCell.style.height = gridCellSize - 4f;
+                    occupiedCell.style.width = gridCellSize;
+                    occupiedCell.style.height = gridCellSize;
                     itemElement.Insert(0, occupiedCell);
                 }
                 Image itemIcon = itemElement.Q<Image>(className: "slotIcon");
@@ -314,11 +352,12 @@ namespace Systems.Inventory.Architecture
                 }
                 itemElement.RemoveFromClassList("slotItem");
                 itemElement.AddToClassList("gridSlotItem");
+                ApplyDefaultObjectBorder(itemElement, 0f);
                 itemElement.style.position = Position.Absolute;
-                itemElement.style.left = placement.X * gridCellSize + 2f;
-                itemElement.style.top = placement.Y * gridCellSize + 2f;
-                itemElement.style.width = placement.Width * gridCellSize - 4f;
-                itemElement.style.height = placement.Height * gridCellSize - 4f;
+                itemElement.style.left = placement.X * gridCellSize;
+                itemElement.style.top = placement.Y * gridCellSize;
+                itemElement.style.width = placement.Width * gridCellSize;
+                itemElement.style.height = placement.Height * gridCellSize;
                 slotsContainer.Add(itemElement);
                 itemElements.Add(itemElement);
             }
@@ -412,6 +451,7 @@ namespace Systems.Inventory.Architecture
 
         internal void SetItemDragging(SerializableGuid itemId, bool dragging)
         {
+            if (dragging) HideItemTooltip();
             if (dragging) draggingItemIds.Add(itemId);
             else draggingItemIds.Remove(itemId);
 
@@ -433,7 +473,7 @@ namespace Systems.Inventory.Architecture
         internal void ShowDragGhost(Item item, Vector2 screenPosition, int rotationQuarterTurns)
         {
             if (item == null) return;
-            Vector2 pivot = item.details != null ? item.details.DragPivot : new Vector2(0.5f, 0.5f);
+            Vector2 pivot = item.details != null ? item.details.GetRotatedDragPivot(rotationQuarterTurns) : new Vector2(0.5f, 0.5f);
             float width = gridCellSize;
             float height = gridCellSize;
             if (currentModel is IGridInventoryModel grid && item.details != null)
@@ -449,6 +489,7 @@ namespace Systems.Inventory.Architecture
 
         public void Clear()
         {
+            HideItemTooltip();
             currentModel = null;
             slotsContainer?.Clear();
             placementPreview = null;
@@ -496,9 +537,9 @@ namespace Systems.Inventory.Architecture
             var element = new VisualElement();
             element.AddToClassList("slotItem");
             element.userData = item.Id;
+            ApplyDefaultObjectBorder(element, 1f);
             if (draggingItemIds.Contains(item.Id))
                 element.AddToClassList("inventory-item-dragging");
-            element.tooltip = "Drag to move. Shift-click to quick move. Right-click a stack to split it.";
             var icon = new Image();
             icon.AddToClassList("slotIcon");
             if (item.details != null && item.details.Icon != null)
@@ -513,11 +554,16 @@ namespace Systems.Inventory.Architecture
             {
                 var countLabel = new Label(item.quantity.ToString()) { name = "stackCount" };
                 countLabel.pickingMode = PickingMode.Ignore;
+                countLabel.style.color = item.details != null && item.details.LabelStyle != null
+                    ? item.details.LabelStyle.LabelColor : Color.white;
                 element.Add(countLabel);
             }
 
             if (registerPointerHandler)
+            {
                 RegisterItemPointerHandler(element, item);
+                RegisterItemHoverHandlers(element, item, 0);
+            }
             return element;
         }
 
@@ -527,11 +573,27 @@ namespace Systems.Inventory.Architecture
         // layer rather than putting model mutation directly in this view callback.
         private void RegisterItemPointerHandler(VisualElement target, Item item)
         {
+            bool hasConfiguredActions = session != null && currentModel != null &&
+                session.GetItemActions(this, item.Id).Count > 0;
+
             target.RegisterCallback<PointerDownEvent>(evt =>
             {
+                HideItemTooltip();
                 if (session == null || currentModel == null) return;
                 if (evt.button == 1)
                 {
+                    // Use an explicit runtime UI Toolkit menu instead of relying on the
+                    // platform contextual-menu event, which is not consistently raised
+                    // for Pointer events on all runtime panels/input backends.
+                    IReadOnlyList<InventoryItemAction> actions = session.GetItemActions(this, item.Id);
+                    if (actions.Count > 0)
+                    {
+                        ShowItemActionMenu(item.Id, actions, evt.position);
+                        evt.StopPropagation();
+                        return;
+                    }
+
+                    CloseItemActionMenu();
                     if (!session.BeginSplitDrag(this, item.Id, evt.pointerId)) return;
                     session.UpdateDragTarget(evt.position);
                     evt.StopPropagation();
@@ -540,18 +602,378 @@ namespace Systems.Inventory.Architecture
                 if (evt.button != 0) return;
                 if ((evt.modifiers & EventModifiers.Shift) != 0)
                 {
+                    CloseItemActionMenu();
                     session.QuickMove(this, item.Id);
                     evt.StopPropagation();
                     return;
                 }
+                CloseItemActionMenu();
                 if (!session.BeginDrag(this, item.Id, evt.pointerId)) return;
                 session.UpdateDragTarget(evt.position);
                 evt.StopPropagation();
             });
         }
 
+        private void RegisterItemHoverHandlers(VisualElement target, Item item, int rotationQuarterTurns)
+        {
+            target.RegisterCallback<PointerEnterEvent>(evt =>
+            {
+                if (item == null || draggingItemIds.Contains(item.Id)) return;
+                bool sameItem = hoveredTooltipItem != null && Equals(hoveredTooltipItem.Id, item.Id);
+                if (!sameItem)
+                {
+                    HideTooltipVisualOnly();
+                    ClearHoveredOutline();
+                    tooltipShowSchedule?.Pause();
+                    hoveredTooltipItem = item;
+                    hoveredTooltipRotation = rotationQuarterTurns;
+                    SetHoveredOutline(item, true, rotationQuarterTurns);
+                    ScheduleTooltipShow();
+                }
+                lastTooltipPointerPosition = evt.position;
+            });
+            target.RegisterCallback<PointerMoveEvent>(evt =>
+            {
+                if (hoveredTooltipItem == null || !Equals(hoveredTooltipItem.Id, item.Id)) return;
+                lastTooltipPointerPosition = evt.position;
+                PositionActiveTooltip();
+            });
+            target.RegisterCallback<PointerLeaveEvent>(evt =>
+            {
+                // Grid items are composed of multiple occupied-cell elements. Moving
+                // between cells belonging to the same item is still one continuous hover.
+                // PointerLeaveEvent does not expose relatedTarget in all supported
+                // UI Toolkit versions. Pick the element now beneath the pointer instead.
+                VisualElement next = target.panel?.Pick(evt.position) as VisualElement;
+                if (IsSameItemHoverTarget(next, item.Id)) return;
+                if (hoveredTooltipItem == null || !Equals(hoveredTooltipItem.Id, item.Id)) return;
+                HideItemTooltip();
+            });
+        }
+
+        private static bool IsSameItemHoverTarget(VisualElement target, SerializableGuid itemId)
+        {
+            // Grid occupied cells store local coordinates in userData, while their
+            // common item parent stores the item's ID. Walk upward to support both.
+            for (VisualElement current = target; current != null; current = current.parent)
+                if (Equals(current.userData, itemId)) return true;
+            return false;
+        }
+
+        private void ScheduleTooltipShow()
+        {
+            tooltipShowSchedule?.Pause();
+            if (root == null) return;
+            tooltipShowSchedule = root.schedule.Execute(() =>
+            {
+                if (hoveredTooltipItem == null || draggingItemIds.Contains(hoveredTooltipItem.Id)) return;
+                ShowItemTooltip(hoveredTooltipItem, hoveredTooltipRotation);
+            }).StartingIn(Mathf.RoundToInt(Mathf.Max(0f, tooltipDelay) * 1000f));
+        }
+
+        private void ShowItemTooltip(Item item, int rotationQuarterTurns)
+        {
+            HideTooltipVisualOnly();
+            if (root == null || item == null || item.details == null) return;
+
+            var tooltip = new VisualElement { name = "inventoryItemTooltip" };
+            tooltip.AddToClassList("inventoryItemTooltip");
+            tooltip.pickingMode = PickingMode.Ignore;
+            tooltip.style.position = Position.Absolute;
+            tooltip.style.maxWidth = tooltipMaxWidth;
+            tooltip.style.color = Color.white;
+            tooltip.style.paddingLeft = 10f;
+            tooltip.style.paddingRight = 10f;
+            tooltip.style.paddingTop = 8f;
+            tooltip.style.paddingBottom = 8f;
+            tooltip.style.backgroundColor = new Color(0.075f, 0.085f, 0.11f, 0.97f);
+            tooltip.style.borderTopWidth = 1f;
+            tooltip.style.borderBottomWidth = 1f;
+            tooltip.style.borderLeftWidth = 1f;
+            tooltip.style.borderRightWidth = 1f;
+            Color edge = new Color(0.42f, 0.48f, 0.58f, 1f);
+            tooltip.style.borderTopColor = edge;
+            tooltip.style.borderBottomColor = edge;
+            tooltip.style.borderLeftColor = edge;
+            tooltip.style.borderRightColor = edge;
+            if (tooltipStyleSheet != null) tooltip.styleSheets.Add(tooltipStyleSheet);
+
+            var title = new Label(item.details.Name);
+            title.AddToClassList("inventoryItemTooltip-title");
+            title.style.unityFontStyleAndWeight = FontStyle.Bold;
+            title.style.fontSize = 14f;
+            title.style.color = item.details.LabelStyle != null ? item.details.LabelStyle.LabelColor : Color.white;
+            tooltip.Add(title);
+
+            if (!string.IsNullOrWhiteSpace(item.details.Description))
+            {
+                var description = new Label(item.details.Description);
+                description.AddToClassList("inventoryItemTooltip-description");
+                description.style.whiteSpace = WhiteSpace.Normal;
+                description.style.color = Color.white;
+                description.style.marginTop = 4f;
+                tooltip.Add(description);
+            }
+
+            var summary = new Label(item.quantity > 1 ? $"Quantity: {item.quantity}" : "Quantity: 1");
+            summary.AddToClassList("inventoryItemTooltip-summary");
+            summary.style.color = Color.white;
+            summary.style.marginTop = 5f;
+            tooltip.Add(summary);
+
+            InventoryItemTooltipContext context = new InventoryItemTooltipContext(item, rotationQuarterTurns);
+            var footprint = new VisualElement();
+            footprint.AddToClassList("inventoryItemTooltip-footprint");
+            footprint.style.flexDirection = FlexDirection.Row;
+            footprint.style.alignItems = Align.Center;
+            footprint.style.marginTop = 7f;
+            var shape = new VisualElement();
+            shape.AddToClassList("inventoryItemTooltip-shape");
+            float previewCellSize = Mathf.Min(18f, 96f / Mathf.Max(context.FootprintWidth, context.FootprintHeight));
+            shape.style.width = context.FootprintWidth * previewCellSize;
+            shape.style.height = context.FootprintHeight * previewCellSize;
+            shape.style.position = Position.Relative;
+            for (int y = 0; y < context.FootprintHeight; y++)
+            for (int x = 0; x < context.FootprintWidth; x++)
+            {
+                if (!ItemGridShape.IsOccupied(item.details, x, y, rotationQuarterTurns)) continue;
+                var cell = new VisualElement();
+                cell.AddToClassList("inventoryItemTooltip-shapeCell");
+                cell.style.position = Position.Absolute;
+                cell.style.left = x * previewCellSize;
+                cell.style.top = y * previewCellSize;
+                cell.style.width = Mathf.Max(2f, previewCellSize - 3f);
+                cell.style.height = Mathf.Max(2f, previewCellSize - 3f);
+                cell.style.backgroundColor = new Color(0.55f, 0.68f, 0.86f, 1f);
+                shape.Add(cell);
+            }
+            footprint.Add(shape);
+            var footprintText = new Label($"Space: {context.OccupiedCellCount} cell(s)  •  {context.FootprintWidth} × {context.FootprintHeight}");
+            footprintText.style.marginLeft = 9f;
+            footprintText.style.whiteSpace = WhiteSpace.Normal;
+            footprintText.style.color = Color.white;
+            footprint.Add(footprintText);
+            tooltip.Add(footprint);
+
+            if (item.details.TooltipSections != null)
+            {
+                foreach (InventoryItemTooltipSection section in item.details.TooltipSections)
+                {
+                    if (section == null) continue;
+                    VisualElement customContent = section.CreateContent(context);
+                    if (customContent != null)
+                    {
+                        customContent.AddToClassList("inventoryItemTooltip-customSection");
+                        customContent.style.marginTop = 6f;
+                        tooltip.Add(customContent);
+                    }
+                }
+            }
+
+            activeTooltip = tooltip;
+            root.Add(tooltip);
+            tooltip.BringToFront();
+            tooltip.RegisterCallback<GeometryChangedEvent>(_ => PositionActiveTooltip());
+            PositionActiveTooltip();
+        }
+
+        private void PositionActiveTooltip()
+        {
+            if (activeTooltip == null || root == null) return;
+            Vector2 local = root.WorldToLocal(lastTooltipPointerPosition);
+            float left = local.x + tooltipOffset;
+            float top = local.y + tooltipOffset;
+            Rect bounds = root.contentRect;
+            float width = activeTooltip.layout.width > 0f ? activeTooltip.layout.width : tooltipMaxWidth;
+            float height = activeTooltip.layout.height;
+            if (left + width > bounds.width) left = local.x - width - tooltipOffset;
+            if (top + height > bounds.height) top = Mathf.Max(0f, bounds.height - height);
+            activeTooltip.style.left = Mathf.Clamp(left, 0f, Mathf.Max(0f, bounds.width - width));
+            activeTooltip.style.top = Mathf.Clamp(top, 0f, Mathf.Max(0f, bounds.height - height));
+        }
+
+        private void HideItemTooltip()
+        {
+            tooltipShowSchedule?.Pause();
+            tooltipShowSchedule = null;
+            hoveredTooltipItem = null;
+            HideTooltipVisualOnly();
+            ClearHoveredOutline();
+        }
+
+        private void HideTooltipVisualOnly()
+        {
+            if (activeTooltip == null) return;
+            activeTooltip.RemoveFromHierarchy();
+            activeTooltip = null;
+        }
+
+        private void SetHoveredOutline(Item item, bool visible, int rotationQuarterTurns)
+        {
+            ClearHoveredOutline();
+            if (!visible || item == null) return;
+            Color resolvedOutlineColor = item.details != null && item.details.OutlineStyle != null
+                ? item.details.OutlineStyle.OutlineColor
+                : (canvas != null ? canvas.DefaultItemHoverOutlineColor : hoverOutlineColor);
+            foreach (VisualElement itemElement in itemElements)
+            {
+                if (!Equals(itemElement.userData, item.Id)) continue;
+                if (itemElement.ClassListContains("gridSlotItem") && item.details != null)
+                {
+                    foreach (VisualElement cell in itemElement.Children())
+                    {
+                        if (!cell.ClassListContains("gridItemOccupiedCell")) continue;
+                        Vector2Int position = cell.userData is Vector2Int value ? value : Vector2Int.zero;
+                        ApplyGridCellOutline(cell, item.details, position.x, position.y, rotationQuarterTurns, resolvedOutlineColor);
+                        hoveredOutlineCells.Add(cell);
+                    }
+                }
+                else
+                {
+                    ApplyHoverOutline(itemElement, resolvedOutlineColor);
+                    hoveredOutlineCells.Add(itemElement);
+                }
+                break;
+            }
+        }
+
+        private void ApplyGridCellOutline(VisualElement element, ItemDetails details, int x, int y, int rotationQuarterTurns, Color outlineColor)
+        {
+            bool top = !ItemGridShape.IsOccupied(details, x, y - 1, rotationQuarterTurns);
+            bool bottom = !ItemGridShape.IsOccupied(details, x, y + 1, rotationQuarterTurns);
+            bool left = !ItemGridShape.IsOccupied(details, x - 1, y, rotationQuarterTurns);
+            bool right = !ItemGridShape.IsOccupied(details, x + 1, y, rotationQuarterTurns);
+            element.style.borderTopWidth = top ? hoverOutlineWidth : 0f;
+            element.style.borderBottomWidth = bottom ? hoverOutlineWidth : 0f;
+            element.style.borderLeftWidth = left ? hoverOutlineWidth : 0f;
+            element.style.borderRightWidth = right ? hoverOutlineWidth : 0f;
+            element.style.borderTopColor = outlineColor;
+            element.style.borderBottomColor = outlineColor;
+            element.style.borderLeftColor = outlineColor;
+            element.style.borderRightColor = outlineColor;
+        }
+
+        private void ApplyHoverOutline(VisualElement element, Color outlineColor)
+        {
+            element.style.borderTopWidth = hoverOutlineWidth;
+            element.style.borderBottomWidth = hoverOutlineWidth;
+            element.style.borderLeftWidth = hoverOutlineWidth;
+            element.style.borderRightWidth = hoverOutlineWidth;
+            element.style.borderTopColor = outlineColor;
+            element.style.borderBottomColor = outlineColor;
+            element.style.borderLeftColor = outlineColor;
+            element.style.borderRightColor = outlineColor;
+        }
+
+        private void ClearHoveredOutline()
+        {
+            foreach (VisualElement element in hoveredOutlineCells)
+            {
+                if (element == null) continue;
+                ApplyDefaultObjectBorder(element,
+                    element.ClassListContains("gridItemOccupiedCell") || element.ClassListContains("slotItem") ||
+                    element.ClassListContains("equipmentSlotItem") ? 1f : 0f);
+            }
+            hoveredOutlineCells.Clear();
+        }
+
+        private void ShowItemActionMenu(SerializableGuid itemId,
+            IReadOnlyList<InventoryItemAction> actions, Vector2 pointerPosition)
+        {
+            CloseItemActionMenu();
+            if (root == null || actions == null || actions.Count == 0) return;
+
+            Vector2 localPosition = root.WorldToLocal(pointerPosition);
+            var menu = new VisualElement { name = "inventoryItemActionMenu" };
+            menu.AddToClassList("inventoryItemActionMenu");
+            menu.style.position = Position.Absolute;
+            menu.style.left = Mathf.Max(0f, localPosition.x);
+            menu.style.top = Mathf.Max(0f, localPosition.y);
+            menu.style.minWidth = 170f;
+            menu.style.maxWidth = 240f;
+            menu.style.paddingLeft = 5f;
+            menu.style.paddingRight = 5f;
+            menu.style.paddingTop = 5f;
+            menu.style.paddingBottom = 5f;
+            menu.style.backgroundColor = new Color(0.12f, 0.14f, 0.18f, 0.98f);
+            menu.style.borderTopWidth = 1f;
+            menu.style.borderBottomWidth = 1f;
+            menu.style.borderLeftWidth = 1f;
+            menu.style.borderRightWidth = 1f;
+            menu.style.borderTopColor = new Color(0.48f, 0.53f, 0.62f);
+            menu.style.borderBottomColor = new Color(0.48f, 0.53f, 0.62f);
+            menu.style.borderLeftColor = new Color(0.48f, 0.53f, 0.62f);
+            menu.style.borderRightColor = new Color(0.48f, 0.53f, 0.62f);
+
+            foreach (InventoryItemAction action in actions)
+            {
+                if (action == null) continue;
+                InventoryItemActionAvailability availability = session.ItemActionService.GetAvailability(
+                    currentModel, itemId, action);
+                bool canExecute = availability.IsAvailable;
+                string reason = availability.Reason;
+                var actionButton = new Button(() =>
+                {
+                    CloseItemActionMenu();
+                    session?.ExecuteItemAction(this, itemId, action);
+                })
+                {
+                    text = action.DisplayName,
+                    tooltip = canExecute ? string.Empty : reason
+                };
+                actionButton.SetEnabled(canExecute);
+                actionButton.style.minHeight = 28f;
+                actionButton.style.marginBottom = string.IsNullOrEmpty(reason) ? 2f : 0f;
+                menu.Add(actionButton);
+                if (!canExecute && !string.IsNullOrWhiteSpace(reason))
+                {
+                    var reasonLabel = new Label(reason);
+                    reasonLabel.AddToClassList("inventoryItemActionReason");
+                    reasonLabel.style.whiteSpace = WhiteSpace.Normal;
+                    reasonLabel.style.fontSize = 10f;
+                    reasonLabel.style.color = new Color(0.72f, 0.75f, 0.80f);
+                    reasonLabel.style.marginLeft = 8f;
+                    reasonLabel.style.marginRight = 8f;
+                    reasonLabel.style.marginBottom = 5f;
+                    menu.Add(reasonLabel);
+                }
+            }
+
+            if (menu.childCount == 0) return;
+            activeContextMenu = menu;
+            root.Add(menu);
+            menu.BringToFront();
+
+            // Keep the menu inside the shared inventory canvas after its first layout.
+            menu.RegisterCallback<GeometryChangedEvent>(_ =>
+            {
+                if (activeContextMenu != menu || root == null) return;
+                Rect bounds = root.contentRect;
+                float maxLeft = Mathf.Max(0f, bounds.width - menu.layout.width);
+                float maxTop = Mathf.Max(0f, bounds.height - menu.layout.height);
+                menu.style.left = Mathf.Clamp(menu.layout.x, 0f, maxLeft);
+                menu.style.top = Mathf.Clamp(menu.layout.y, 0f, maxTop);
+            });
+        }
+
+        private void OnRootPointerDownForContextMenu(PointerDownEvent evt)
+        {
+            if (activeContextMenu == null) return;
+            VisualElement target = evt.target as VisualElement;
+            if (target != null && activeContextMenu.Contains(target)) return;
+            CloseItemActionMenu();
+        }
+
+        private void CloseItemActionMenu()
+        {
+            if (activeContextMenu == null) return;
+            activeContextMenu.RemoveFromHierarchy();
+            activeContextMenu = null;
+        }
+
         private void OnDisable()
         {
+            HideItemTooltip();
             // A panel can be hidden by its host or disabled directly; either way an
             // active drag must be cancelled and its shared-canvas ghost removed.
             session?.CancelDragFrom(this);
@@ -560,7 +982,13 @@ namespace Systems.Inventory.Architecture
         private void OnDestroy()
         {
             if (session != null) session.Unregister(this);
-            if (root != null) root.UnregisterCallback<GeometryChangedEvent>(OnRootGeometryChanged);
+            CloseItemActionMenu();
+            HideItemTooltip();
+            if (root != null)
+            {
+                root.UnregisterCallback<GeometryChangedEvent>(OnRootGeometryChanged);
+                root.UnregisterCallback<PointerDownEvent>(OnRootPointerDownForContextMenu, TrickleDown.TrickleDown);
+            }
             ReleasePointer();
         }
     }

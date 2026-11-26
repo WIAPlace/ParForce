@@ -20,8 +20,8 @@ MonoBehaviour:
   LabelStyle: {fileID: 0}
   EquipmentEffects: []
   maxStack: 5
-  GridWidth: 2
-  GridHeight: 3
+  GridWidth: 3
+  GridHeight: 2
   UseCustomShape: 0
   ShapeCells: 010101010101
   DragPivot: {x: 0.5, y: 0.5}
@@ -31,5 +31,6 @@ MonoBehaviour:
     Part2: 1083017128
     Part3: 3852576145
     Part4: 4057359399
+  IconSizeInCells: 2
   Icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   Description: 

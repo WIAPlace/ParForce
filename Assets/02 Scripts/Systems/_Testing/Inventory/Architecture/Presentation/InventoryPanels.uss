@@ -139,18 +139,24 @@
 /* Live footprint preview while dragging a grid item. */
 .gridPlacementPreview {
     position: absolute;
-    border-width: 2px;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+/* Color only the occupied preview cells. Never tint the empty area inside the
+   item's bounding rectangle, which is especially important for irregular shapes. */
+.gridPlacementPreview.valid .gridPlacementPreviewCell {
+    background-color: rgba(55, 205, 105, 0.32);
+    border-width: 1px;
+    border-color: rgb(75, 235, 125);
     border-radius: 3px;
 }
 
-.gridPlacementPreview.valid {
-    background-color: rgba(55, 205, 105, 0.32);
-    border-color: rgb(75, 235, 125);
-}
-
-.gridPlacementPreview.invalid {
+.gridPlacementPreview.invalid .gridPlacementPreviewCell {
     background-color: rgba(225, 55, 55, 0.34);
+    border-width: 1px;
     border-color: rgb(255, 90, 90);
+    border-radius: 3px;
 }
 
 /* Shared canvas fills the single UIDocument viewport. */

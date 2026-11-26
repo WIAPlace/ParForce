@@ -315,7 +315,7 @@ namespace Systems.Inventory.Architecture
                 if (item == null || !grid.TryGetPlacement(item.Id, out GridItemPlacement placement)) continue;
                 VisualElement itemElement = CreateItemElement(item, false);
                 itemElement.pickingMode = PickingMode.Ignore;
-                ItemGridShape.GetRotatedSize(item.details, placement.RotationQuarterTurns, out int baseWidth, out int baseHeight);
+                float configuredIconSize = ItemGridShape.GetIconSizeInCells(item.details);
                 for (int shapeY = 0; shapeY < placement.Height; shapeY++)
                 for (int shapeX = 0; shapeX < placement.Width; shapeX++)
                 {
@@ -339,13 +339,15 @@ namespace Systems.Inventory.Architecture
                 Image itemIcon = itemElement.Q<Image>(className: "slotIcon");
                 if (itemIcon != null)
                 {
-                    float iconWidth = baseWidth * gridCellSize - 4f;
-                    float iconHeight = baseHeight * gridCellSize - 4f;
+                    // Icon sizing is a uniform scale independent from the occupied mask.
+                    // Preserve the sprite's aspect ratio so it is never stretched.
+                    float iconSize = configuredIconSize * gridCellSize - 4f;
+                    itemIcon.scaleMode = ScaleMode.ScaleToFit;
                     itemIcon.style.position = Position.Absolute;
-                    itemIcon.style.width = iconWidth;
-                    itemIcon.style.height = iconHeight;
-                    itemIcon.style.left = (placement.Width * gridCellSize - 4f - iconWidth) * 0.5f;
-                    itemIcon.style.top = (placement.Height * gridCellSize - 4f - iconHeight) * 0.5f;
+                    itemIcon.style.width = iconSize;
+                    itemIcon.style.height = iconSize;
+                    itemIcon.style.left = (placement.Width * gridCellSize - 4f - iconSize) * 0.5f;
+                    itemIcon.style.top = (placement.Height * gridCellSize - 4f - iconSize) * 0.5f;
                     itemIcon.style.right = StyleKeyword.Auto;
                     itemIcon.style.bottom = StyleKeyword.Auto;
                     itemIcon.style.rotate = new Rotate(new Angle(placement.RotationDegrees, AngleUnit.Degree));
@@ -474,17 +476,11 @@ namespace Systems.Inventory.Architecture
         {
             if (item == null) return;
             Vector2 pivot = item.details != null ? item.details.GetRotatedDragPivot(rotationQuarterTurns) : new Vector2(0.5f, 0.5f);
-            float width = gridCellSize;
-            float height = gridCellSize;
-            if (currentModel is IGridInventoryModel grid && item.details != null)
-            {
-                int itemWidth = Mathf.Max(1, item.details.GridWidth);
-                int itemHeight = Mathf.Max(1, item.details.GridHeight);
-                width *= itemWidth;
-                height *= itemHeight;
-            }
+            ItemGridShape.GetRotatedSize(item.details, 0, out int footprintWidth, out int footprintHeight);
+            Vector2 footprintSize = new Vector2(footprintWidth * gridCellSize, footprintHeight * gridCellSize);
+            float iconSize = ItemGridShape.GetIconSizeInCells(item.details) * gridCellSize;
             canvas?.ShowDragGhost(screenPosition, item.details != null ? item.details.Icon : null,
-                new Vector2(width, height), pivot, rotationQuarterTurns);
+                footprintSize, iconSize, pivot, rotationQuarterTurns);
         }
 
         public void Clear()

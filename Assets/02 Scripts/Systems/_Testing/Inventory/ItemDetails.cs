@@ -80,6 +80,10 @@ namespace Systems.Inventory {
         }
         
        
+        [Header("Icon Display")]
+        [Tooltip("Uniform icon size in grid-cell units. Set to 0 to automatically size from the longest dimension of the occupied footprint. The icon preserves its sprite aspect ratio.")]
+        public float IconSizeInCells = 0f;
+
         public Sprite Icon;
         
         

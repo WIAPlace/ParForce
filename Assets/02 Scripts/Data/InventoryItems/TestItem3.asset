@@ -18,6 +18,8 @@ MonoBehaviour:
   Actions:
   - {fileID: 11400000, guid: ec6443b24b1fe6949a03c82a446f9647, type: 2}
   - {fileID: 11400000, guid: ec6443b24b1fe6949a03c82a446f9647, type: 2}
+  TooltipSections: []
+  LabelStyle: {fileID: 0}
   EquipmentEffects: []
   maxStack: 24
   GridWidth: 1
@@ -25,10 +27,12 @@ MonoBehaviour:
   UseCustomShape: 0
   ShapeCells: 010101
   DragPivot: {x: 0.5, y: 0.5}
+  OutlineStyle: {fileID: 0}
   Id:
     Part1: 1270773341
     Part2: 1115547381
     Part3: 3666504856
     Part4: 1419447568
+  IconSizeInCells: 2
   Icon: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
   Description: 

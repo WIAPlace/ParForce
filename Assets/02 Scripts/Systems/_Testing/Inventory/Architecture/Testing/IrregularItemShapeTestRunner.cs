@@ -69,6 +69,62 @@ namespace Systems.Inventory.Architecture
                     threeQuarterGrid.TryGetItemAtCell(2, 2, out _) && threeQuarterGrid.TryGetItemAtCell(2, 1, out _) &&
                     !threeQuarterGrid.TryGetItemAtCell(1, 1, out _);
                 Check("270-degree rotation preserves the correctly rotated cell mask", threeQuarterMask);
+
+                ItemDetails paddedSingleDefinition = CreateShape("Padded single cell", 3, 3,
+                    new List<bool> { false, false, false, false, true, false, false, false, false });
+                try
+                {
+                    Item paddedSingle = paddedSingleDefinition.Create(1);
+                    var oneCellGrid = new GridInventoryModel(SerializableGuid.NewGuid(), "One Cell Auto Fit", 1, 1);
+                    bool autoPlaced = oneCellGrid.Add(paddedSingle).Success &&
+                        oneCellGrid.TryGetPlacement(paddedSingle.Id, out GridItemPlacement paddedPlacement) &&
+                        paddedPlacement.Width == 1 && paddedPlacement.Height == 1 &&
+                        oneCellGrid.TryGetItemAtCell(0, 0, out Item placedPadded) && placedPadded.Id == paddedSingle.Id;
+                    Check("A 3x3 shape with one occupied center cell auto-fits a 1x1 inventory", autoPlaced);
+
+                    ItemGridShape.GetRotatedSize(paddedSingleDefinition, 1, out int trimmedRotatedWidth, out int trimmedRotatedHeight);
+                    bool trimmedRotation = trimmedRotatedWidth == 1 && trimmedRotatedHeight == 1 &&
+                        ItemGridShape.IsOccupied(paddedSingleDefinition, 0, 0, 1);
+                    Check("Trimming empty padding preserves a 1x1 footprint in every rotation", trimmedRotation);
+
+                    ItemDetails paddedL = CreateShape("Padded L", 4, 3, new List<bool>
+                    {
+                        false, true, false, false,
+                        false, true, true, false,
+                        false, false, false, false
+                    });
+                    try
+                    {
+                        ItemGridShape.GetRotatedSize(paddedL, 0, out int trimmedWidth, out int trimmedHeight);
+                        bool normalizedBounds = trimmedWidth == 2 && trimmedHeight == 2 &&
+                            ItemGridShape.IsOccupied(paddedL, 0, 0, 0) &&
+                            ItemGridShape.IsOccupied(paddedL, 0, 1, 0) &&
+                            ItemGridShape.IsOccupied(paddedL, 1, 1, 0) &&
+                            !ItemGridShape.IsOccupied(paddedL, 1, 0, 0);
+                        ItemGridShape.GetRotatedSize(paddedL, 1, out int rotatedTrimmedWidth, out int rotatedTrimmedHeight);
+                        bool normalizedRotation = rotatedTrimmedWidth == 2 && rotatedTrimmedHeight == 2 &&
+                            ItemGridShape.IsOccupied(paddedL, 1, 0, 1) &&
+                            ItemGridShape.IsOccupied(paddedL, 0, 0, 1) &&
+                            ItemGridShape.IsOccupied(paddedL, 0, 1, 1) &&
+                            !ItemGridShape.IsOccupied(paddedL, 1, 1, 1);
+                        Check("Padded irregular shapes normalize to their occupied bounds", normalizedBounds);
+                        Check("Padded irregular shapes rotate correctly after normalization", normalizedRotation);
+                    }
+                    finally
+                    {
+                        Object.DestroyImmediate(paddedL);
+                    }
+
+                    float automaticIconSize = ItemGridShape.GetIconSizeInCells(paddedSingleDefinition);
+                    paddedSingleDefinition.IconSizeInCells = 2.5f;
+                    float configuredIconSize = ItemGridShape.GetIconSizeInCells(paddedSingleDefinition);
+                    Check("Icon size defaults to the longest occupied dimension and can be uniformly configured",
+                        Mathf.Approximately(automaticIconSize, 1f) && Mathf.Approximately(configuredIconSize, 2.5f));
+                }
+                finally
+                {
+                    Object.DestroyImmediate(paddedSingleDefinition);
+                }
             }
             finally
             {

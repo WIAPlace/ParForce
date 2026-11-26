@@ -120,27 +120,29 @@ namespace Systems.Inventory.Architecture
             view.ApplyGlobalScale(globalScale);
         }
 
-        public void ShowDragGhost(Vector2 screenPosition, Sprite sprite, Vector2 size, Vector2 pivot, int rotationQuarterTurns)
+        public void ShowDragGhost(Vector2 screenPosition, Sprite sprite, Vector2 footprintSize, float iconSize,
+            Vector2 pivot, int rotationQuarterTurns)
         {
             if (!initialized) Initialize();
             Vector2 local = root.WorldToLocal(screenPosition);
-            float imageWidth = Mathf.Max(24f, size.x);
-            float imageHeight = Mathf.Max(24f, size.y);
+            float footprintWidth = Mathf.Max(24f, footprintSize.x);
+            float footprintHeight = Mathf.Max(24f, footprintSize.y);
+            float imageSize = Mathf.Max(1f, iconSize);
             int normalizedRotation = ((rotationQuarterTurns % 4) + 4) % 4;
             bool swapsFootprint = normalizedRotation % 2 != 0;
-            float boundsWidth = swapsFootprint ? imageHeight : imageWidth;
-            float boundsHeight = swapsFootprint ? imageWidth : imageHeight;
+            float boundsWidth = swapsFootprint ? footprintHeight : footprintWidth;
+            float boundsHeight = swapsFootprint ? footprintWidth : footprintHeight;
             dragGhost.style.width = boundsWidth;
             dragGhost.style.height = boundsHeight;
             dragGhost.style.left = local.x - boundsWidth * Mathf.Clamp01(pivot.x);
             dragGhost.style.top = local.y - boundsHeight * Mathf.Clamp01(pivot.y);
             dragGhostImage.sprite = sprite;
-            dragGhostImage.style.left = (boundsWidth - imageWidth) * 0.5f;
-            dragGhostImage.style.top = (boundsHeight - imageHeight) * 0.5f;
+            dragGhostImage.style.left = (boundsWidth - imageSize) * 0.5f;
+            dragGhostImage.style.top = (boundsHeight - imageSize) * 0.5f;
             dragGhostImage.style.right = StyleKeyword.Auto;
             dragGhostImage.style.bottom = StyleKeyword.Auto;
-            dragGhostImage.style.width = imageWidth;
-            dragGhostImage.style.height = imageHeight;
+            dragGhostImage.style.width = imageSize;
+            dragGhostImage.style.height = imageSize;
             dragGhostImage.style.rotate = new Rotate(new Angle(normalizedRotation * 90f, AngleUnit.Degree));
             dragGhostImage.style.display = sprite != null ? DisplayStyle.Flex : DisplayStyle.None;
             dragGhost.style.display = DisplayStyle.Flex;

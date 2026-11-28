@@ -79,6 +79,8 @@ GameObject:
   - component: {fileID: 5740251093585052476}
   - component: {fileID: 4727947373813138639}
   - component: {fileID: 2770189871851831573}
+  - component: {fileID: 8278006546538615990}
+  - component: {fileID: 3518426238778645089}
   m_Layer: 10
   m_Name: _Player
   m_TagString: Untagged
@@ -253,6 +255,9 @@ MonoBehaviour:
   groundMask:
     serializedVersion: 2
     m_Bits: 64
+  itemMask:
+    serializedVersion: 2
+    m_Bits: 2048
   drawGizmos: 1
   animationClip: {fileID: 7400000, guid: b59da8f3b99f3d44aa2e8750361c4984, type: 2}
   animancerComponent: {fileID: 6079071984564005331}
@@ -344,6 +349,63 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8278006546538615990
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4199087127087472185}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b8d3f2a6c4e4b3b9d1f5a7c8e2b6d40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.PlayerInventoryOwner
+  initializationMode: 0
+  inventoryDisplayName: Player Inventory
+  inventoryPanel: {fileID: 0}
+  inventoryAppearance: {fileID: 0}
+  inventoryLayout: {fileID: 11400000, guid: eee42778b6e90184da2ffe0424bb73f3, type: 2}
+  fallbackGridWidth: 8
+  fallbackGridHeight: 6
+  startingInventoryItems:
+  - {fileID: 11400000, guid: 6055a1ea15210104380af6076475fe17, type: 2}
+  - {fileID: 11400000, guid: 4756ffa9412db44438cec0084aa05e58, type: 2}
+  - {fileID: 11400000, guid: 95ac11ae9aaf3004f8bf6572652bb789, type: 2}
+  inventoryId:
+    Part1: 841099469
+    Part2: 1091411982
+    Part3: 1674042766
+    Part4: 3342457933
+  equipmentDisplayName: Player Equipment
+  equipmentPanel: {fileID: 0}
+  equipmentAppearance: {fileID: 0}
+  equipmentSlotLayout: {fileID: 11400000, guid: d55668faa4b84d740ba733138c61ac73, type: 2}
+  startingEquipmentItems: []
+  equipmentId:
+    Part1: 949938921
+    Part2: 1232128328
+    Part3: 1712872332
+    Part4: 1870026418
+--- !u!114 &3518426238778645089
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4199087127087472185}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3007e439e9346a29112a63a3545d8df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.Networking.NetworkInventoryCoordinator
+  ShowTopMostFoldoutHeaderGroup: 1
+  inventoryOwner: {fileID: 8278006546538615990}
+  itemDefinitionCatalog: {fileID: 11400000, guid: c7eb0831984e9764f90dca353ccc1f06, type: 2}
+  worldItemPrefab: {fileID: 2425791458876764837, guid: cd7b30855ca57a9458b6bfd972a8ef08, type: 3}
+  pickupDistance: 3
+  dropForwardDistance: 1.15
+  dropVerticalOffset: 0.35
 --- !u!1 &7918417410210819000
 GameObject:
   m_ObjectHideFlags: 0

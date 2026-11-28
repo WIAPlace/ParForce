@@ -32,6 +32,9 @@ namespace Systems.Inventory.Architecture
         /// </summary>
         public IInventoryModel Model { get; private set; }
 
+        /// <summary>The shared interaction session used by this host's panel view, once initialized.</summary>
+        public InventoryPanelSession Session => view != null ? view.Session : null;
+
         /// <summary>True while this host is currently presenting its model.</summary>
         public bool IsOpen => Model != null && controller != null &&
             ReferenceEquals(controller.BoundModel, Model);
@@ -56,7 +59,7 @@ namespace Systems.Inventory.Architecture
                 Debug.LogError($"{name}: Equipment storage is enabled, but no EquipmentSlotLayout is assigned.", this);
                 yield break;
             }
-            Open(CreateConfiguredModel(), defaultAppearance);
+            //Open(CreateConfiguredModel(), defaultAppearance);
         }
 
         /// <summary>
@@ -75,6 +78,19 @@ namespace Systems.Inventory.Architecture
             view.SetPanelVisible(true);
             controller.Bind(Model);
         }
+        
+        /// <summary>
+        /// Over load of open for easy use. will call anything that is already saved in the class.
+        /// </summary>
+        public void Open()
+        {   // just open with the saved model.
+            if(Model == null) // if no model is saved we will need to make one
+            {   
+                // like in start up just make one from scratch.
+                Open(CreateConfiguredModel(), defaultAppearance);
+            }
+            else Open(Model,null);          
+        }
 
         /// <summary>
         /// Unbinds and hides this panel without destroying or forgetting its inventory model.
@@ -85,6 +101,12 @@ namespace Systems.Inventory.Architecture
             if (controller != null)
                 controller.Unbind();
             view?.SetPanelVisible(false);
+        }
+
+        /// <summary>Enables or disables item interaction without hiding the panel.</summary>
+        public void SetInteractionEnabled(bool enabled)
+        {
+            view?.SetInteractionEnabled(enabled);
         }
 
         /// <summary>

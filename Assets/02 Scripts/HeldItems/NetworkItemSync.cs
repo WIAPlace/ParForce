@@ -114,13 +114,14 @@ public class NetworkItemSync : NetworkBehaviour
     {
         if(currentItems[hand].isTracing) StopTrace(currentItems[hand].currentSwingId,hand);
         if (!IsServer || weapon == null || weapon.localPoints.Length == 0 ) return -1;
-
+        if(currentItems[hand].weaponSocket==null) return -1;
         currentItems[hand].currentSwingId++; // update the ID so that hit ques wont overlap
         currentItems[hand].currentItem = weapon;
         currentItems[hand].hitTargets.Clear();
         
         int sign=1;
         // Set where the weapon should originate from
+        
         if(hand<2){
             currentItems[hand].weaponSocket = hand==0 ? ctx.equipmentManager.leftHandBone : ctx.equipmentManager.rightHandBone;
             sign = (hand*2)-1;
@@ -206,7 +207,7 @@ public class NetworkItemSync : NetworkBehaviour
     {
         if(currentItems==null) return;
         for(int hand = 0; hand < currentItems.Length;hand++){
-            if(currentItems[hand].currentItem==null) continue;
+            if(currentItems[hand].currentItem==null || currentItems[hand].weaponSocket == null) continue;
             Gizmos.color = Color.azure;
 
             var localPoints = currentItems[hand].currentItem.localPoints;

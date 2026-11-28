@@ -31,6 +31,8 @@ namespace Systems.Inventory.Architecture
             }
 
             var equipment = new EquipmentInventoryModel(SerializableGuid.NewGuid(), "Test Equipment", layout.Slots);
+            var equipmentChanges = new List<EquipmentChangedEvent>();
+            equipment.EquipmentChanged += equipmentChanges.Add;
             Check("Empty equipment reports all slots available", equipment.TotalEquipmentSlots == layout.Slots.Count &&
                 equipment.OccupiedEquipmentSlots == 0 && equipment.AvailableEquipmentSlots == layout.Slots.Count &&
                 equipment.TotalGridEquivalentOccupiedCells == 0);
@@ -47,9 +49,19 @@ namespace Systems.Inventory.Architecture
 
             InventoryTransferResult helmetTransfer = transfers.TransferToEquipmentSlot(backpack, equipment, helmet.Id, "Head");
             Check("Helmet equips into the Head slot", helmetTransfer.Success && equipment.TryGetItemAt("Head", out Item head) && ReferenceEquals(head, helmet));
+            Check("Equipment event identifies the changed slot and newly equipped item", equipmentChanges.Count == 1 &&
+                equipmentChanges[0].InventoryId == equipment.Id && equipmentChanges[0].SlotId == "Head" &&
+                equipmentChanges[0].PreviousItem == null && ReferenceEquals(equipmentChanges[0].NewItem, helmet));
             InventoryTransferResult ringLeft = transfers.TransferToEquipmentSlot(backpack, equipment, ringA.Id, "RingLeft");
             bool ringLocalMove = equipment.Move(ringA.Id, "RingRight").Success;
             bool ringMoveBack = equipment.Move(ringA.Id, "RingLeft").Success;
+            Check("Moving an item raises one event for each affected slot", equipmentChanges.Count >= 5 &&
+                equipmentChanges[equipmentChanges.Count - 4].SlotId == "RingLeft" &&
+                ReferenceEquals(equipmentChanges[equipmentChanges.Count - 4].PreviousItem, ringA) &&
+                equipmentChanges[equipmentChanges.Count - 4].NewItem == null &&
+                equipmentChanges[equipmentChanges.Count - 3].SlotId == "RingRight" &&
+                equipmentChanges[equipmentChanges.Count - 3].PreviousItem == null &&
+                ReferenceEquals(equipmentChanges[equipmentChanges.Count - 3].NewItem, ringA));
             InventoryTransferResult ringRight = transfers.TransferToEquipmentSlot(backpack, equipment, ringB.Id, "RingRight");
             Check("Two rings occupy independently identified slots", ringLeft.Success && ringRight.Success &&
                 equipment.TryGetItemAt("RingLeft", out Item left) && ReferenceEquals(left, ringA) &&
@@ -65,6 +77,7 @@ namespace Systems.Inventory.Architecture
                 ringWidth == expectedRingWidth && ringHeight == expectedRingHeight &&
                 ringCells == ItemGridShape.OccupiedCellCount(ringA.details));
             Check("An item can move between compatible empty named slots", ringLocalMove && ringMoveBack);
+            Check("Equipment change events carry the originating inventory ID", equipmentChanges.TrueForAll(change => change.InventoryId == equipment.Id));
 
             InventoryTransferResult potionPreview = transfers.PreviewToEquipmentSlot(backpack, equipment, potion.Id, "Chest");
             Check("Non-equipment item is rejected by equipment slots", !potionPreview.Success &&
@@ -85,6 +98,8 @@ namespace Systems.Inventory.Architecture
                 equipment.AvailableEquipmentSlots == equipment.TotalEquipmentSlots - 2 &&
                 equipment.TotalGridEquivalentOccupiedCells ==
                     ItemGridShape.OccupiedCellCount(ringA.details) + ItemGridShape.OccupiedCellCount(ringB.details));
+            Check("Unequipping reports the previous item and an empty new slot", equipmentChanges.Exists(change =>
+                change.SlotId == "Head" && ReferenceEquals(change.PreviousItem, helmet) && change.NewItem == null));
 
             var grid = new GridInventoryModel(SerializableGuid.NewGuid(), "Test Grid", 4, 4, new List<Item>());
             Item gridHelmet = helmetDefinition.Create(1);

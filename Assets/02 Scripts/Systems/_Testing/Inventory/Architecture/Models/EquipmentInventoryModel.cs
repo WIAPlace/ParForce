@@ -140,7 +140,7 @@ namespace Systems.Inventory.Architecture
             if (!CanAcceptAt(item, slotId, out failure)) return false;
             slots[slotId] = item;
             Changed?.Invoke(new InventoryChangedEvent(Id, InventoryChangeKind.ItemAdded, item.Id));
-            EquipmentChanged?.Invoke(new EquipmentChangedEvent(Id));
+            EquipmentChanged?.Invoke(new EquipmentChangedEvent(Id, slotId, null, item));
             return true;
         }
 
@@ -233,7 +233,7 @@ namespace Systems.Inventory.Architecture
             slots[slotId] = null;
             failure = InventoryOperationFailure.None;
             Changed?.Invoke(new InventoryChangedEvent(Id, InventoryChangeKind.ItemRemoved, itemInstanceId));
-            EquipmentChanged?.Invoke(new EquipmentChangedEvent(Id));
+            EquipmentChanged?.Invoke(new EquipmentChangedEvent(Id, slotId, removedItem, null));
             return true;
         }
 
@@ -253,7 +253,10 @@ namespace Systems.Inventory.Architecture
             slots[sourceSlotId] = null;
             Changed?.Invoke(new InventoryChangedEvent(Id, InventoryChangeKind.ItemRemoved, itemInstanceId));
             Changed?.Invoke(new InventoryChangedEvent(Id, InventoryChangeKind.ItemAdded, itemInstanceId));
-            EquipmentChanged?.Invoke(new EquipmentChangedEvent(Id));
+            // Both slots have already been updated before either event is raised, so
+            // listeners always observe the completed move when querying the model.
+            EquipmentChanged?.Invoke(new EquipmentChangedEvent(Id, sourceSlotId, item, null));
+            EquipmentChanged?.Invoke(new EquipmentChangedEvent(Id, destinationSlotId, null, item));
             failure = InventoryOperationFailure.None;
             return true;
         }

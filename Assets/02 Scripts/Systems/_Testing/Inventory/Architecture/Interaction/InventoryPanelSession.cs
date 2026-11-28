@@ -71,14 +71,14 @@ namespace Systems.Inventory.Architecture
         /// <summary>Shift-click destination selection: highest priority first, with the source panel excluded.</summary>
         public InventoryQuickMoveResult QuickMove(InventoryPanelView source, SerializableGuid itemInstanceId)
         {
-            if (source == null || source.CurrentModel == null)
+            if (source == null || !source.IsInteractionEnabled || source.CurrentModel == null)
                 return new InventoryQuickMoveResult(0, 0, "The source inventory is unavailable.");
 
             List<IInventoryModel> destinations = new List<IInventoryModel>();
             HashSet<SerializableGuid> addedIds = new HashSet<SerializableGuid>();
             foreach (InventoryPanelView panel in panels)
             {
-                if (panel == null || ReferenceEquals(panel, source) || panel.CurrentModel == null ||
+                if (panel == null || !panel.IsInteractionEnabled || ReferenceEquals(panel, source) || panel.CurrentModel == null ||
                     panel.CurrentModel.Id == source.CurrentModel.Id || !addedIds.Add(panel.CurrentModel.Id))
                     continue;
                 destinations.Add(panel.CurrentModel);
@@ -95,7 +95,7 @@ namespace Systems.Inventory.Architecture
 
         public IReadOnlyList<InventoryItemAction> GetItemActions(InventoryPanelView source, SerializableGuid itemId)
         {
-            return source != null
+            return source != null && source.IsInteractionEnabled
                 ? ItemActionService.GetConfiguredActions(source.CurrentModel, itemId)
                 : Array.Empty<InventoryItemAction>();
         }
@@ -103,9 +103,9 @@ namespace Systems.Inventory.Architecture
         public bool CanExecuteItemAction(InventoryPanelView source, SerializableGuid itemId,
             InventoryItemAction action, out string reason)
         {
-            if (source == null)
+            if (source == null || !source.IsInteractionEnabled)
             {
-                reason = "The inventory panel is unavailable.";
+                reason = "The inventory panel is unavailable or read-only.";
                 return false;
             }
             return ItemActionService.CanExecute(source.CurrentModel, itemId, action, out reason);
@@ -115,7 +115,7 @@ namespace Systems.Inventory.Architecture
             SerializableGuid itemId, InventoryItemAction action)
         {
             InventoryItemActionExecution execution = ItemActionService.Execute(
-                source != null ? source.CurrentModel : null, itemId, action);
+                source != null && source.IsInteractionEnabled ? source.CurrentModel : null, itemId, action);
             ItemActionExecuted?.Invoke(execution);
             if (execution.Result != null && !execution.Result.Success && !string.IsNullOrEmpty(execution.Result.Message))
                 Debug.LogWarning(execution.Result.Message, this);
@@ -132,7 +132,7 @@ namespace Systems.Inventory.Architecture
 
         public bool BeginDrag(InventoryPanelView source, SerializableGuid itemInstanceId, int pointerId)
         {
-            if (source == null || source.CurrentModel == null || IsDragging)
+            if (source == null || !source.IsInteractionEnabled || source.CurrentModel == null || IsDragging)
                 return false;
             if (!source.CurrentModel.TryGetItem(itemInstanceId, out Item item))
                 return false;
@@ -160,7 +160,7 @@ namespace Systems.Inventory.Architecture
         /// <summary>Right-click pickup: splits the larger half of a stack into a temporary drag payload.</summary>
         public bool BeginSplitDrag(InventoryPanelView source, SerializableGuid itemInstanceId, int pointerId)
         {
-            if (source == null || source.CurrentModel == null || IsDragging ||
+            if (source == null || !source.IsInteractionEnabled || source.CurrentModel == null || IsDragging ||
                 !source.CurrentModel.TryGetItem(itemInstanceId, out Item original) || original == null ||
                 original.details == null ||
                 original.details.maxStack <= 1 || original.quantity <= 1)
@@ -216,7 +216,7 @@ namespace Systems.Inventory.Architecture
                 return false;
 
             InventoryPanelView destination = FindPanelAt(screenPosition);
-            if (destination == null || destination.CurrentModel == null ||
+            if (destination == null || !destination.IsInteractionEnabled || destination.CurrentModel == null ||
                 destination.CurrentModel is IEquipmentInventoryModel) return false;
 
             int pointerSlot = destination.GetSlotIndexAt(screenPosition);
@@ -426,7 +426,7 @@ namespace Systems.Inventory.Architecture
                 source.HideDragGhost();
                 return;
             }
-            if (destination == null || destination.CurrentModel == null)
+            if (destination == null || destination.CurrentModel == null || !destination.IsInteractionEnabled)
             {
                 if (wasSplitDrag) RestoreSplitRemainder(originalSplitModel, originalSplitId, activeSourceModel, context.ItemInstanceId);
                 source.HideDragGhost();
@@ -667,7 +667,7 @@ namespace Systems.Inventory.Architecture
                 return;
 
             InventoryPanelView destination = FindPanelAt(screenPosition);
-            if (destination == null || destination.CurrentModel == null) return;
+            if (destination == null || !destination.IsInteractionEnabled || destination.CurrentModel == null) return;
 
             if (destination.CurrentModel is IEquipmentInventoryModel equipment)
             {

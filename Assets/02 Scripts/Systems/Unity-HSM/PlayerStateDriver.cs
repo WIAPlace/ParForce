@@ -10,6 +10,8 @@ using UnityEngine.XR;
 using Unity.VisualScripting;
 using Animancer;
 using Animancer.Editor;
+using Systems.Inventory.Architecture.Networking;
+using Systems.Inventory.Architecture;
 //using UnityUtils;
 
 namespace HSM {
@@ -21,6 +23,7 @@ namespace HSM {
         [SerializeField] private GameObject body;
         public Transform groundCheck;
         public LayerMask groundMask;
+        public LayerMask itemMask;
         public bool drawGizmos = true;
         string lastLocomotionPath;
         string lastActionPath;
@@ -34,9 +37,11 @@ namespace HSM {
         public AnimationClip animationClip;
         public AnimancerComponent animancerComponent;
 
+        private NetworkSharedInventoryContainerPanelBinder containerPanelBinder;
+
         void Awake() {
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
+            //Cursor.visible = false;
+            //Cursor.lockState = CursorLockMode.Locked;
             ctx.LoadContext(pcl);
 
             locomotionRoot = new LocomotionRoot(null, ctx);
@@ -91,6 +96,9 @@ namespace HSM {
                 ctx.sync.OnStart();
 
                 ctx.skin.material = ctx.mat;
+
+                containerPanelBinder =
+                    FindAnyObjectByType<NetworkSharedInventoryContainerPanelBinder>();
                 
             }
         }
@@ -167,9 +175,14 @@ namespace HSM {
         // Gizmos /////////////////////////////////////////////////////////////////////////////////////////////////////////////
         private void OnDrawGizmos()
         {
+            if(!IsOwner) return;
             Gizmos.color = Color.blue;
             
             if(ctx.currentVelocityMag > .01f) Gizmos.DrawLine(ctx.body.transform.position, ctx.body.transform.position + ctx.debugCurrentDir*2);
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(ctx.cinCamTransform.position,ctx.cinCamTransform.forward * 3f);
+
         }
         void OnDrawGizmosSelected() {
             if (!drawGizmos || groundCheck == null) return;
@@ -308,12 +321,66 @@ namespace HSM {
                 test=true;
                 return;
             }
+            if (Physics.Raycast(ctx.cinCamTransform.position, ctx.cinCamTransform.forward,
+                out RaycastHit hit,itemMask))
+            {
+                NetworkWorldItem worldItem =
+                    hit.collider.GetComponentInParent<NetworkWorldItem>();
+
+                if (worldItem != null &&
+                    !worldItem.TryRequestPickup(out string error))
+                {
+                    Debug.Log(error);
+                }
+
+                NetworkSharedInventoryContainer container =
+                    hit.collider.GetComponentInParent<NetworkSharedInventoryContainer>();
+
+                if (container != null) InteractWithContainer(container);
+                
+            }
         }
         private void InteractEventCancelled()
         {
-            
+            CloseContainer();
         }
 
+        private bool TryGetContainerPanelBinder()
+        {
+            // Retry if the HUD wasn't available when the player spawned.
+            if (containerPanelBinder == null)
+            {
+                containerPanelBinder =
+                    FindAnyObjectByType<NetworkSharedInventoryContainerPanelBinder>();
+            }
+
+            if (containerPanelBinder == null)
+            {
+                Debug.LogError("Could not find NetworkSharedInventoryContainerPanelBinder.");
+                return false;
+            }
+
+            return true;
+        }
+        private void InteractWithContainer(
+            NetworkSharedInventoryContainer container)
+        {
+            if (!IsOwner || !TryGetContainerPanelBinder())
+                return;
+
+            if (!containerPanelBinder.TryOpenContainer(
+                container, out string error))
+            {
+                Debug.LogWarning($"Could not open container: {error}");
+            }
+        }
+        private void CloseContainer()
+        {
+            if (!IsOwner || containerPanelBinder == null)
+                return;
+
+            containerPanelBinder.CloseCurrentContainer();
+        }
 
     }
 

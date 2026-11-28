@@ -22,6 +22,12 @@ namespace Systems.Inventory.Architecture.Persistence
         private static LegacyInventoryData pendingLegacyData;
         public static bool LegacyMigrationPending => pendingLegacyData != null;
 
+        /// <summary>Returns whether an inventory ID is already registered in this process.</summary>
+        public static bool IsRegistered(SerializableGuid inventoryId)
+        {
+            return inventoryId != SerializableGuid.Empty && Registered.ContainsKey(inventoryId);
+        }
+
         /// <summary>
         /// Registers a model for saving and returns the canonical registered instance.
         /// If the ID is already registered, the existing model is returned and reused.
@@ -119,6 +125,17 @@ namespace Systems.Inventory.Architecture.Persistence
             Registered.Clear();
             Pending.Clear();
             pendingLegacyData = null;
+        }
+
+        /// <summary>
+        /// Captures one live model using the same storage-aware representation as the
+        /// save system. Network adapters can translate this snapshot without duplicating
+        /// the model's placement/slot extraction logic.
+        /// </summary>
+        public static InventorySnapshot CaptureModel(IInventoryModel model)
+        {
+            if (model == null) throw new ArgumentNullException(nameof(model));
+            return Capture(model);
         }
 
         private static InventorySnapshot Capture(IInventoryModel model)

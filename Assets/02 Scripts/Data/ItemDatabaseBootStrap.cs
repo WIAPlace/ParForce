@@ -1,17 +1,25 @@
+using System;
 using UnityEngine;
 
 public class ItemDatabaseBootstrap : MonoBehaviour
 {
-    [SerializeField] private HeldItemDatabase database;
+    [SerializeField] private HeldItemDatabase heldDatabase;
+    [SerializeField] private ItemLinkDatabase linkDatabase;
 
     private void Awake()
     {
-        if (database == null)
+        if (heldDatabase == null)
         {
-            Debug.LogError("Item Database is not assigned!");
+            Debug.LogError("Held Item Database is not assigned!");
             return;
         }
+        heldDatabase.RegisterAsGlobalInstance();
 
-        database.RegisterAsGlobalInstance();
+        if (linkDatabase == null)
+        {
+            Debug.LogError("Link Database is not assigned!");
+            return;
+        }
+        linkDatabase.RegisterAsGlobalInstance();
     }
 }

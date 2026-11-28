@@ -45,9 +45,29 @@ namespace Systems.Inventory.Architecture
         private int capturedPointerId = -1;
         private float gridCellSize = 64f;
         private bool attached;
+        private bool interactionEnabled = true;
 
         public IInventoryModel CurrentModel => currentModel;
+        public InventoryPanelSession Session => session;
         public int QuickMovePriority => quickMovePriority;
+        public bool IsInteractionEnabled => interactionEnabled;
+
+        /// <summary>Controls whether this panel can initiate or receive inventory operations.</summary>
+        public void SetInteractionEnabled(bool enabled)
+        {
+            if (interactionEnabled == enabled)
+                return;
+
+            interactionEnabled = enabled;
+            if (!enabled)
+            {
+                // A panel may become read-only while another panel is being dragged
+                // over it. Cancel any drag sourced from this panel and clear transient UI.
+                session?.CancelDragFrom(this);
+                HideItemTooltip();
+                CloseItemActionMenu();
+            }
+        }
 
         internal void ApplyGlobalScale(float scale)
         {
@@ -575,7 +595,7 @@ namespace Systems.Inventory.Architecture
             target.RegisterCallback<PointerDownEvent>(evt =>
             {
                 HideItemTooltip();
-                if (session == null || currentModel == null) return;
+                if (session == null || currentModel == null || !interactionEnabled) return;
                 if (evt.button == 1)
                 {
                     // Use an explicit runtime UI Toolkit menu instead of relying on the
@@ -954,6 +974,11 @@ namespace Systems.Inventory.Architecture
 
         private void OnRootPointerDownForContextMenu(PointerDownEvent evt)
         {
+            if (!interactionEnabled)
+            {
+                CloseItemActionMenu();
+                return;
+            }
             if (activeContextMenu == null) return;
             VisualElement target = evt.target as VisualElement;
             if (target != null && activeContextMenu.Contains(target)) return;

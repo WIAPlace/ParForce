@@ -25,6 +25,10 @@ MonoBehaviour:
   - attributeId: 
     value: 0
     operation: 0
+  WorldVisualPrefab: {fileID: 919132149155446097, guid: 3b8fdc47f4dab7947a172b87604fdf06, type: 3}
+  WorldVisualLocalPosition: {x: 0, y: 0, z: 0}
+  WorldVisualLocalEulerAngles: {x: 0, y: 0, z: 0}
+  WorldVisualScale: 1
   maxStack: 5
   GridWidth: 1
   GridHeight: 1
@@ -37,6 +41,7 @@ MonoBehaviour:
     Part2: 1293169067
     Part3: 345006731
     Part4: 3913076639
+  NetworkDefinitionId: 1
   IconSizeInCells: 0
   Icon: {fileID: 10915, guid: 0000000000000000f000000000000000, type: 0}
   Description: Helmet

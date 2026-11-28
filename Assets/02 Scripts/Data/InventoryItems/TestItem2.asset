@@ -19,6 +19,10 @@ MonoBehaviour:
   TooltipSections: []
   LabelStyle: {fileID: 0}
   EquipmentEffects: []
+  WorldVisualPrefab: {fileID: 5784118704813857101, guid: 176a42107ce66c44aa74a67424591597, type: 3}
+  WorldVisualLocalPosition: {x: 0, y: 0, z: 0}
+  WorldVisualLocalEulerAngles: {x: 0, y: 0, z: 0}
+  WorldVisualScale: 1
   maxStack: 5
   GridWidth: 3
   GridHeight: 2
@@ -31,6 +35,7 @@ MonoBehaviour:
     Part2: 1083017128
     Part3: 3852576145
     Part4: 4057359399
+  NetworkDefinitionId: 5
   IconSizeInCells: 2
   Icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   Description: 

@@ -15,17 +15,27 @@ MonoBehaviour:
   Name: Knife
   category: 3
   equipmentType: 6
+  Actions: []
+  TooltipSections: []
+  LabelStyle: {fileID: 0}
   EquipmentEffects: []
+  WorldVisualPrefab: {fileID: 919132149155446097, guid: 3b8fdc47f4dab7947a172b87604fdf06, type: 3}
+  WorldVisualLocalPosition: {x: 0, y: 0, z: 0}
+  WorldVisualLocalEulerAngles: {x: 0, y: 0, z: 0}
+  WorldVisualScale: 1
   maxStack: 5
   GridWidth: 1
   GridHeight: 1
   UseCustomShape: 0
   ShapeCells: 01
   DragPivot: {x: 0.5, y: 0.5}
+  OutlineStyle: {fileID: 0}
   Id:
     Part1: 4124861026
     Part2: 1315853060
     Part3: 114603966
     Part4: 2244378015
+  NetworkDefinitionId: 8
+  IconSizeInCells: 0
   Icon: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
   Description: 

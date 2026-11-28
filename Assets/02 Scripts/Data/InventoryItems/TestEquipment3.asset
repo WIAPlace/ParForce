@@ -15,17 +15,27 @@ MonoBehaviour:
   Name: Potion
   category: 1
   equipmentType: 0
+  Actions: []
+  TooltipSections: []
+  LabelStyle: {fileID: 0}
   EquipmentEffects: []
+  WorldVisualPrefab: {fileID: 4865354873973234880, guid: 0be59913846c48440aaa2971f7c087b7, type: 3}
+  WorldVisualLocalPosition: {x: 0, y: 0, z: 0}
+  WorldVisualLocalEulerAngles: {x: 0, y: 0, z: 0}
+  WorldVisualScale: 1
   maxStack: 2
   GridWidth: 2
   GridHeight: 2
   UseCustomShape: 0
   ShapeCells: 01010101
   DragPivot: {x: 0.5, y: 0.5}
+  OutlineStyle: {fileID: 0}
   Id:
     Part1: 2903391651
     Part2: 1302905507
     Part3: 310840484
     Part4: 3852174694
+  NetworkDefinitionId: 3
+  IconSizeInCells: 0
   Icon: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
   Description: 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Systems.Inventory.Architecture;
@@ -29,6 +29,16 @@ namespace Systems.Inventory {
         [Header("Equipment Effects")]
         [Tooltip("Attribute modifiers applied while an instance of this item is equipped.")]
         public List<EquipmentEffectDefinition> EquipmentEffects = new List<EquipmentEffectDefinition>();
+
+        [Header("World Visual")]
+        [Tooltip("Optional local-only visual prefab instantiated beneath a NetworkWorldItem's Visual Root. It must not contain a NetworkObject. Enabled Collider components on active children become the item's local pickup collider(s); MeshColliders without a mesh and TerrainColliders without terrain data are ignored. When no usable visual colliders exist, the NetworkWorldItem root collider is used. When unset, the item Icon is used as a SpriteRenderer fallback.")]
+        public GameObject WorldVisualPrefab;
+        [Tooltip("Local position offset applied to the world visual prefab.")]
+        public Vector3 WorldVisualLocalPosition = Vector3.zero;
+        [Tooltip("Local Euler rotation applied to the world visual prefab.")]
+        public Vector3 WorldVisualLocalEulerAngles = Vector3.zero;
+        [Tooltip("Uniform scale multiplier applied on top of the visual prefab root's authored scale.")]
+        [Min(0.01f)] public float WorldVisualScale = 1f;
 
         
         [Tooltip("Maximum quantity in one stack. Applies to equipment too; equipment defaults to 1 unless explicitly increased.")]
@@ -63,6 +73,10 @@ namespace Systems.Inventory {
         
         public SerializableGuid Id = SerializableGuid.NewGuid();
 
+        [Header("Networking")]
+        [Tooltip("Stable compact ID used by the multiplayer item catalog. Zero is reserved as unassigned. Assign and validate IDs through a Network Item Definition Catalog; do not change an assigned ID without coordinating a network/content migration.")]
+        public ushort NetworkDefinitionId;
+
         
         private void OnValidate() {
             maxStack = Mathf.Max(1, maxStack);
@@ -73,6 +87,7 @@ namespace Systems.Inventory {
             while (ShapeCells.Count < requiredCells) ShapeCells.Add(true);
             while (ShapeCells.Count > requiredCells) ShapeCells.RemoveAt(ShapeCells.Count - 1);
             DragPivot = new Vector2(Mathf.Clamp01(DragPivot.x), Mathf.Clamp01(DragPivot.y));
+            WorldVisualScale = Mathf.Max(0.01f, WorldVisualScale);
         }
 
         private void AssignNewGuid() {

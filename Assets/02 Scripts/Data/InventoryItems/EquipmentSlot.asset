@@ -16,36 +16,48 @@ MonoBehaviour:
   - slotId: Head
     displayName: Head
     acceptedTypes: 01000000
+    networkSlotId: 1
   - slotId: Chest
     displayName: Chest
     acceptedTypes: 02000000
+    networkSlotId: 2
   - slotId: Legs
     displayName: Legs
     acceptedTypes: 03000000
+    networkSlotId: 3
   - slotId: Feet
     displayName: Feet
     acceptedTypes: 04000000
+    networkSlotId: 4
   - slotId: Hands
     displayName: Hands
     acceptedTypes: 05000000
-  - slotId: MainHand
-    displayName: Main Hand
-    acceptedTypes: 06000000
-  - slotId: OffHand
-    displayName: Off Hand
-    acceptedTypes: 07000000
+    networkSlotId: 5
+  - slotId: LeftHand
+    displayName: Left Hand
+    acceptedTypes: 0700000006000000
+    networkSlotId: 6
+  - slotId: RightHand
+    displayName: Right Hand
+    acceptedTypes: 0600000007000000
+    networkSlotId: 7
   - slotId: RingLeft
     displayName: Left Ring
     acceptedTypes: 08000000
+    networkSlotId: 8
   - slotId: RingRight
     displayName: Right Ring
     acceptedTypes: 08000000
+    networkSlotId: 9
   - slotId: Necklace
     displayName: Necklace
     acceptedTypes: 09000000
+    networkSlotId: 10
   - slotId: Accessory1
     displayName: Accessory 1
     acceptedTypes: 0a000000
+    networkSlotId: 11
   - slotId: Accessory2
     displayName: Accessory 2
     acceptedTypes: 0a000000
+    networkSlotId: 12

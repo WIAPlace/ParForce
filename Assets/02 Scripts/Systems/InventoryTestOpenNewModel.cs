@@ -13,9 +13,9 @@ public class InventoryTestOpenNewModel : MonoBehaviour
     [SerializeField] InventoryGridLayout inventoryGrid;
     private bool inventoryOpen;
     GridInventoryModel chestModel;
-    [SerializeField]InventoryPanelHost hostPanel;
-    [SerializeField]private Item rewardItem;
-    [SerializeField]InventoryPanelSession session;
+    [SerializeField] InventoryPanelHost hostPanel;
+    [SerializeField] private Item rewardItem;
+    [SerializeField] InventoryPanelSession session;
     [SerializeField] InventoryPanelCanvas canvas;
     [SerializeField, Range(.01f, 3f)] float size=1;
     private float currentSize;
@@ -37,6 +37,9 @@ public class InventoryTestOpenNewModel : MonoBehaviour
         inventoryOpen = false;
 
         hostPanel.Close();
+        
+        
+        
     }
 
     // Update is called once per frame
@@ -51,8 +54,20 @@ public class InventoryTestOpenNewModel : MonoBehaviour
     private void InteractTest()
     {
         inventoryOpen = !inventoryOpen;
-        if(!inventoryOpen) hostPanel.Open(chestModel,null);
-        else hostPanel.Close();
+        if(inventoryOpen) {
+            hostPanel.Open(chestModel,null);
+            
+            input.SetUI();
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+        }
+        else {
+            hostPanel.Close();
+            
+            input.SetPlayer();
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
     }
     private void JumpTest()
     {

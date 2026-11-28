@@ -117,6 +117,7 @@ public class InputReader : ScriptableObject, InputSystem.IPlayerActions, InputSy
     public event Action BlockCancelledEvent;
     public event Action InteractEvent;
     public event Action InteractCancelledEvent;
+    public event Action InteractUIEvent;
 
     ////// Player Events ///////////////
     /// 
@@ -219,6 +220,13 @@ public class InputReader : ScriptableObject, InputSystem.IPlayerActions, InputSy
         }
     }
 
+    public void OnInteractUI(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+        {
+            InteractUIEvent?.Invoke();
+        }
+    }
 
     ///////////////////////////////////////////////////////////////////////// Functions 
     
@@ -296,6 +304,8 @@ public class InputReader : ScriptableObject, InputSystem.IPlayerActions, InputSy
     {
         //throw new System.NotImplementedException();
     }
+
+    
 }
 
     ////// Examples ////////////////////

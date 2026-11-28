@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76905a8fa7e37fe46b20528decc694a2, type: 3}
   m_Name: HID_Sword
   m_EditorClassIdentifier: Assembly-CSharp::HID_Sword
-  serializedId: 1
+  serializedId: 2
   heldItemName: TestSword
   visualPrefab: {fileID: 4553138882470368957, guid: 065b7633c0c82f74983e5f32570f4a7c, type: 3}
   slotType: 1

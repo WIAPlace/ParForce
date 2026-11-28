@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5967045789604394841}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Ray1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40,7 +40,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2904408618934605039}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Ray2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -75,7 +75,7 @@ GameObject:
   - component: {fileID: 3110498315094735274}
   - component: {fileID: 9079567114542786486}
   - component: {fileID: 2224207892416094803}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: TestSword
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -210,7 +210,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5030150177941967829}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Ray3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -299,6 +299,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 3b8fdc47f4dab7947a172b87604fdf06, type: 3}
       propertyPath: m_Name
       value: Sword
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 3b8fdc47f4dab7947a172b87604fdf06, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

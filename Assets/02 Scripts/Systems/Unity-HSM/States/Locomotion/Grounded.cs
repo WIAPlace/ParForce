@@ -42,9 +42,6 @@ namespace HSM {
 
             Vector3 currVel = ctx.velocity;
             currVel.y = 0;
-            float multi = 1;
-            if(ctx.move.z < 0) multi = -1;
-            ctx.anim.SetFloat(PlayerContext.MotionHash,currVel.magnitude*multi);
         }
 
     }

@@ -32,6 +32,7 @@ namespace HSM {
         StateMachine actionMachine;
         State locomotionRoot;
         State actionRoot;
+        InventoryToEquipmentHUB iteHub;
 
         [Header("Testing Animancer")]
         public AnimationClip animationClip;
@@ -84,6 +85,7 @@ namespace HSM {
                 Debug.Log("Owner Set Up");
                 SetUpEvents();
 
+
                 ctx.cinCam = FindFirstObjectByType<CinemachineCamera>();
                 
                 if(ctx.cinCam != null){
@@ -100,6 +102,7 @@ namespace HSM {
                 containerPanelBinder =
                     FindAnyObjectByType<NetworkSharedInventoryContainerPanelBinder>();
                 
+                iteHub = new InventoryToEquipmentHUB(ctx.equipmentManager);
             }
         }
 
@@ -108,6 +111,7 @@ namespace HSM {
             if (IsOwner)
             {
                 EndEvents();
+                iteHub.UnInitialize();
             }
         }
 
@@ -311,17 +315,10 @@ namespace HSM {
             ctx.actionInputs[0].Add(false,ctx.currentTick);
         }
 
-        bool test=false;
         // Testing With this Button. "E"
         private void InteractEvent()
         {
-            if(!test){
-                ctx.equipmentManager.rightHandItemID.Value = 1; 
-                ctx.equipmentManager.leftHandItemID.Value = 1; 
-                test=true;
-                return;
-            }
-            if (Physics.Raycast(ctx.cinCamTransform.position, ctx.cinCamTransform.forward,
+            if (Physics.SphereCast(ctx.cinCamTransform.position, .1f, ctx.cinCamTransform.forward,
                 out RaycastHit hit,itemMask))
             {
                 NetworkWorldItem worldItem =
@@ -456,11 +453,16 @@ namespace HSM {
         public EquipmentManager equipmentManager;
         public NetworkItemSync sync;
         public HeldItemData[] Hand => equipmentManager.activeItems; // pointer to equipment in equipment manager
-        
+
+        //[Header("Inventory")]
+        //public PlayerInventoryOwner inventory;
+        //public NetworkInventoryCoordinator coordinator;
+
         [HideInInspector] public PlayerStateDriver psd;
 
         [HideInInspector] public Vector3 debugCurrentDir;
 
+        [Header("Actions")]
         public const int hands = 2; // ya, hands are more a matter of abilities rather than actual limbs. for now.
 
         // We will use this buffer for inputs so that after it occurs it will be thrown out
@@ -491,14 +493,9 @@ namespace HSM {
         
 
 
-        [Header("Layers")] // use instead of calling _anim, layers corispond to what is going on.
+        //[Header("Layers")] // use instead of calling _anim, layers corispond to what is going on.
         public AnimancerLayer baseLayer;
         public AnimancerLayer upperBodyLayer;
-
-        public static readonly int MotionHash = Animator.StringToHash("Motion");
-        public static readonly int IsCrouchHash = Animator.StringToHash("IsCrouch");
-        public static readonly int IsAttackHash = Animator.StringToHash("IsGrab");
-        public static readonly int IsHit = Animator.StringToHash("IsHit");
 
         public AnimClipHolder ach;
 

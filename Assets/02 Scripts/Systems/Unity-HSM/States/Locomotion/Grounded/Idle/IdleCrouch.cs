@@ -17,11 +17,11 @@ public class IdleCrouch : State
         if(ctx.crouching)
         {
             ctx.nas.UpdateMoveStateServerRpc(MoveState.Crouch);
-            ctx.anim.SetBool(PlayerContext.IsCrouchHash,true);
+            //ctx.anim.SetBool(PlayerContext.IsCrouchHash,true);
         }
     }
     protected override void OnExit()
     {
-        ctx.anim.SetBool(PlayerContext.IsCrouchHash,false);
+       // ctx.anim.SetBool(PlayerContext.IsCrouchHash,false);
     }
 }

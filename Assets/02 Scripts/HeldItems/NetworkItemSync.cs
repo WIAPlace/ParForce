@@ -2,6 +2,7 @@ using HSM;
 using Unity.Netcode;
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.UIElements;
 
 public class NetworkItemSync : NetworkBehaviour
 {
@@ -22,7 +23,7 @@ public class NetworkItemSync : NetworkBehaviour
         public float currentRadius;
         public Transform weaponSocket;
 
-        public CurrentItemInfo(HeldItemData newItem=null)
+        public CurrentItemInfo(HeldItemData newItem=null, Transform socket = null)
         {
             isTracing = false;
             currentItem = newItem;
@@ -30,7 +31,7 @@ public class NetworkItemSync : NetworkBehaviour
             hitTargets = new HashSet<NetworkObject>();
             currentSwingId = 0;
             currentRadius = .01f;
-            weaponSocket = null;
+            weaponSocket = socket;
         }
     } 
     private CurrentItemInfo[] currentItems = new CurrentItemInfo[PlayerContext.hands]
@@ -114,7 +115,7 @@ public class NetworkItemSync : NetworkBehaviour
     {
         if(currentItems[hand].isTracing) StopTrace(currentItems[hand].currentSwingId,hand);
         if (!IsServer || weapon == null || weapon.localPoints.Length == 0 ) return -1;
-        if(currentItems[hand].weaponSocket==null) return -1;
+        //if(currentItems[hand].weaponSocket==null) return -1;
         currentItems[hand].currentSwingId++; // update the ID so that hit ques wont overlap
         currentItems[hand].currentItem = weapon;
         currentItems[hand].hitTargets.Clear();
@@ -123,7 +124,7 @@ public class NetworkItemSync : NetworkBehaviour
         // Set where the weapon should originate from
         
         if(hand<2){
-            currentItems[hand].weaponSocket = hand==0 ? ctx.equipmentManager.leftHandBone : ctx.equipmentManager.rightHandBone;
+            currentItems[hand].weaponSocket = hand==0 ? psd.ctx.equipmentManager.leftHandBone : psd.ctx.equipmentManager.rightHandBone;
             sign = (hand*2)-1;
         }
         // Initialize previous points to the exact starting position of the active swing

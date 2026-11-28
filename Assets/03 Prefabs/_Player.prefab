@@ -337,7 +337,7 @@ CharacterController:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 1024
+    m_Bits: 3072
   m_LayerOverridePriority: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
@@ -361,7 +361,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b8d3f2a6c4e4b3b9d1f5a7c8e2b6d40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.PlayerInventoryOwner
-  initializationMode: 0
+  initializationMode: 1
   inventoryDisplayName: Player Inventory
   inventoryPanel: {fileID: 0}
   inventoryAppearance: {fileID: 0}

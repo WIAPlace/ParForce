@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using Systems.Inventory.Architecture.Persistence;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Systems.Inventory.Architecture
@@ -64,6 +65,18 @@ namespace Systems.Inventory.Architecture
 
         /// <summary>The configured equipment layout, available before model initialization.</summary>
         public EquipmentSlotLayout ConfiguredEquipmentSlotLayout => equipmentSlotLayout;
+
+        /// <summary> Weight of all the player's invenotry.
+        public int SlotWeight
+        {
+            get
+            {   
+                return inventoryFillAmnt + equipmentFillAmnt;
+            }
+        }
+        private int gridTotal => Inventory.TotalUsableCells;
+        private int inventoryFillAmnt => Inventory.OccupiedCells;
+        private int equipmentFillAmnt => Equipment.TotalGridEquivalentOccupiedCells; 
 
         /// <summary>
         /// Prevents automatic Awake initialization when this owner is attached to a

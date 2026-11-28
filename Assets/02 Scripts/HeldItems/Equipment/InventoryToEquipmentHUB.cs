@@ -58,7 +58,8 @@ public class InventoryToEquipmentHUB
                 break;
             default : break;
         }
-        Debug.Log(ece.SlotId + " : " + newId);
+        //Debug.Log(inventory.SlotWeight);
+        //Debug.Log(ece.SlotId + " : " + newId);
     }
 
     

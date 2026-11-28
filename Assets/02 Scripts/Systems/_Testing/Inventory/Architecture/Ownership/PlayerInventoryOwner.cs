@@ -35,7 +35,6 @@ namespace Systems.Inventory.Architecture
 
         [Header("Player Inventory")]
         [SerializeField] private string inventoryDisplayName = "Player Inventory";
-        [SerializeField] private InventoryPanelHost inventoryPanel;
         [SerializeField] private InventoryAppearance inventoryAppearance;
         [SerializeField] private InventoryGridLayout inventoryLayout;
         [SerializeField, Min(1)] private int fallbackGridWidth = 8;
@@ -45,7 +44,6 @@ namespace Systems.Inventory.Architecture
 
         [Header("Player Equipment")]
         [SerializeField] private string equipmentDisplayName = "Player Equipment";
-        [SerializeField] private InventoryPanelHost equipmentPanel;
         [SerializeField] private InventoryAppearance equipmentAppearance;
         [SerializeField] private EquipmentSlotLayout equipmentSlotLayout;
         [SerializeField] private List<ItemDetails> startingEquipmentItems = new List<ItemDetails>();
@@ -162,9 +160,6 @@ namespace Systems.Inventory.Architecture
         /// </summary>
         public void UnregisterInventories()
         {
-            inventoryPanel?.Close();
-            equipmentPanel?.Close();
-
             if (Inventory != null)
                 InventoryPersistence.Unregister(Inventory);
 
@@ -246,10 +241,6 @@ namespace Systems.Inventory.Architecture
 
             Inventory = gridInventory;
             Equipment = equipmentInventory;
-
-            inventoryPanel?.Open(Inventory, inventoryAppearance);
-            equipmentPanel?.Open(Equipment, equipmentAppearance);
-            Close();
             return true;
         }
 
@@ -304,20 +295,6 @@ namespace Systems.Inventory.Architecture
                         $"{name}: Starting inventory item '{item.details?.Name}' could not fit in the configured grid and was skipped.", this);
                 }
             }
-        }
-
-        /// <summary>Opens the dedicated inventory and equipment panels.</summary>
-        public void Open()
-        {
-            inventoryPanel?.Open();
-            equipmentPanel?.Open();
-        }
-
-        /// <summary>Closes the dedicated inventory and equipment panels.</summary>
-        public void Close()
-        {
-            inventoryPanel?.Close();
-            equipmentPanel?.Close();
         }
     }
 }

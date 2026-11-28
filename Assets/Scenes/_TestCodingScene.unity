@@ -2190,7 +2190,7 @@ GameObject:
   - component: {fileID: 381069414}
   - component: {fileID: 381069413}
   m_Layer: 5
-  m_Name: ChestInventory
+  m_Name: TempInventory
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5261,11 +5261,12 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 381069416}
   - {fileID: 340501202}
   - {fileID: 1333296456}
   - {fileID: 1752697225}
   - {fileID: 11639359}
+  - {fileID: 381069416}
+  - {fileID: 1807013178}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1110790802
@@ -5277,9 +5278,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1110790798}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd4063f3dd694c3780662753e94e1273, type: 3}
+  m_Script: {fileID: 11500000, guid: c41e376f1406a004d99b12cce1a76b08, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.Testing.NetworkInventoryIdentityTestRunner
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerUIManager
+  input: {fileID: 11400000, guid: 028443aff179f3d449dd3efec43aa392, type: 2}
+  inventory: {fileID: 1807013177}
+  axisController: {fileID: 1068834752}
 --- !u!4 &1113922379 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3466060982681876224, guid: d083a1a0db22d7445ad75aa8edf04306, type: 3}
@@ -5962,7 +5966,7 @@ MonoBehaviour:
   styleSheet: {fileID: 0}
   interactionStyleSheet: {fileID: 7433441132597879392, guid: eccc965172c0aed46b1712cd82df232c, type: 3}
   session: {fileID: 340501201}
-  globalScale: 1
+  globalScale: 1.5
   defaultObjectBorderColor: {r: 0.41, g: 0.45, b: 0.51, a: 1}
   defaultItemHoverOutlineColor: {r: 0.92, g: 0.82, b: 0.42, a: 1}
 --- !u!114 &1333296455
@@ -6964,7 +6968,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Systems.Inventory.Architecture.LocalPlayerInventoryPanelBinder
   inventoryPanel: {fileID: 1752697223}
   equipmentPanel: {fileID: 11639357}
-  openPanelsWhenBound: 1
+  openPanelsWhenBound: 0
   closePanelsWhenUnbound: 1
 --- !u!4 &1807013178
 Transform:
@@ -6974,12 +6978,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1807013176}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 85.06292, y: 2.99142, z: -2.15271}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1110790801}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1816084207 stripped
 Transform:
@@ -7406,12 +7410,11 @@ SceneRoots:
   m_Roots:
   - {fileID: 648801127}
   - {fileID: 1068834755}
-  - {fileID: 1663347341}
   - {fileID: 437998119}
   - {fileID: 57142122}
   - {fileID: 1922210364}
+  - {fileID: 1110790801}
+  - {fileID: 1663347341}
   - {fileID: 945775919}
   - {fileID: 422146974}
   - {fileID: 376842841}
-  - {fileID: 1110790801}
-  - {fileID: 1807013178}

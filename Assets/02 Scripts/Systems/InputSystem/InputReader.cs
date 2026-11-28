@@ -118,6 +118,9 @@ public class InputReader : ScriptableObject, InputSystem.IPlayerActions, InputSy
     public event Action InteractEvent;
     public event Action InteractCancelledEvent;
     public event Action InteractUIEvent;
+    public event Action OpenInventoryEvent;
+    public event Action OpenMenuEvent;
+    public event Action CloseUIEvent;
 
     ////// Player Events ///////////////
     /// 
@@ -199,7 +202,45 @@ public class InputReader : ScriptableObject, InputSystem.IPlayerActions, InputSy
         }
     }
 
+    public void OnOpenInventory(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+        {
+            OpenInventoryEvent?.Invoke();
+        }
+    }
 
+    public void OnOpenMenu(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+        {
+            OpenMenuEvent?.Invoke();
+        }
+    }
+
+    
+    ////// UI Events ///////////////////
+    /// 
+    public void OnInteractUI(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+        {
+            InteractUIEvent?.Invoke();
+        }
+    }
+
+    public void OnCloseUI(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+        {
+            CloseUIEvent?.Invoke();
+        }
+    }
+
+
+    ////// Helper Events ////////////////
+    /// 
+    
     public void OnPause(InputAction.CallbackContext context) // PAUSE
     {
         if (context.phase == InputActionPhase.Performed)
@@ -209,22 +250,12 @@ public class InputReader : ScriptableObject, InputSystem.IPlayerActions, InputSy
         }
     }
 
-    ////// UI Events ///////////////////
-    /// 
     public void OnResume(InputAction.CallbackContext context) // RESUME
     {
         if (context.phase == InputActionPhase.Performed)
         {
             ResumeEvent.Invoke();
             SetPlayer();
-        }
-    }
-
-    public void OnInteractUI(InputAction.CallbackContext context)
-    {
-        if (context.phase == InputActionPhase.Performed)
-        {
-            InteractUIEvent?.Invoke();
         }
     }
 

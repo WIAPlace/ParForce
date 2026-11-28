@@ -33,6 +33,8 @@ namespace HSM {
         State locomotionRoot;
         State actionRoot;
         InventoryToEquipmentHUB iteHub;
+        PlayerUIManager uiManager;
+        
 
         [Header("Testing Animancer")]
         public AnimationClip animationClip;
@@ -103,6 +105,8 @@ namespace HSM {
                     FindAnyObjectByType<NetworkSharedInventoryContainerPanelBinder>();
                 
                 iteHub = new InventoryToEquipmentHUB(ctx.equipmentManager);
+                uiManager = FindFirstObjectByType<PlayerUIManager>();
+                if(uiManager != null) uiManager.Initialize();
             }
         }
 
@@ -112,6 +116,7 @@ namespace HSM {
             {
                 EndEvents();
                 iteHub.UnInitialize();
+                if(uiManager != null) uiManager.UnInitialize();
             }
         }
 

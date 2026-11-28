@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Systems.Inventory.Architecture.Persistence;
+using System;
 
 namespace Systems.Inventory.Architecture
 {
@@ -39,6 +40,9 @@ namespace Systems.Inventory.Architecture
         public bool IsOpen => Model != null && controller != null &&
             ReferenceEquals(controller.BoundModel, Model);
 
+        /// <summary>Close all UI panels in scene, usefull for exit UI in PlayerUIManager.
+        private static event Action OnCloseAllRequested;
+
         private void OnValidate()
         {
             if (inventoryId == SerializableGuid.Empty)
@@ -59,6 +63,7 @@ namespace Systems.Inventory.Architecture
                 Debug.LogError($"{name}: Equipment storage is enabled, but no EquipmentSlotLayout is assigned.", this);
                 yield break;
             }
+            OnCloseAllRequested += Close;
             //Open(CreateConfiguredModel(), defaultAppearance);
         }
 
@@ -84,6 +89,7 @@ namespace Systems.Inventory.Architecture
         /// </summary>
         public void Open()
         {   // just open with the saved model.
+            //Debug.Log("Opened");
             if(Model == null) // if no model is saved we will need to make one
             {   
                 // like in start up just make one from scratch.
@@ -192,9 +198,16 @@ namespace Systems.Inventory.Architecture
 
         private void OnDestroy()
         {
+
+            OnCloseAllRequested -= Close;
             // Registered models intentionally outlive their panel host. This allows
             // closed/world-container inventories to remain available to the save system.
             controller?.Dispose();
+        }
+
+        public static void CloseAll()
+        {
+            OnCloseAllRequested?.Invoke();
         }
     }
 }

@@ -41,8 +41,8 @@ namespace HSM {
         private NetworkSharedInventoryContainerPanelBinder containerPanelBinder;
 
         void Awake() {
-            //Cursor.visible = false;
-            //Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
             ctx.LoadContext(pcl);
 
             locomotionRoot = new LocomotionRoot(null, ctx);
